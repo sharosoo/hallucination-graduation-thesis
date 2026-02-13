@@ -1,0 +1,267 @@
+% TikZ 다이어그램 - 학술 논문 스타일
+% 색상 팔레트 정의
+\definecolor{primaryblue}{RGB}{31,119,180}
+\definecolor{secondaryorange}{RGB}{255,127,14}
+\definecolor{accentgreen}{RGB}{44,160,44}
+\definecolor{accentpurple}{RGB}{148,103,189}
+\definecolor{neutralgray}{RGB}{127,127,127}
+\definecolor{lightgray}{RGB}{200,200,200}
+\definecolor{hallred}{RGB}{214,39,40}
+\definecolor{normgreen}{RGB}{44,160,44}
+
+%=============================================================================
+% Figure 1: SE-Gated Cascade 개념도 (깔끔한 플로우차트)
+%=============================================================================
+\newcommand{\cascadediagram}{
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    >={Stealth[length=2.5mm]},
+    box/.style={
+        rectangle, draw=black!70, line width=0.8pt,
+        rounded corners=2pt, minimum width=3cm, minimum height=0.9cm,
+        align=center, font=\small
+    },
+    inputbox/.style={box, fill=lightgray!30},
+    processbox/.style={box, fill=primaryblue!15},
+    energybox/.style={box, fill=secondaryorange!20},
+    outputbox/.style={box, fill=accentgreen!20},
+    decision/.style={
+        diamond, draw=black!70, line width=0.8pt,
+        aspect=2.5, minimum width=2cm, align=center, font=\small,
+        fill=accentpurple!15
+    },
+    arrow/.style={->, line width=0.8pt, black!70},
+    label/.style={font=\scriptsize, text=black!60}
+]
+
+% 상단: 입력 → 샘플링 → 클러스터링 (가로)
+\node[inputbox] (input) {Input: 질문 $q$};
+\node[processbox, right=2cm of input] (sample) {LLM 샘플링 ($K$=5)};
+\node[processbox, right=2cm of sample] (cluster) {NLI 클러스터링};
+
+% 중단: 메트릭 계산 (병렬)
+\node[processbox, below left=1.5cm and 0.3cm of cluster] (se) {SE 계산};
+\node[energybox, below right=1.5cm and 0.3cm of cluster] (energy) {Energy 계산};
+
+% 하단: 분기 및 출력
+\node[decision, below=2.5cm of cluster] (gate) {$|C|=1$?};
+\node[outputbox, below=1.8cm of gate] (output) {환각 점수};
+
+% 화살표
+\draw[arrow] (input) -- (sample);
+\draw[arrow] (sample) -- (cluster);
+\draw[arrow] (cluster) -- (se);
+\draw[arrow] (cluster) -- (energy);
+\draw[arrow] (se) -- (gate);
+\draw[arrow] (energy) -- (gate);
+\draw[arrow] (gate) -- node[right, label] {Energy (Yes) / SE (No)} (output);
+
+% 클러스터 수 표시
+\node[font=\scriptsize, text=black!50, right=0.1cm of cluster] {$\rightarrow |C|$};
+
+\end{tikzpicture}
+}
+
+%=============================================================================
+% Figure 2: Zero-SE 현상 요약 (3-panel) - 완전 정렬 버전
+%=============================================================================
+\newcommand{\zerosefigure}{
+\centering
+\begin{tikzpicture}[font=\small]
+
+% 모든 패널: y=0 ~ y=2.5 범위, 제목은 y=-0.5
+
+% Panel A: 파이 차트 (하단을 y=0에 맞춤, 중심=radius)
+\begin{scope}
+    \def\radius{1.1}
+    \def\centery{1.1}  % 중심 y = radius이면 하단이 y=0
+    \fill[primaryblue!50] (0,\centery) circle (\radius);
+    \fill[hallred!60] (0,\centery) -- ++(90:\radius) arc (90:21.6:\radius) -- cycle;
+    
+    \node[font=\scriptsize, white] at ($(0,\centery)+(55:0.7)$) {\textbf{19\%}};
+    \node[font=\scriptsize, white] at ($(0,\centery)+(-70:0.6)$) {\textbf{81\%}};
+    
+    % 범례 (막대 차트 높이에 맞춤)
+    \fill[hallred!60] (1.5,1.8) rectangle (1.75,2.0);
+    \node[font=\tiny, anchor=west] at (1.8, 1.9) {Zero-SE};
+    \fill[primaryblue!50] (1.5,1.4) rectangle (1.75,1.6);
+    \node[font=\tiny, anchor=west] at (1.8, 1.5) {Non-Zero};
+\end{scope}
+\node[font=\scriptsize\bfseries] at (0,-0.5) {(a) Zero-SE 비율};
+\node[font=\tiny, text=black!60] at (0,-0.85) {n=200};
+
+% Panel B: 환각/정상 막대 (y=0 ~ 2.5)
+\begin{scope}[xshift=5cm]
+    \draw[->, black!70] (0,0) -- (0,2.6);
+    \draw[->, black!70] (0,0) -- (2.5,0);
+    
+    \fill[hallred!60] (0.3,0) rectangle (0.95,2.15);
+    \node[font=\scriptsize] at (0.625,2.3) {\textbf{28}};
+    
+    \fill[normgreen!60] (1.3,0) rectangle (1.95,0.77);
+    \node[font=\scriptsize] at (1.625,0.92) {\textbf{10}};
+    
+    \node[font=\tiny] at (0.625,-0.2) {환각};
+    \node[font=\tiny] at (1.625,-0.2) {정상};
+    
+    \node[font=\tiny, anchor=east] at (-0.05,0) {0};
+    \node[font=\tiny, anchor=east] at (-0.05,2.15) {28};
+\end{scope}
+\node[font=\scriptsize\bfseries] at (6.1,-0.5) {(b) Zero-SE 구성};
+\node[font=\tiny, text=black!60] at (6.1,-0.85) {환각률: 73.7\%};
+
+% Panel C: Energy AUROC (y=0 ~ 2.5)
+\begin{scope}[xshift=9.2cm]
+    \draw[->, black!70] (0,0) -- (0,2.6);
+    \draw[->, black!70] (0,0) -- (2,0);
+    
+    \draw[dashed, black!40, line width=0.5pt] (0,1.25) -- (1.7,1.25);
+    \node[font=\tiny, text=black!40, anchor=west] at (1.4,1.35) {0.5};
+    
+    \fill[secondaryorange!70] (0.4,0) rectangle (1.2,1.84);
+    \node[font=\scriptsize] at (0.8,2.0) {\textbf{0.736}};
+    
+    \node[font=\tiny] at (0.8,-0.2) {Energy};
+    
+    \node[font=\tiny, anchor=east] at (-0.05,0) {0};
+    \node[font=\tiny, anchor=east] at (-0.05,2.5) {1.0};
+\end{scope}
+\node[font=\scriptsize\bfseries] at (10,-0.5) {(c) Zero-SE 탐지};
+
+\end{tikzpicture}
+}
+
+%=============================================================================
+% Figure 3: SE vs Energy Crossover (Grouped Bar)
+%=============================================================================
+\newcommand{\crossoverfigure}{
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    width=11cm, height=6.5cm,
+    bar width=14pt,
+    ylabel={AUROC},
+    ylabel style={font=\small},
+    ymin=0, ymax=0.9,
+    xtick={1,2,3},
+    xticklabels={Zero-SE\\{\tiny $|C|=1$}, Medium\\{\tiny $0.5<\text{SE}\leq1$}, High\\{\tiny $\text{SE}>1$}},
+    xticklabel style={align=center, font=\small},
+    tick label style={font=\small},
+    legend style={
+        at={(0.98,0.98)}, anchor=north east, 
+        font=\small, 
+        draw=none, fill=white, fill opacity=0.8,
+        legend columns=1
+    },
+    nodes near coords,
+    nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2},
+    axis lines=left,
+    enlarge x limits=0.25,
+    extra y ticks={0.5},
+    extra y tick style={grid=major, grid style={dashed, lightgray, line width=0.5pt}},
+    extra y tick labels={},
+    ymajorgrids=false,
+]
+\addplot[fill=primaryblue!70, draw=primaryblue] coordinates {(1,0.001) (2,0.61) (3,0.66)};
+\addplot[fill=secondaryorange!70, draw=secondaryorange] coordinates {(1,0.74) (2,0.52) (3,0.42)};
+\legend{SE, Energy}
+\end{axis}
+
+% 주석
+% (요청 반영) 우세 방향 화살표/주석 제거
+
+\end{tikzpicture}
+}
+
+%=============================================================================
+% Figure 4: 상보성 분석 - 단순 막대 그래프
+%=============================================================================
+\newcommand{\complementarityfigure}{
+\centering
+\begin{tikzpicture}[font=\small]
+% 축
+\draw[->] (0,0) -- (0,5.5);
+\draw[->] (0,0) -- (10,0);
+
+% Y축 라벨 및 눈금
+\node[font=\small, rotate=90, anchor=south] at (-0.6,2.75) {환각 샘플 수};
+\foreach \y/\val in {0/0, 1.08/20, 2.16/40, 3.24/60, 4.32/80, 5.4/108} {
+    \draw (-0.1,\y) -- (0.1,\y);
+}
+\node[font=\tiny, left] at (0,0) {0};
+\node[font=\tiny, left] at (0,2.7) {50};
+\node[font=\tiny, left] at (0,5.4) {108};
+
+% 막대 1: SE만 (22)
+\fill[primaryblue!70] (0.8,0) rectangle (2,1.1);
+\node[font=\scriptsize] at (1.4,1.3) {22};
+\node[font=\tiny, text=black!60] at (1.4,1.6) {(13.4\%)};
+\node[font=\scriptsize, align=center] at (1.4,-0.4) {SE만\\탐지};
+
+% 막대 2: Energy만 (22)
+\fill[secondaryorange!70] (2.8,0) rectangle (4,1.1);
+\node[font=\scriptsize] at (3.4,1.3) {22};
+\node[font=\tiny, text=black!60] at (3.4,1.6) {(13.4\%)};
+\node[font=\scriptsize, align=center] at (3.4,-0.4) {Energy만\\탐지};
+
+% 막대 3: 둘 다 (12)
+\fill[accentpurple!60] (4.8,0) rectangle (6,0.6);
+\node[font=\scriptsize] at (5.4,0.8) {12};
+\node[font=\tiny, text=black!60] at (5.4,1.1) {(7.3\%)};
+\node[font=\scriptsize, align=center] at (5.4,-0.4) {둘 다\\탐지};
+
+% 막대 4: 미탐지 (108)
+\fill[neutralgray!50] (6.8,0) rectangle (8,5.4);
+\node[font=\scriptsize] at (7.4,5.6) {108};
+\node[font=\tiny, text=black!60] at (7.4,5.9) {(65.9\%)};
+\node[font=\scriptsize, align=center] at (7.4,-0.4) {미탐지};
+
+% 합집합 강조 박스
+\draw[rounded corners=3pt, fill=accentgreen!15, draw=accentgreen!60, line width=1pt] 
+    (0.5, 6.3) rectangle (5.5, 7.0);
+\node[font=\small] at (3, 6.65) {합집합 탐지율: \textbf{34.1\%}};
+
+% 제목
+\node[font=\small\bfseries] at (4.5, 7.5) {상보성 분석 (n=164 환각)};
+
+\end{tikzpicture}
+}
+
+%=============================================================================
+% Figure 5: 전체 성능 비교 (Simple Bar)
+%=============================================================================
+\newcommand{\overallfigure}{
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    width=9cm, height=6cm,
+    bar width=28pt,
+    ylabel={AUROC},
+    ylabel style={font=\small},
+    ymin=0.45, ymax=0.70,
+    xtick={1,2,3},
+    xticklabels={SE-only, Energy-only, Cascade},
+    xticklabel style={font=\small},
+    tick label style={font=\small},
+    nodes near coords,
+    nodes near coords style={font=\small, /pgf/number format/.cd, fixed, precision=3},
+    axis lines=left,
+    enlarge x limits=0.35,
+    extra y ticks={0.5},
+    extra y tick style={grid=major, grid style={dashed, lightgray}},
+    extra y tick labels={},
+]
+\addplot[fill=primaryblue!70, draw=primaryblue, bar shift=0pt] coordinates {(1,0.613)};
+\addplot[fill=secondaryorange!70, draw=secondaryorange, bar shift=0pt] coordinates {(2,0.550)};
+\addplot[fill=accentgreen!70, draw=accentgreen, bar shift=0pt] coordinates {(3,0.642)};
+\end{axis}
+
+% 개선 화살표
+\draw[->, line width=1pt, accentgreen!70!black] (6.8, 4.2) -- (6.8, 5.0);
+\node[font=\scriptsize, text=accentgreen!70!black, anchor=south] at (6.8, 5.1) {\textbf{+0.029}};
+
+% Cascade 설명
+\node[font=\tiny, text=black!60, align=center, anchor=north] at (6.8, 0.8) {$|C|=1 \rightarrow$ Energy\\otherwise $\rightarrow$ SE};
+
+\end{tikzpicture}
+}

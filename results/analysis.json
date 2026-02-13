@@ -1,0 +1,55 @@
+{
+  "n_samples": 200,
+  "n_hallucination": 164,
+  "n_normal": 36,
+  "overall": {
+    "se_auroc": 0.6132283197831978,
+    "energy_auroc": 0.5497967479674797
+  },
+  "zero_se": {
+    "n": 38,
+    "percentage": 19.0,
+    "n_hall": 28,
+    "n_norm": 10,
+    "hall_rate": 73.68421052631578,
+    "energy_auroc": 0.7357142857142858
+  },
+  "bins": [
+    {
+      "name": "Zero [0, 0.1]",
+      "n": 38,
+      "hall_rate": 73.68421052631578,
+      "se_auc": null,
+      "energy_auc": 0.7357142857142858,
+      "winner": "Energy"
+    },
+    {
+      "name": "Medium (0.5, 1.0]",
+      "n": 67,
+      "hall_rate": 82.08955223880598,
+      "se_auc": 0.6090909090909091,
+      "energy_auc": 0.5212121212121212,
+      "winner": "SE"
+    },
+    {
+      "name": "High (1.0+)",
+      "n": 95,
+      "hall_rate": 85.26315789473684,
+      "se_auc": 0.658289241622575,
+      "energy_auc": 0.42239858906525574,
+      "winner": "SE"
+    }
+  ],
+  "cascade": {
+    "best_tau": 0.55,
+    "best_auroc": 0.642699864498645,
+    "improvement": 0.029471544715447218
+  },
+  "complementarity": {
+    "se_only": 22,
+    "energy_only": 22,
+    "both": 12,
+    "neither": 108,
+    "union_rate": 34.146341463414636
+  }
+}

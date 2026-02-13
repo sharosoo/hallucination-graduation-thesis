@@ -1,0 +1,181 @@
+% 실험 방법 섹션 (main.tex에 \input으로 포함)
+% 이 파일은 \chapter{실험} 아래 \section{실험 설정}을 대체함
+
+\section{실험 설정}
+
+본 절에서는 제안하는 SE-gated cascade 방법의 성능을 검증하기 위한 실험 설정을 상세히 기술한다.
+
+\subsection{데이터셋}
+
+TruthfulQA 데이터셋의 generation split에서 무작위로 선택한 200개 샘플을 사용하였다. 이 데이터셋은 Lin 등(2022)이 인간이 흔히 가지는 오개념(misconception)을 유도하는 질문들로 구성한 것으로, LLM의 환각 탐지 연구에 널리 사용된다.
+
+\begin{table}[htbp]
+\centering
+\caption{실험 데이터셋 통계}
+\label{tab:dataset}
+\begin{tabular}{@{}lr@{}}
+\toprule
+항목 & 값 \\
+\midrule
+실험 샘플 수 & 200 \\
+환각 샘플 & 164 (82.0\%) \\
+정상 샘플 & 36 (18.0\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+각 질문에는 복수의 정답(correct\_answers)과 오답(incorrect\_answers)이 레이블링되어 있으며, LLM 응답이 정답 중 하나와 부분 일치하면 정상(0), 아니면 환각(1)으로 분류하였다.
+
+
+\subsection{실험 파이프라인}
+
+실험 파이프라인은 그림~\ref{fig:pipeline}과 같이 네 단계로 구성된다.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=1.8cm, auto,
+    block/.style={rectangle, draw, fill=blue!10, text width=6cm, text centered, rounded corners, minimum height=1cm},
+    arrow/.style={->, >=stealth, thick}]
+    
+    \node[block] (sample) {1. 다중 응답 샘플링\\{\small LLM으로부터 K=5개 응답 생성}};
+    \node[block, below of=sample] (cluster) {2. 의미적 클러스터링\\{\small NLI 모델로 응답 그룹화}};
+    \node[block, below of=cluster] (compute) {3. 메트릭 계산\\{\small SE, Energy 동시 계산}};
+    \node[block, below of=compute] (eval) {4. 환각 판정 및 평가\\{\small 정답 비교 + AUROC 계산}};
+    
+    \draw[arrow] (sample) -- (cluster);
+    \draw[arrow] (cluster) -- (compute);
+    \draw[arrow] (compute) -- (eval);
+\end{tikzpicture}
+\caption{실험 파이프라인 개요}
+\label{fig:pipeline}
+\end{figure}
+
+
+\subsubsection{Step 1: 다중 응답 샘플링}
+
+각 질문 $q$에 대해 LLM으로부터 $K=5$개의 응답을 샘플링한다. 프롬프트는 다음과 같이 구성하였다:
+
+\begin{lstlisting}[caption={응답 샘플링 프롬프트}, label={lst:prompt}]
+[System] Answer the question concisely in one sentence.
+[User] {question}
+\end{lstlisting}
+
+생성 파라미터:
+\begin{itemize}
+    \item \textbf{Temperature}: 0.7 (다양성 확보와 품질 균형)
+    \item \textbf{Max tokens}: 50 (간결한 응답 유도)
+    \item \textbf{Do sample}: True (확률적 샘플링)
+\end{itemize}
+
+각 응답에 대해 생성된 토큰의 raw logit 값을 함께 저장하여 Semantic Energy 계산에 활용한다.
+
+
+\subsubsection{Step 2: 의미적 클러스터링}
+
+$K$개의 응답을 NLI(Natural Language Inference) 모델을 사용하여 의미적으로 클러스터링한다.
+
+\begin{algorithm}[htbp]
+\caption{NLI 기반 의미적 클러스터링}
+\label{alg:clustering}
+\begin{algorithmic}[1]
+\REQUIRE 응답 집합 $R = \{r_1, r_2, ..., r_K\}$
+\ENSURE 클러스터 집합 $C$
+\STATE $C \leftarrow \emptyset$
+\FOR{each $r_i \in R$}
+    \STATE $assigned \leftarrow False$
+    \FOR{each cluster $c \in C$}
+        \STATE $rep \leftarrow$ representative of $c$
+        \IF{$\text{NLI}(r_i, rep) = \text{entailment} \land \text{NLI}(rep, r_i) = \text{entailment}$}
+            \STATE Add $r_i$ to $c$
+            \STATE $assigned \leftarrow True$
+            \STATE \textbf{break}
+        \ENDIF
+    \ENDFOR
+    \IF{not $assigned$}
+        \STATE Create new cluster $c_{new} = \{r_i\}$
+        \STATE $C \leftarrow C \cup \{c_{new}\}$
+    \ENDIF
+\ENDFOR
+\RETURN $C$
+\end{algorithmic}
+\end{algorithm}
+
+두 응답이 양방향 entailment 관계에 있으면 의미적으로 동등하다고 판단하여 같은 클러스터에 배치한다.
+
+
+\subsubsection{Step 3: 메트릭 계산}
+
+\paragraph{Semantic Entropy (SE)}
+클러스터 분포로부터 Shannon entropy를 계산한다:
+\begin{equation}
+    SE = -\sum_{c \in C} p(c) \log p(c), \quad p(c) = \frac{|c|}{K}
+\end{equation}
+
+\paragraph{Semantic Energy}
+각 응답의 raw logit 값으로부터 에너지를 계산한다:
+\begin{equation}
+    Energy = -\frac{1}{K} \sum_{i=1}^{K} \frac{1}{T_i} \sum_{t=1}^{T_i} \ell_{i,t}
+\end{equation}
+여기서 $\ell_{i,t}$는 $i$번째 응답의 $t$번째 토큰 logit이고, $T_i$는 응답 길이이다.
+
+
+\subsubsection{Step 4: 환각 판정 및 평가}
+
+\paragraph{환각 레이블링}
+$K$개 응답 중 하나라도 정답(correct\_answers)과 부분 일치하면 해당 샘플을 정상(0)으로, 모든 응답이 오답이면 환각(1)으로 레이블링한다.
+
+\paragraph{평가 지표}
+환각 탐지 성능은 다음 지표로 측정한다:
+\begin{itemize}
+    \item \textbf{AUROC}: Area Under ROC Curve. 클래스 불균형에 강건.
+    \item \textbf{AUPRC}: Area Under Precision-Recall Curve.
+\end{itemize}
+
+
+\subsection{모델 설정}
+
+\begin{table}[htbp]
+\centering
+\caption{실험에 사용된 모델}
+\label{tab:models}
+\begin{tabular}{@{}lll@{}}
+\toprule
+역할 & 모델 & 비고 \\
+\midrule
+LLM (응답 생성) & Qwen2.5-3B-Instruct & HuggingFace Transformers \\
+NLI (클러스터링) & DeBERTa-large-mnli & 3-way classification \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{LLM 선택 근거}
+Qwen2.5-3B-Instruct는 instruction-tuned 모델로, 질의응답에 적합하며 3B 파라미터로 실험 효율성을 확보하였다. 대형 모델(GPT-5 등)과의 비교는 향후 연구로 남긴다.
+
+\paragraph{NLI 모델 선택 근거}
+DeBERTa-large-mnli는 MNLI 벤치마크에서 90\% 이상의 정확도를 달성한 모델로, Semantic Entropy 원 논문(Farquhar et al., 2024)에서도 사용되었다.
+
+
+\subsection{실험 환경}
+
+\begin{table}[htbp]
+\centering
+\caption{실험 환경}
+\label{tab:environment}
+\begin{tabular}{@{}ll@{}}
+\toprule
+항목 & 설정 \\
+\midrule
+GPU & NVIDIA RTX 5090 (32GB) \\
+CUDA & 12.1 \\
+Python & 3.11 \\
+PyTorch & 2.1.0 \\
+Transformers & 4.36.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{재현성}
+
+본 연구의 실험 코드는 GitHub 저장소에서 제공되며, README에 환경 설정 및 실험 재현 방법이 기술되어 있다.
+전체 200개 샘플 실험에 약 10분이 소요된다.

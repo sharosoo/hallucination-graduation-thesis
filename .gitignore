@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+
+# experiment outputs
+output/
+
+# LaTeX build artifacts
+thesis/*.aux
+thesis/*.log
+thesis/*.lof
+thesis/*.lot
+thesis/*.toc
+thesis/*.out
+thesis/*.fls
+thesis/*.fdb_latexmk
+
+# editor/system
+.DS_Store
+.vscode/
