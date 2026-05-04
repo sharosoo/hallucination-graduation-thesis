@@ -1,0 +1,216 @@
+{
+  "generated_at": "2026-05-04T10:57:40.393848+00:00",
+  "source_artifact_paths": {
+    "type_analysis": "experiments/results/type_analysis/summary.json",
+    "fusion": "experiments/results/fusion/summary.json",
+    "fusion_report": "experiments/results/fusion/report.md",
+    "robustness": "experiments/results/robustness/summary.json"
+  },
+  "table_path": "experiments/results/thesis_evidence_table.tex",
+  "method_name": "Corpus-Grounded Selective Fusion Detector",
+  "row_count": 1000,
+  "datasets": [
+    "HaluEval-QA",
+    "HaluEval-dialogue",
+    "Natural Questions",
+    "TriviaQA",
+    "TruthfulQA"
+  ],
+  "label_counts": {
+    "NORMAL": 402,
+    "HIGH_DIVERSITY": 481,
+    "LOW_DIVERSITY": 117,
+    "AMBIGUOUS_INCORRECT": 0
+  },
+  "label_presence_explanations": {
+    "AMBIGUOUS_INCORRECT": "No incorrect sample in the current corpus feature rows fell inside 0.1 < SE <= 0.5, so the gray-zone label is absent in this export instead of being force-filled."
+  },
+  "baselines": [
+    {
+      "method_name": "SE-only",
+      "status": "ok",
+      "auroc": 0.6752441804356145,
+      "auprc": 0.7164119594601905,
+      "f1": 0.7388632872503841,
+      "unavailable_reason": null,
+      "full_logits_required": false,
+      "rerun_required": false
+    },
+    {
+      "method_name": "Energy-only",
+      "status": "unavailable",
+      "auroc": null,
+      "auprc": null,
+      "f1": null,
+      "unavailable_reason": "full_logits_required",
+      "full_logits_required": true,
+      "rerun_required": true
+    },
+    {
+      "method_name": "corpus-risk-only",
+      "status": "ok",
+      "auroc": 0.4991326810762242,
+      "auprc": 0.6031212043034736,
+      "f1": 0.741955835962145,
+      "unavailable_reason": null,
+      "full_logits_required": false,
+      "rerun_required": false
+    },
+    {
+      "method_name": "fixed linear 0.1/0.9",
+      "status": "unavailable",
+      "auroc": null,
+      "auprc": null,
+      "f1": null,
+      "unavailable_reason": "full_logits_required",
+      "full_logits_required": true,
+      "rerun_required": true
+    },
+    {
+      "method_name": "fixed linear 0.5/0.5",
+      "status": "unavailable",
+      "auroc": null,
+      "auprc": null,
+      "f1": null,
+      "unavailable_reason": "full_logits_required",
+      "full_logits_required": true,
+      "rerun_required": true
+    },
+    {
+      "method_name": "fixed linear 0.9/0.1",
+      "status": "unavailable",
+      "auroc": null,
+      "auprc": null,
+      "f1": null,
+      "unavailable_reason": "full_logits_required",
+      "full_logits_required": true,
+      "rerun_required": true
+    },
+    {
+      "method_name": "hard cascade",
+      "status": "unavailable",
+      "auroc": null,
+      "auprc": null,
+      "f1": null,
+      "unavailable_reason": "full_logits_required",
+      "full_logits_required": true,
+      "rerun_required": true
+    },
+    {
+      "method_name": "learned fusion without corpus",
+      "status": "ok",
+      "auroc": 0.4772937153696401,
+      "auprc": 0.604289402726488,
+      "f1": 0.7484355444305382,
+      "unavailable_reason": null,
+      "full_logits_required": false,
+      "rerun_required": false
+    },
+    {
+      "method_name": "learned fusion with corpus",
+      "status": "ok",
+      "auroc": 0.44420664237341717,
+      "auprc": 0.5936572926521888,
+      "f1": 0.6795986622073579,
+      "unavailable_reason": null,
+      "full_logits_required": false,
+      "rerun_required": false
+    }
+  ],
+  "headline_metrics": {
+    "se_only_auroc": 0.6752441804356145,
+    "corpus_risk_only_auroc": 0.4991326810762242,
+    "learned_fusion_without_corpus_auroc": 0.4772937153696401,
+    "learned_fusion_with_corpus_auroc": 0.44420664237341717,
+    "learned_fusion_with_minus_without_corpus_auroc": -0.03308707299622293,
+    "learned_fusion_with_minus_without_corpus_auprc": -0.010632110074299206
+  },
+  "energy_status": {
+    "status": "full_logits_required",
+    "full_logits_required": true,
+    "rerun_required": true,
+    "true_boltzmann_available": false,
+    "message": "Current upstream artifacts do not expose row-level full logits, so paper-faithful Ma/Boltzmann Semantic Energy cannot be computed or validated for thesis/fusion claims.",
+    "rerun_instructions": "True Boltzmann semantic energy is unavailable from the current upstream artifacts. Re-run upstream generation/export with row-level raw per-token full logits or equivalent full-logit/logsumexp artifacts, then regenerate experiments/results/energy_features.parquet.",
+    "formula_manifest_ref": "experiments/literature/formula_notes.md",
+    "dataset_manifest_ref": "experiments/manifests/upstream_artifacts_manifest.json"
+  },
+  "robustness_comparisons": [
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "learned fusion without corpus",
+      "metric": "auroc",
+      "observed_delta": -0.03308707299622293,
+      "ci_95_lower": -0.05320532148227693,
+      "ci_95_upper": -0.011724038590128993,
+      "ci_crosses_zero": false,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "learned fusion without corpus",
+      "metric": "auprc",
+      "observed_delta": -0.010632110074299206,
+      "ci_95_lower": -0.03127250422987557,
+      "ci_95_upper": 0.009851923125365784,
+      "ci_crosses_zero": true,
+      "statistically_significant": false,
+      "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim."
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "SE-only",
+      "metric": "auroc",
+      "observed_delta": -0.23103753806219735,
+      "ci_95_lower": -0.2594928641929192,
+      "ci_95_upper": -0.20070367811934015,
+      "ci_crosses_zero": false,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "SE-only",
+      "metric": "auprc",
+      "observed_delta": -0.12275466680800173,
+      "ci_95_lower": -0.1474722873471395,
+      "ci_95_upper": -0.0956340266120849,
+      "ci_crosses_zero": false,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "corpus-risk-only",
+      "metric": "auroc",
+      "observed_delta": -0.054926038702807045,
+      "ci_95_lower": -0.10108114426481729,
+      "ci_95_upper": -0.00813445173483027,
+      "ci_crosses_zero": false,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "corpus-risk-only",
+      "metric": "auprc",
+      "observed_delta": -0.009463911651284795,
+      "ci_95_lower": -0.04321093571678086,
+      "ci_95_upper": 0.02716341537732088,
+      "ci_crosses_zero": true,
+      "statistically_significant": false,
+      "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim."
+    }
+  ],
+  "evidence_notes": [
+    "experiments/literature/evidence_notes/semantic_energy_single_cluster.md",
+    "experiments/literature/evidence_notes/quco_vs_probe.md"
+  ],
+  "thesis_safe_claims": [
+    "Current learned fusion with corpus underperforms learned fusion without corpus on observed AUROC.",
+    "Energy-dependent baselines are unavailable until row-level full logits are preserved by a repo-owned live generation run.",
+    "semantic_energy_proxy is diagnostic metadata only and is not thesis-valid evidence.",
+    "Future execution should use uv-managed commands and preserve row-level full logits."
+  ]
+}

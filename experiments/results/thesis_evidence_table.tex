@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{현재 산출물 기반 탐지 기준선과 Energy 재실행 상태}
+\label{tab:current_thesis_evidence}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+방법 & 상태 & AUROC & AUPRC & F1 & 재실행 사유 \\
+\midrule
+SE-only & ok & 0.675244 & 0.716412 & 0.738863 &  \\
+Energy-only & unavailable & -- & -- & -- & full logits \\
+corpus-risk-only & ok & 0.499133 & 0.603121 & 0.741956 &  \\
+fixed linear 0.1/0.9 & unavailable & -- & -- & -- & full logits \\
+fixed linear 0.5/0.5 & unavailable & -- & -- & -- & full logits \\
+fixed linear 0.9/0.1 & unavailable & -- & -- & -- & full logits \\
+hard cascade & unavailable & -- & -- & -- & full logits \\
+learned fusion without corpus & ok & 0.477294 & 0.604289 & 0.748436 &  \\
+learned fusion with corpus & ok & 0.444207 & 0.593657 & 0.679599 &  \\
+\midrule
+true Boltzmann Energy availability & unavailable & -- & -- & -- & full logits \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
