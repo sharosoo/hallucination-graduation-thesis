@@ -31,7 +31,7 @@
         fill=accentpurple!15
     },
     arrow/.style={->, line width=0.8pt, black!70},
-    label/.style={font=\scriptsize, text=black!60}
+    label/.style={font=\scriptsize, text=black!60, fill=white, inner sep=1pt}
 ]
 
 % 상단: 입력 → 샘플링 → 클러스터링 (가로)
@@ -39,25 +39,24 @@
 \node[processbox, right=2cm of input] (sample) {LLM 샘플링 ($K$=5)};
 \node[processbox, right=2cm of sample] (cluster) {NLI 클러스터링};
 
-% 중단: 메트릭 계산 (병렬)
-\node[processbox, below left=1.5cm and 0.3cm of cluster] (se) {SE 계산};
-\node[energybox, below right=1.5cm and 0.3cm of cluster] (energy) {Energy 계산};
+% 중단: 게이트와 메트릭 계산 (출처 분리)
+\node[decision, below=1.6cm of cluster] (gate) {$|C|=1$?};
+\node[energybox, below left=1.8cm and 0.75cm of gate] (energy) {Zero-SE 보완\\Energy 사용\\{\tiny token logits}};
+\node[processbox, below right=1.8cm and 0.75cm of gate] (se) {의미 다양성 있음\\SE 사용\\{\tiny cluster distribution}};
 
-% 하단: 분기 및 출력
-\node[decision, below=2.5cm of cluster] (gate) {$|C|=1$?};
-\node[outputbox, below=1.8cm of gate] (output) {환각 점수};
+% 하단: 출력
+\node[outputbox, below=4.0cm of gate] (output) {환각 점수};
 
 % 화살표
 \draw[arrow] (input) -- (sample);
 \draw[arrow] (sample) -- (cluster);
-\draw[arrow] (cluster) -- (se);
-\draw[arrow] (cluster) -- (energy);
-\draw[arrow] (se) -- (gate);
-\draw[arrow] (energy) -- (gate);
-\draw[arrow] (gate) -- node[right, label] {Energy (Yes) / SE (No)} (output);
+\draw[arrow] (cluster) -- node[right, label] {클러스터 수 $|C|$} (gate);
+\draw[arrow] (gate) -- node[pos=0.35, left=2pt, label] {Yes} (energy);
+\draw[arrow] (gate) -- node[pos=0.35, right=2pt, label] {No} (se);
+\draw[arrow] (energy) |- (output);
+\draw[arrow] (se) |- (output);
 
-% 클러스터 수 표시
-\node[font=\scriptsize, text=black!50, right=0.1cm of cluster] {$\rightarrow |C|$};
+% 원천 신호는 각 메트릭 박스 내부의 작은 설명으로 표시하여 화살표/라벨 겹침을 피한다.
 
 \end{tikzpicture}
 }
@@ -148,10 +147,11 @@
     xticklabel style={align=center, font=\small},
     tick label style={font=\small},
     legend style={
-        at={(0.98,0.98)}, anchor=north east, 
-        font=\small, 
-        draw=none, fill=white, fill opacity=0.8,
-        legend columns=1
+        at={(0.5,1.12)}, anchor=south,
+        font=\small,
+        draw=none, fill=white, fill opacity=0.95,
+        legend columns=2,
+        /tikz/every even column/.append style={column sep=0.45cm}
     },
     nodes near coords,
     nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2},
@@ -162,9 +162,12 @@
     extra y tick labels={},
     ymajorgrids=false,
 ]
-\addplot[fill=primaryblue!70, draw=primaryblue] coordinates {(1,0.001) (2,0.61) (3,0.66)};
+\addplot[fill=primaryblue!70, draw=primaryblue] coordinates {(2,0.61) (3,0.66)};
 \addplot[fill=secondaryorange!70, draw=secondaryorange] coordinates {(1,0.74) (2,0.52) (3,0.42)};
 \legend{SE, Energy}
+
+\node[font=\scriptsize, text=primaryblue, align=center] at (axis cs:0.86,0.08) {N/A};
+\draw[primaryblue!70, line width=0.8pt] (axis cs:0.75,0.035) -- (axis cs:0.97,0.035);
 \end{axis}
 
 % 주석
@@ -253,7 +256,7 @@
 ]
 \addplot[fill=primaryblue!70, draw=primaryblue, bar shift=0pt] coordinates {(1,0.613)};
 \addplot[fill=secondaryorange!70, draw=secondaryorange, bar shift=0pt] coordinates {(2,0.550)};
-\addplot[fill=accentgreen!70, draw=accentgreen, bar shift=0pt] coordinates {(3,0.642)};
+\addplot[fill=accentgreen!70, draw=accentgreen, bar shift=0pt] coordinates {(3,0.643)};
 \end{axis}
 
 % 개선 화살표
@@ -261,7 +264,9 @@
 \node[font=\scriptsize, text=accentgreen!70!black, anchor=south] at (6.8, 5.1) {\textbf{+0.029}};
 
 % Cascade 설명
-\node[font=\tiny, text=black!60, align=center, anchor=north] at (6.8, 0.8) {$|C|=1 \rightarrow$ Energy\\otherwise $\rightarrow$ SE};
+\node[font=\scriptsize, text=black!80, align=center, anchor=north,
+      fill=white, draw=black!20, rounded corners=2pt, inner sep=2pt]
+      at (6.8, 0.85) {$|C|=1$: Energy\\그 외: SE};
 
 \end{tikzpicture}
 }
