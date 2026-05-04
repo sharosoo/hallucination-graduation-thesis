@@ -1,0 +1,111 @@
+{
+  "report_type": "energy_feature_rerun_required",
+  "status": "full_logits_required",
+  "full_logits_required": true,
+  "rerun_required": true,
+  "allow_proxy_diagnostic": false,
+  "require_true_boltzmann": true,
+  "diagnostic_only": false,
+  "not_for_thesis_claims": true,
+  "not_for_validation": true,
+  "true_boltzmann_available": false,
+  "selected_artifact_count": 5,
+  "selected_artifacts": [
+    {
+      "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "split_id": "halueval_qa_data",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+      "dataset_id": "halueval_dialogue",
+      "dataset_name": "HaluEval-dialogue",
+      "split_id": "unknown_split",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+      "dataset_id": "natural_questions",
+      "dataset_name": "Natural Questions",
+      "split_id": "natural_questions_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+      "dataset_id": "triviaqa",
+      "dataset_name": "TriviaQA",
+      "split_id": "triviaqa_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+    },
+    {
+      "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "split_id": "truthfulqa_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+    }
+  ],
+  "missing_full_logits_artifacts": [
+    {
+      "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "split_id": "halueval_qa_data",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+      "dataset_id": "halueval_dialogue",
+      "dataset_name": "HaluEval-dialogue",
+      "split_id": "unknown_split",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+      "dataset_id": "natural_questions",
+      "dataset_name": "Natural Questions",
+      "split_id": "natural_questions_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+      "dataset_id": "triviaqa",
+      "dataset_name": "TriviaQA",
+      "split_id": "triviaqa_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+    },
+    {
+      "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "split_id": "truthfulqa_validation",
+      "has_logits": false,
+      "has_full_logits": false,
+      "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+    }
+  ],
+  "rerun_instructions": "True Boltzmann semantic energy is unavailable from the current upstream artifacts. Re-run upstream generation/export with row-level raw per-token full logits or equivalent full-logit/logsumexp artifacts, then regenerate experiments/results/energy_features.parquet.",
+  "formula_manifest_ref": "experiments/literature/formula_notes.md",
+  "dataset_manifest_ref": "experiments/manifests/upstream_artifacts_manifest.json",
+  "message": "Current upstream artifacts do not expose row-level full logits, so paper-faithful Ma/Boltzmann Semantic Energy cannot be computed or validated for thesis/fusion claims."
+}
