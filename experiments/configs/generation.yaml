@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "formula_manifest_ref": "experiments/literature/formula_notes.md",
+  "dataset_manifest_ref": "experiments/configs/datasets.yaml",
+  "logits_schema_version": "generation_logits_v1",
+  "runtime": {
+    "device": "cpu",
+    "local_files_only": true,
+    "trust_remote_code": false
+  },
+  "model": {
+    "model_name": "sshleifer/tiny-gpt2",
+    "tokenizer_name": "sshleifer/tiny-gpt2",
+    "revision": null
+  },
+  "generation": {
+    "seed": 13,
+    "max_new_tokens": 4,
+    "do_sample": false,
+    "temperature": 1.0,
+    "top_k": 0,
+    "stop_on_eos": true
+  },
+  "prompt_rows": [
+    {
+      "dataset": "fixture_dataset",
+      "split_id": "fixture_split",
+      "sample_id": "fixture_sample_001",
+      "question": "Complete the phrase 'Alpha' with one short deterministic continuation.",
+      "prompt": "Question: Complete the phrase 'Alpha' with one short deterministic continuation.\nAnswer:",
+      "metadata": {
+        "purpose": "deterministic_fixture_and_smoke_test"
+      }
+    }
+  ],
+  "notes": [
+    "This config is JSON-compatible YAML on purpose so it can be parsed with Python stdlib only.",
+    "Default runtime.local_files_only=true keeps the repo-owned path explicit about missing local model weights.",
+    "Run fixture validation with uv run python experiments/scripts/run_generation.py --config experiments/configs/generation.yaml --out experiments/results/generation/full_logits_fixture.json --write-fixture --fixture-variant full_logits.",
+    "Use uv sync --group generation before live local generation so torch/transformers-backed execution stays inside the repo-managed .venv."
+  ]
+}
