@@ -2,6 +2,8 @@
 
 This directory is the binding experiment contract for the `Corpus-Grounded Selective Fusion Detector`. Write code under `experiments/` only after this contract validates.
 
+The executable pipeline is fixed in [`experiments/PIPELINE.md`](PIPELINE.md). If this README and `PIPELINE.md` disagree, treat `PIPELINE.md` as the operational source of truth for run order, validation gates, and thesis-valid evidence requirements.
+
 ## 1. Method name and thesis claims
 
 The method name is exactly `Corpus-Grounded Selective Fusion Detector`.
@@ -161,3 +163,5 @@ uv run python experiments/scripts/validate_readme_contract.py experiments/README
 - Install heavyweight generation dependencies only when needed with `uv sync --group generation`.
 - Run experiment CLIs through `uv run`, for example `uv run python -m experiments.scripts.validate_architecture` or `uv run python experiments/scripts/run_generation.py --config experiments/configs/generation.yaml --out experiments/results/generation/full_logits_fixture.json --write-fixture --fixture-variant full_logits`.
 - The checked-in `experiments/configs/generation.yaml` fixture path is safe to validate without downloading model weights. A live local generation run still requires the optional `generation` dependency group and locally available model files unless `runtime.local_files_only` is disabled on purpose.
+- Use `uv run python experiments/scripts/run_pipeline.py --mode smoke --dry-run --out experiments/results/runs` to materialize the reproducible command manifest before executing any run.
+- Smoke/dev runs are not thesis evidence. Thesis claims require `full-core` or explicitly promoted `full-extended` mode plus all gates in `experiments/PIPELINE.md`.
