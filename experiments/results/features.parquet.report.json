@@ -1,0 +1,246 @@
+{
+  "run_id": "feature-table-20260504T092038Z",
+  "generated_at": "2026-05-04T09:20:38.917086+00:00",
+  "requested_out_path": "experiments/results/features.parquet",
+  "row_count": 1000,
+  "source_artifacts": {
+    "corpus": {
+      "requested_path": "experiments/results/corpus_features.parquet",
+      "resolved_path": "experiments/results/corpus_features.parquet.jsonl",
+      "storage": {
+        "requested_out_path": "experiments/results/corpus_features.parquet",
+        "row_count": 1000,
+        "generated_at": "2026-05-04T08:50:50.934895+00:00",
+        "report": {
+          "run_id": "corpus-features-20260504T085050Z",
+          "mode": "cache-or-proxy",
+          "row_count": 1000,
+          "selected_artifact_count": 5,
+          "proxy_index": {
+            "available": true,
+            "term_count": 1071,
+            "pair_count": 1370,
+            "source_artifact_paths": [
+              "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json",
+              "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json"
+            ]
+          },
+          "corpus_source_counts": {
+            "cache_upstream_corpus_stats": 400,
+            "proxy_cached_artifact_index": 600
+          },
+          "skipped_artifacts": [],
+          "supported_methods": {
+            "learned_fusion_with_corpus": {
+              "uses_direct_corpus_features": true,
+              "proposed_method_not_scalar_coverage_only": true
+            },
+            "corpus_risk_only": {
+              "column": "corpus_risk_only",
+              "uses_only_corpus_features_or_proxies": true,
+              "note": "Baseline support only. This is not the proposed learned fusion method."
+            }
+          }
+        },
+        "storage_kind": "jsonl_fallback_for_requested_parquet",
+        "materialized_path": "experiments/results/corpus_features.parquet.jsonl",
+        "parquet_unavailable_reason": "ModuleNotFoundError(\"No module named 'pyarrow'\")"
+      }
+    },
+    "energy": {
+      "requested_path": "experiments/results/energy_features.parquet",
+      "storage": {
+        "requested_out_path": "experiments/results/energy_features.parquet",
+        "generated_at": "2026-05-04T09:11:35.917946+00:00",
+        "storage_kind": "rerun_required_report",
+        "materialized_path": "experiments/results/energy_features.rerun_required.json",
+        "artifact_status": "rerun_required",
+        "report": {
+          "report_type": "energy_feature_rerun_required",
+          "status": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "allow_proxy_diagnostic": false,
+          "require_true_boltzmann": true,
+          "diagnostic_only": false,
+          "not_for_thesis_claims": true,
+          "not_for_validation": true,
+          "true_boltzmann_available": false,
+          "selected_artifact_count": 5,
+          "selected_artifacts": [
+            {
+              "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+              "dataset_id": "halueval_qa",
+              "dataset_name": "HaluEval-QA",
+              "split_id": "halueval_qa_data",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+              "dataset_id": "halueval_dialogue",
+              "dataset_name": "HaluEval-dialogue",
+              "split_id": "unknown_split",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+              "dataset_id": "natural_questions",
+              "dataset_name": "Natural Questions",
+              "split_id": "natural_questions_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+              "dataset_id": "triviaqa",
+              "dataset_name": "TriviaQA",
+              "split_id": "triviaqa_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+            },
+            {
+              "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+              "dataset_id": "truthfulqa",
+              "dataset_name": "TruthfulQA",
+              "split_id": "truthfulqa_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+            }
+          ],
+          "missing_full_logits_artifacts": [
+            {
+              "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+              "dataset_id": "halueval_qa",
+              "dataset_name": "HaluEval-QA",
+              "split_id": "halueval_qa_data",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+              "dataset_id": "halueval_dialogue",
+              "dataset_name": "HaluEval-dialogue",
+              "split_id": "unknown_split",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+              "dataset_id": "natural_questions",
+              "dataset_name": "Natural Questions",
+              "split_id": "natural_questions_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+            },
+            {
+              "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+              "dataset_id": "triviaqa",
+              "dataset_name": "TriviaQA",
+              "split_id": "triviaqa_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+            },
+            {
+              "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+              "dataset_id": "truthfulqa",
+              "dataset_name": "TruthfulQA",
+              "split_id": "truthfulqa_validation",
+              "has_logits": false,
+              "has_full_logits": false,
+              "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+            }
+          ],
+          "rerun_instructions": "True Boltzmann semantic energy is unavailable from the current upstream artifacts. Re-run upstream generation/export with row-level raw per-token full logits or equivalent full-logit/logsumexp artifacts, then regenerate experiments/results/energy_features.parquet.",
+          "formula_manifest_ref": "experiments/literature/formula_notes.md",
+          "dataset_manifest_ref": "experiments/manifests/upstream_artifacts_manifest.json",
+          "message": "Current upstream artifacts do not expose row-level full logits, so paper-faithful Ma/Boltzmann Semantic Energy cannot be computed or validated for thesis/fusion claims."
+        }
+      }
+    }
+  },
+  "label_counts": {
+    "NORMAL": 402,
+    "HIGH_DIVERSITY": 481,
+    "LOW_DIVERSITY": 117,
+    "AMBIGUOUS_INCORRECT": 0
+  },
+  "label_counts_by_dataset": {
+    "HaluEval-QA": {
+      "NORMAL": 179,
+      "HIGH_DIVERSITY": 9,
+      "LOW_DIVERSITY": 12,
+      "AMBIGUOUS_INCORRECT": 0
+    },
+    "HaluEval-dialogue": {
+      "NORMAL": 12,
+      "HIGH_DIVERSITY": 144,
+      "LOW_DIVERSITY": 44,
+      "AMBIGUOUS_INCORRECT": 0
+    },
+    "Natural Questions": {
+      "NORMAL": 86,
+      "HIGH_DIVERSITY": 103,
+      "LOW_DIVERSITY": 11,
+      "AMBIGUOUS_INCORRECT": 0
+    },
+    "TriviaQA": {
+      "NORMAL": 90,
+      "HIGH_DIVERSITY": 91,
+      "LOW_DIVERSITY": 19,
+      "AMBIGUOUS_INCORRECT": 0
+    },
+    "TruthfulQA": {
+      "NORMAL": 35,
+      "HIGH_DIVERSITY": 134,
+      "LOW_DIVERSITY": 31,
+      "AMBIGUOUS_INCORRECT": 0
+    }
+  },
+  "label_presence_explanations": {
+    "AMBIGUOUS_INCORRECT": "No incorrect sample in the current corpus feature rows fell inside 0.1 < SE <= 0.5, so the gray-zone label is absent in this export instead of being force-filled."
+  },
+  "boundary_self_check": {
+    "cases": [
+      {
+        "semantic_entropy": 0.1,
+        "expected_label": "LOW_DIVERSITY",
+        "actual_label": "LOW_DIVERSITY",
+        "passes": true
+      },
+      {
+        "semantic_entropy": 0.5,
+        "expected_label": "AMBIGUOUS_INCORRECT",
+        "actual_label": "AMBIGUOUS_INCORRECT",
+        "passes": true
+      },
+      {
+        "semantic_entropy": 0.5001,
+        "expected_label": "HIGH_DIVERSITY",
+        "actual_label": "HIGH_DIVERSITY",
+        "passes": true
+      }
+    ],
+    "all_pass": true
+  },
+  "energy_status_counts": {
+    "full_logits_required_rerun_required": 1000
+  },
+  "missing_energy_matches": {},
+  "analysis_bin_scheme": "semantic_entropy_threshold_focus_bins",
+  "analysis_bin_count": 12,
+  "notes": [
+    "Rows are sourced from corpus_features as the validated row-level artifact and relabeled with the fixed four-way operational policy.",
+    "Energy availability comes from the energy_features rerun-required sidecar. Proxy scalar energy is retained only as diagnostic metadata and not treated as thesis-valid evidence."
+  ]
+}
