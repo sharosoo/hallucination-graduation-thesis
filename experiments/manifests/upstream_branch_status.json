@@ -1,0 +1,152 @@
+{
+  "manifest_version": 1,
+  "manifest_kind": "upstream_branch_status",
+  "generated_at": "2026-05-04T08:37:45.194398+00:00",
+  "source_root": "/home/global/workspaces/sharosoo/hallucination_lfe",
+  "dataset_registry_name": "corpus_grounded_selective_fusion_datasets",
+  "artifact_count": 19,
+  "branch_status": [
+    {
+      "branch": "exp01_truthfulqa",
+      "category": "row_results",
+      "required": true,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "expected_paths": [
+        "experiment_notes/exp01_truthfulqa/results.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp01_truthfulqa/results.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp02_halueval",
+      "category": "row_results",
+      "required": false,
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "expected_paths": [
+        "experiment_notes/exp02_halueval/results.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp02_halueval/results.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp04_corpus_adaptive",
+      "category": "corpus_augmented",
+      "required": true,
+      "dataset_id": "mixed",
+      "dataset_name": "mixed",
+      "expected_paths": [
+        "experiment_notes/exp04_corpus_adaptive/analysis_results_latest.json",
+        "experiment_notes/exp04_corpus_adaptive/analysis_results_20260120_230157.json",
+        "experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json",
+        "experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp04_corpus_adaptive/analysis_results_latest.json",
+        "experiment_notes/exp04_corpus_adaptive/analysis_results_20260120_230157.json",
+        "experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json",
+        "experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp05_quintile_analysis",
+      "category": "corpus_augmented",
+      "required": true,
+      "dataset_id": "mixed",
+      "dataset_name": "mixed",
+      "expected_paths": [
+        "experiment_notes/exp05_quintile_analysis/truthfulqa_with_corpus.json",
+        "experiment_notes/exp05_quintile_analysis/halueval_with_corpus.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp05_quintile_analysis/truthfulqa_with_corpus.json",
+        "experiment_notes/exp05_quintile_analysis/halueval_with_corpus.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp07_zero_se_analysis",
+      "category": "row_results_and_analysis",
+      "required": true,
+      "dataset_id": "mixed",
+      "dataset_name": "mixed",
+      "expected_paths": [
+        "experiment_notes/exp07_zero_se_analysis/analysis_results.json",
+        "experiment_notes/exp07_zero_se_analysis/results_triviaqa.json",
+        "experiment_notes/exp07_zero_se_analysis/results_naturalquestions.json",
+        "experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json",
+        "experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json",
+        "experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp07_zero_se_analysis/analysis_results.json",
+        "experiment_notes/exp07_zero_se_analysis/results_triviaqa.json",
+        "experiment_notes/exp07_zero_se_analysis/results_naturalquestions.json",
+        "experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json",
+        "experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json",
+        "experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp08_robustness",
+      "category": "analysis",
+      "required": true,
+      "dataset_id": "mixed",
+      "dataset_name": "mixed",
+      "expected_paths": [
+        "experiment_notes/exp08_robustness/robustness_results.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp08_robustness/robustness_results.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp09_thesis_final",
+      "category": "row_results",
+      "required": false,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "expected_paths": [
+        "experiment_notes/exp09_thesis_final/results_full.json",
+        "experiment_notes/exp09_thesis_final/results_checkpoint.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp09_thesis_final/results_full.json",
+        "experiment_notes/exp09_thesis_final/results_checkpoint.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    },
+    {
+      "branch": "exp10_thesis_complete",
+      "category": "row_results_and_analysis",
+      "required": true,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "expected_paths": [
+        "experiment_notes/exp10_thesis_complete/results.json",
+        "experiment_notes/exp10_thesis_complete/analysis.json"
+      ],
+      "present_paths": [
+        "experiment_notes/exp10_thesis_complete/results.json",
+        "experiment_notes/exp10_thesis_complete/analysis.json"
+      ],
+      "missing_paths": [],
+      "status": "complete"
+    }
+  ]
+}

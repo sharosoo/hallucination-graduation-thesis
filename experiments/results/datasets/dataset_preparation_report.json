@@ -1,0 +1,119 @@
+{
+  "config_path": "experiments/configs/datasets.yaml",
+  "output_dir": "experiments/results/datasets",
+  "mode": "dry-run",
+  "downloads_performed": false,
+  "download_policy": "Validation and dry-run must remain metadata-only. Large dataset downloads require later implementation and explicit reporting.",
+  "mandatory_core_datasets": [
+    "TruthfulQA",
+    "TriviaQA",
+    "HaluEval-QA"
+  ],
+  "selected_core_datasets": [
+    "TruthfulQA",
+    "TriviaQA",
+    "HaluEval-QA"
+  ],
+  "promoted_optional_datasets": [],
+  "row_level_output_policy": {
+    "required_label_field": "label",
+    "require_explicit_operational_label_marker": true,
+    "required_for_every_sample": true,
+    "allowed_values": [
+      "NORMAL",
+      "HIGH_DIVERSITY",
+      "LOW_DIVERSITY",
+      "AMBIGUOUS_INCORRECT"
+    ],
+    "notes": "Fine-grained Semantic Entropy bins are analysis metadata only and never replace the row-level operational label field."
+  },
+  "fixed_operational_thresholds": {
+    "NORMAL": {
+      "rule": "correct -> NORMAL"
+    },
+    "HIGH_DIVERSITY": {
+      "rule": "incorrect and SE > 0.5 -> HIGH_DIVERSITY",
+      "min_exclusive": 0.5
+    },
+    "LOW_DIVERSITY": {
+      "rule": "incorrect and SE <= 0.1 -> LOW_DIVERSITY",
+      "max_inclusive": 0.1
+    },
+    "AMBIGUOUS_INCORRECT": {
+      "rule": "incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
+      "min_exclusive": 0.1,
+      "max_inclusive": 0.5
+    }
+  },
+  "analysis_se_bins": {
+    "scheme_name": "semantic_entropy_threshold_focus_bins",
+    "analysis_only": true,
+    "special_attention_thresholds": [
+      0.1,
+      0.5
+    ],
+    "bin_count": 12
+  },
+  "datasets": [
+    {
+      "name": "TruthfulQA",
+      "role": "core",
+      "split": "validation",
+      "split_id": "truthfulqa_validation",
+      "target_sample_count": 817,
+      "seed": 13,
+      "label_source_type": "gold_reference_answers_and_semantic_entropy",
+      "label_policy": {
+        "correctness_judgment": "Mark the sample correct only when the generated answer is judged against the TruthfulQA correct answer set; correct rows become NORMAL.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "notes": "Mandatory core dataset. Full dataset download is intentionally skipped during dry-run.",
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      }
+    },
+    {
+      "name": "TriviaQA",
+      "role": "core",
+      "split": "validation",
+      "split_id": "triviaqa_validation",
+      "target_sample_count": 2000,
+      "seed": 17,
+      "label_source_type": "gold_alias_match_and_semantic_entropy",
+      "label_policy": {
+        "correctness_judgment": "Mark the sample correct only when the generated answer matches the TriviaQA canonical answer or an accepted alias; correct rows become NORMAL.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "notes": "Mandatory core dataset. TriviaQA correctness policy is alias-aware and must not be inferred from HaluEval annotations.",
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      }
+    },
+    {
+      "name": "HaluEval-QA",
+      "role": "core",
+      "split": "data",
+      "split_id": "halueval_qa_data",
+      "target_sample_count": 5000,
+      "seed": 23,
+      "label_source_type": "dataset_hallucination_annotation_and_semantic_entropy",
+      "label_policy": {
+        "correctness_judgment": "Treat rows with non-hallucinated or right-answer-supported answers as correct and rows flagged by the HaluEval-QA hallucination annotation as incorrect before applying Semantic Entropy thresholds.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "notes": "Mandatory core dataset. HaluEval-QA correctness comes from dataset hallucination annotations and must not be treated as the same label source as TriviaQA alias matching.",
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      }
+    }
+  ]
+}

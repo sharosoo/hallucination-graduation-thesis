@@ -1,0 +1,1054 @@
+{
+  "inventory_version": 1,
+  "generated_at": "2026-05-04T08:37:45.140161+00:00",
+  "manifest_dir": "/home/global/workspaces/sharosoo/hallucination-graduation-thesis/experiments/manifests",
+  "source_root": "/home/global/workspaces/sharosoo/hallucination_lfe",
+  "dataset_registry_name": "corpus_grounded_selective_fusion_datasets",
+  "artifact_count": 19,
+  "capability_summary": {
+    "has_logits": 0,
+    "has_full_logits": 0,
+    "has_corpus_stats": 6,
+    "has_labels": 19,
+    "artifact_count": 19
+  },
+  "branch_status": [
+    {
+      "branch": "exp01_truthfulqa",
+      "required": true,
+      "category": "row_results",
+      "status": "complete",
+      "present_count": 1,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp02_halueval",
+      "required": false,
+      "category": "row_results",
+      "status": "complete",
+      "present_count": 1,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp04_corpus_adaptive",
+      "required": true,
+      "category": "corpus_augmented",
+      "status": "complete",
+      "present_count": 4,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp05_quintile_analysis",
+      "required": true,
+      "category": "corpus_augmented",
+      "status": "complete",
+      "present_count": 2,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp07_zero_se_analysis",
+      "required": true,
+      "category": "row_results_and_analysis",
+      "status": "complete",
+      "present_count": 6,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp08_robustness",
+      "required": true,
+      "category": "analysis",
+      "status": "complete",
+      "present_count": 1,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp09_thesis_final",
+      "required": false,
+      "category": "row_results",
+      "status": "complete",
+      "present_count": 2,
+      "missing_count": 0,
+      "missing_paths": []
+    },
+    {
+      "branch": "exp10_thesis_complete",
+      "required": true,
+      "category": "row_results_and_analysis",
+      "status": "complete",
+      "present_count": 2,
+      "missing_count": 0,
+      "missing_paths": []
+    }
+  ],
+  "dataset_summary": [
+    {
+      "dataset_id": "halueval_dialogue",
+      "dataset_name": "HaluEval-dialogue",
+      "artifact_count": 1,
+      "branches": [
+        "exp07_zero_se_analysis"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 200,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 0,
+      "artifacts_with_labels": 1
+    },
+    {
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "artifact_count": 3,
+      "branches": [
+        "exp02_halueval",
+        "exp04_corpus_adaptive",
+        "exp05_quintile_analysis"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 200,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 2,
+      "artifacts_with_labels": 3
+    },
+    {
+      "dataset_id": "natural_questions",
+      "dataset_name": "Natural Questions",
+      "artifact_count": 2,
+      "branches": [
+        "exp07_zero_se_analysis"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 200,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 0,
+      "artifacts_with_labels": 2
+    },
+    {
+      "dataset_id": "triviaqa",
+      "dataset_name": "TriviaQA",
+      "artifact_count": 2,
+      "branches": [
+        "exp07_zero_se_analysis"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 200,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 0,
+      "artifacts_with_labels": 2
+    },
+    {
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "artifact_count": 7,
+      "branches": [
+        "exp01_truthfulqa",
+        "exp04_corpus_adaptive",
+        "exp05_quintile_analysis",
+        "exp09_thesis_final",
+        "exp10_thesis_complete"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 817,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 2,
+      "artifacts_with_labels": 7
+    },
+    {
+      "dataset_id": "unknown",
+      "dataset_name": "unknown",
+      "artifact_count": 4,
+      "branches": [
+        "exp04_corpus_adaptive",
+        "exp07_zero_se_analysis",
+        "exp08_robustness"
+      ],
+      "min_sample_count": 200,
+      "max_sample_count": 200,
+      "artifacts_with_logits": 0,
+      "artifacts_with_full_logits": 0,
+      "artifacts_with_corpus_stats": 2,
+      "artifacts_with_labels": 4
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "exp01_truthfulqa_results_truthfulqa",
+      "branch": "exp01_truthfulqa",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp01_truthfulqa/results.json",
+      "sha256": "254ade99d616f6c5bb7f39580188ebe4cb9a6b7cc38b40662a70188e1efa26ac",
+      "sample_count": 200,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "correct_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "TruthfulQA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-16T12:51:06.108318",
+        "experiment": "exp01_truthfulqa"
+      }
+    },
+    {
+      "artifact_id": "exp02_halueval_results_halueval_qa",
+      "branch": "exp02_halueval",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp02_halueval/results.json",
+      "sha256": "23fa6d3aa4603c0f99196d0f9e15329ad07682a60fac2baa0f687c0338705199",
+      "sample_count": 200,
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "is_hallucination",
+        "knowledge",
+        "num_clusters",
+        "question",
+        "responses",
+        "right_answer",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "HaluEval QA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-16T13:00:03.618877",
+        "experiment": "exp02_halueval"
+      }
+    },
+    {
+      "artifact_id": "exp04_corpus_adaptive_analysis_results_20260120_230157_unknown",
+      "branch": "exp04_corpus_adaptive",
+      "artifact_kind": "analysis",
+      "relative_path": "experiment_notes/exp04_corpus_adaptive/analysis_results_20260120_230157.json",
+      "sha256": "8b7944e647e5d2b4eee25e03ee6696bdb1f521747147970806376e747148713f",
+      "sample_count": 200,
+      "dataset_id": "unknown",
+      "dataset_name": "unknown",
+      "registry_role": null,
+      "top_level_fields": [
+        "config",
+        "datasets",
+        "summary",
+        "timestamp"
+      ],
+      "sample_fields": [],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "timestamp": "2026-01-20T23:01:57.720821"
+      }
+    },
+    {
+      "artifact_id": "exp04_corpus_adaptive_analysis_results_latest_unknown",
+      "branch": "exp04_corpus_adaptive",
+      "artifact_kind": "analysis",
+      "relative_path": "experiment_notes/exp04_corpus_adaptive/analysis_results_latest.json",
+      "sha256": "8b7944e647e5d2b4eee25e03ee6696bdb1f521747147970806376e747148713f",
+      "sample_count": 200,
+      "dataset_id": "unknown",
+      "dataset_name": "unknown",
+      "registry_role": null,
+      "top_level_fields": [
+        "config",
+        "datasets",
+        "summary",
+        "timestamp"
+      ],
+      "sample_fields": [],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "timestamp": "2026-01-20T23:01:57.720821"
+      }
+    },
+    {
+      "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+      "branch": "exp04_corpus_adaptive",
+      "artifact_kind": "row_results_with_corpus",
+      "relative_path": "experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json",
+      "sha256": "c43a98b6c8e146392ee18baf212b8220bd0072f3010c125ceeed979d4c8e77d1",
+      "sample_count": 200,
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "corpus_stats_added",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "corpus_stats",
+        "is_hallucination",
+        "knowledge",
+        "num_clusters",
+        "question",
+        "responses",
+        "right_answer",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "HaluEval QA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-15T00:57:12.408087",
+        "experiment": "exp02_halueval"
+      }
+    },
+    {
+      "artifact_id": "exp04_corpus_adaptive_truthfulqa_with_corpus_truthfulqa",
+      "branch": "exp04_corpus_adaptive",
+      "artifact_kind": "row_results_with_corpus",
+      "relative_path": "experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json",
+      "sha256": "bf98629ad27ccbb0828bb1ac48046b628463dee9e43b207ff732353297b528d7",
+      "sample_count": 200,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "corpus_stats_added",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "corpus_stats",
+        "correct_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "TruthfulQA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-15T00:48:54.808617",
+        "experiment": "exp01_truthfulqa"
+      }
+    },
+    {
+      "artifact_id": "exp05_quintile_analysis_halueval_with_corpus_halueval_qa",
+      "branch": "exp05_quintile_analysis",
+      "artifact_kind": "row_results_with_corpus",
+      "relative_path": "experiment_notes/exp05_quintile_analysis/halueval_with_corpus.json",
+      "sha256": "c43a98b6c8e146392ee18baf212b8220bd0072f3010c125ceeed979d4c8e77d1",
+      "sample_count": 200,
+      "dataset_id": "halueval_qa",
+      "dataset_name": "HaluEval-QA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "corpus_stats_added",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "corpus_stats",
+        "is_hallucination",
+        "knowledge",
+        "num_clusters",
+        "question",
+        "responses",
+        "right_answer",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "HaluEval QA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-15T00:57:12.408087",
+        "experiment": "exp02_halueval"
+      }
+    },
+    {
+      "artifact_id": "exp05_quintile_analysis_truthfulqa_with_corpus_truthfulqa",
+      "branch": "exp05_quintile_analysis",
+      "artifact_kind": "row_results_with_corpus",
+      "relative_path": "experiment_notes/exp05_quintile_analysis/truthfulqa_with_corpus.json",
+      "sha256": "bf98629ad27ccbb0828bb1ac48046b628463dee9e43b207ff732353297b528d7",
+      "sample_count": 200,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "corpus_stats_added",
+        "experiment",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "corpus_stats",
+        "correct_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "semantic_energy",
+        "semantic_entropy",
+        "zero_entropy_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": true,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "TruthfulQA",
+        "max_samples": 200,
+        "num_responses": 5,
+        "timestamp": "2026-01-15T00:48:54.808617",
+        "experiment": "exp01_truthfulqa"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_analysis_results_unknown",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "analysis",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/analysis_results.json",
+      "sha256": "fed7d9e4ea1e3db17ab3d11cc51f546c9004a45d51bddc732fe63f9dfb03c0c9",
+      "sample_count": 200,
+      "dataset_id": "unknown",
+      "dataset_name": "unknown",
+      "registry_role": null,
+      "top_level_fields": [
+        "cascade_sweep",
+        "complementarity",
+        "cross_dataset_transfer",
+        "datasets",
+        "se_bin_analysis",
+        "timestamp",
+        "zero_se_analysis"
+      ],
+      "sample_fields": [
+        "dataset",
+        "energy_auroc_ci",
+        "energy_auroc_in_zero_se",
+        "epsilon",
+        "hall_rate_in_zero_se",
+        "hall_rate_overall",
+        "n_hall_in_zero_se",
+        "n_normal_in_zero_se",
+        "n_total",
+        "n_zero_se",
+        "se_auroc_in_zero_se",
+        "zero_se_pct"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "timestamp": "2026-02-06T15:09:26.847107"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json",
+      "sha256": "e677839d42b395f580b3cec608e8c8be2ba91c7f449f3f7e6390e650e4aeb0b9",
+      "sample_count": 200,
+      "dataset_id": "halueval_dialogue",
+      "dataset_name": "HaluEval-dialogue",
+      "registry_role": null,
+      "top_level_fields": [
+        "config",
+        "dataset_name",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "gold_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "energy_auroc",
+        "se_auroc",
+        "zero_se_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "max_samples": 200,
+        "num_responses": 5,
+        "dataset_name": "HaluEval-dialogue",
+        "timestamp": "2026-02-06T11:11:11.776622"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_natural_questions",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/results_naturalquestions.json",
+      "sha256": "41b913e7d270717cd86caa63e3bd8877581ee2fbe9533c8eaab5b15c36919c3a",
+      "sample_count": 200,
+      "dataset_id": "natural_questions",
+      "dataset_name": "Natural Questions",
+      "registry_role": "future",
+      "top_level_fields": [
+        "config",
+        "dataset_name",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "gold_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "energy_auroc",
+        "se_auroc",
+        "zero_se_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "max_samples": 200,
+        "num_responses": 5,
+        "dataset_name": "NaturalQuestions",
+        "timestamp": "2026-02-06T11:03:25.514967"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json",
+      "sha256": "ece04ec51e56ff48f076f6c9fb1552fb659519c6a7859e5018cc3167d46575bb",
+      "sample_count": 200,
+      "dataset_id": "natural_questions",
+      "dataset_name": "Natural Questions",
+      "registry_role": "future",
+      "top_level_fields": [
+        "config",
+        "dataset_name",
+        "labeling_method",
+        "labeling_model",
+        "metrics",
+        "relabeling_stats",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "gold_answers",
+        "is_hallucination",
+        "is_hallucination_string_match",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "energy_auroc",
+        "se_auroc",
+        "zero_se_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "max_samples": 200,
+        "num_responses": 5,
+        "dataset_name": "NaturalQuestions",
+        "timestamp": "2026-02-06T11:03:25.514967"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_triviaqa_triviaqa",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/results_triviaqa.json",
+      "sha256": "e0e4e1ff1485e4734b9092d516ad12f94a73c26fd9a1180740f36eefa49c1334",
+      "sample_count": 200,
+      "dataset_id": "triviaqa",
+      "dataset_name": "TriviaQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "dataset_name",
+        "metrics",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "gold_answers",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "energy_auroc",
+        "se_auroc",
+        "zero_se_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "max_samples": 200,
+        "num_responses": 5,
+        "dataset_name": "TriviaQA",
+        "timestamp": "2026-02-06T10:57:11.116485"
+      }
+    },
+    {
+      "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+      "branch": "exp07_zero_se_analysis",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json",
+      "sha256": "8d45db921dd1a69cdfa36a0e65729b1c01daea3d405a3ea5d5fe8e8141eb313f",
+      "sample_count": 200,
+      "dataset_id": "triviaqa",
+      "dataset_name": "TriviaQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "dataset_name",
+        "labeling_method",
+        "labeling_model",
+        "metrics",
+        "relabeling_stats",
+        "samples",
+        "statistics",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "gold_answers",
+        "is_hallucination",
+        "is_hallucination_string_match",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [
+        "energy_auroc",
+        "se_auroc",
+        "zero_se_energy_auroc"
+      ],
+      "statistics_fields": [
+        "n_hallucination",
+        "n_normal"
+      ],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "max_samples": 200,
+        "num_responses": 5,
+        "dataset_name": "TriviaQA",
+        "timestamp": "2026-02-06T10:57:11.116485"
+      }
+    },
+    {
+      "artifact_id": "exp08_robustness_robustness_results_unknown",
+      "branch": "exp08_robustness",
+      "artifact_kind": "analysis",
+      "relative_path": "experiment_notes/exp08_robustness/robustness_results.json",
+      "sha256": "176d8f5b2a801377dd46d3ec9236119984c5ce9f53feb33f03acf012a11097e1",
+      "sample_count": null,
+      "dataset_id": "unknown",
+      "dataset_name": "unknown",
+      "registry_role": null,
+      "top_level_fields": [
+        "bootstrap_tests",
+        "complementarity_sensitivity",
+        "description",
+        "rank_normalization_comparison",
+        "timestamp",
+        "zero_se_single_cluster_verification"
+      ],
+      "sample_fields": [
+        "both_catch",
+        "both_catch_pct",
+        "dataset",
+        "energy_only",
+        "energy_only_pct",
+        "n_hallucinations",
+        "neither_catch",
+        "neither_catch_pct",
+        "percentile",
+        "se_only",
+        "se_only_pct"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "timestamp": "2026-02-06T15:10:22.787018"
+      }
+    },
+    {
+      "artifact_id": "exp09_thesis_final_results_checkpoint_truthfulqa",
+      "branch": "exp09_thesis_final",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp09_thesis_final/results_checkpoint.json",
+      "sha256": "3a733e706c8293255100a6257c3122d132133f812d0331dc7b2cdff51c9e3d26",
+      "sample_count": 800,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "samples",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "correct_answers",
+        "idx",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "TruthfulQA",
+        "num_samples": 800,
+        "num_responses": 5,
+        "timestamp": "2026-02-11T03:18:32.440063"
+      }
+    },
+    {
+      "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+      "branch": "exp09_thesis_final",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp09_thesis_final/results_full.json",
+      "sha256": "2b679e8e28fcfca57d320e5ac0dff66bce11b81c516087bd6320ca13cc461d0d",
+      "sample_count": 817,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "samples",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "correct_answers",
+        "idx",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "dataset": "TruthfulQA",
+        "num_samples": 817,
+        "num_responses": 5,
+        "timestamp": "2026-02-11T03:19:09.413241"
+      }
+    },
+    {
+      "artifact_id": "exp10_thesis_complete_analysis_truthfulqa",
+      "branch": "exp10_thesis_complete",
+      "artifact_kind": "analysis",
+      "relative_path": "experiment_notes/exp10_thesis_complete/analysis.json",
+      "sha256": "90160b9791a09f0608a2c0efba39a56ef5107f085753c2ff4686a6482870d02b",
+      "sample_count": 817,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "best_cascade",
+        "cascade_sweep",
+        "cluster_analysis",
+        "complementarity",
+        "dataset",
+        "hallucination_rate",
+        "n_hallucinations",
+        "n_normal",
+        "n_samples",
+        "overall",
+        "se_bins",
+        "zero_se"
+      ],
+      "sample_fields": [
+        "bin",
+        "energy_auroc",
+        "hallucination_rate",
+        "n",
+        "range",
+        "se_auroc"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "dataset": "TruthfulQA"
+      }
+    },
+    {
+      "artifact_id": "exp10_thesis_complete_results_truthfulqa",
+      "branch": "exp10_thesis_complete",
+      "artifact_kind": "row_results",
+      "relative_path": "experiment_notes/exp10_thesis_complete/results.json",
+      "sha256": "bcb126ae987959ee43d48fee42361bebdf2a6b162ddda4779334a4bab329689d",
+      "sample_count": 817,
+      "dataset_id": "truthfulqa",
+      "dataset_name": "TruthfulQA",
+      "registry_role": "core",
+      "top_level_fields": [
+        "config",
+        "experiment",
+        "samples",
+        "timestamp"
+      ],
+      "sample_fields": [
+        "correct_answers",
+        "idx",
+        "is_hallucination",
+        "num_clusters",
+        "question",
+        "responses",
+        "semantic_energy",
+        "semantic_entropy"
+      ],
+      "metric_fields": [],
+      "statistics_fields": [],
+      "has_logits": false,
+      "has_full_logits": false,
+      "has_corpus_stats": false,
+      "has_labels": true,
+      "prompt_model_metadata": {
+        "dataset": "TruthfulQA",
+        "dataset_split": "validation",
+        "llm_model": "Qwen/Qwen2.5-3B-Instruct",
+        "nli_model": "microsoft/deberta-large-mnli",
+        "num_responses": 5,
+        "temperature": 0.7,
+        "max_new_tokens": 50,
+        "seed": 42,
+        "timestamp": "2026-02-11T03:33:58.400443",
+        "experiment": "exp10_thesis_complete"
+      }
+    }
+  ]
+}

@@ -1,0 +1,360 @@
+{
+  "version": 1,
+  "registry_name": "corpus_grounded_selective_fusion_datasets",
+  "mandatory_core_datasets": [
+    "TruthfulQA",
+    "TriviaQA",
+    "HaluEval-QA"
+  ],
+  "future_datasets": [
+    "Natural Questions",
+    "HotpotQA",
+    "FEVER",
+    "BioASQ"
+  ],
+  "dataset_expansion_policy": {
+    "default_selected_roles": [
+      "core"
+    ],
+    "allow_optional_promotions": true,
+    "require_explicit_promotion": true,
+    "require_reported_expansion": true,
+    "default_mode": "metadata_only_dry_run",
+    "download_policy": "Validation and dry-run must remain metadata-only. Large dataset downloads require later implementation and explicit reporting."
+  },
+  "label_policy": {
+    "operational_labels": [
+      "NORMAL",
+      "HIGH_DIVERSITY",
+      "LOW_DIVERSITY",
+      "AMBIGUOUS_INCORRECT"
+    ],
+    "fixed_operational_thresholds": {
+      "NORMAL": {
+        "rule": "correct -> NORMAL"
+      },
+      "HIGH_DIVERSITY": {
+        "rule": "incorrect and SE > 0.5 -> HIGH_DIVERSITY",
+        "min_exclusive": 0.5
+      },
+      "LOW_DIVERSITY": {
+        "rule": "incorrect and SE <= 0.1 -> LOW_DIVERSITY",
+        "max_inclusive": 0.1
+      },
+      "AMBIGUOUS_INCORRECT": {
+        "rule": "incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
+        "min_exclusive": 0.1,
+        "max_inclusive": 0.5
+      }
+    },
+    "row_level_output": {
+      "required_label_field": "label",
+      "require_explicit_operational_label_marker": true,
+      "required_for_every_sample": true,
+      "allowed_values": [
+        "NORMAL",
+        "HIGH_DIVERSITY",
+        "LOW_DIVERSITY",
+        "AMBIGUOUS_INCORRECT"
+      ],
+      "notes": "Fine-grained Semantic Entropy bins are analysis metadata only and never replace the row-level operational label field."
+    },
+    "analysis_se_bins": {
+      "scheme_name": "semantic_entropy_threshold_focus_bins",
+      "analysis_only": true,
+      "spans": "[0, +inf)",
+      "special_attention_thresholds": [
+        0.1,
+        0.5
+      ],
+      "bins": [
+        {
+          "bin_id": "se_eq_0",
+          "lower_bound": 0.0,
+          "lower_inclusive": true,
+          "upper_bound": 0.0,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Exact zero bucket for crossover analysis."
+        },
+        {
+          "bin_id": "se_gt_0_to_0_05",
+          "lower_bound": 0.0,
+          "lower_inclusive": false,
+          "upper_bound": 0.05,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Low-range analysis bin below the LOW_DIVERSITY threshold, excluding exact zero."
+        },
+        {
+          "bin_id": "se_0_05_to_0_10",
+          "lower_bound": 0.05,
+          "lower_inclusive": false,
+          "upper_bound": 0.1,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Threshold-focused analysis bin ending at the LOW_DIVERSITY cutoff."
+        },
+        {
+          "bin_id": "se_0_10_to_0_20",
+          "lower_bound": 0.1,
+          "lower_inclusive": false,
+          "upper_bound": 0.2,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "First ambiguous incorrect analysis bin above 0.1."
+        },
+        {
+          "bin_id": "se_0_20_to_0_30",
+          "lower_bound": 0.2,
+          "lower_inclusive": false,
+          "upper_bound": 0.3,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Analysis-only crossover sensitivity bin."
+        },
+        {
+          "bin_id": "se_0_30_to_0_40",
+          "lower_bound": 0.3,
+          "lower_inclusive": false,
+          "upper_bound": 0.4,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Analysis-only crossover sensitivity bin."
+        },
+        {
+          "bin_id": "se_0_40_to_0_50",
+          "lower_bound": 0.4,
+          "lower_inclusive": false,
+          "upper_bound": 0.5,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Threshold-focused analysis bin ending at the HIGH_DIVERSITY cutoff."
+        },
+        {
+          "bin_id": "se_0_50_to_0_60",
+          "lower_bound": 0.5,
+          "lower_inclusive": false,
+          "upper_bound": 0.6,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "First high-diversity analysis bin above 0.5."
+        },
+        {
+          "bin_id": "se_0_60_to_0_70",
+          "lower_bound": 0.6,
+          "lower_inclusive": false,
+          "upper_bound": 0.7,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Analysis-only high-diversity sensitivity bin."
+        },
+        {
+          "bin_id": "se_0_70_to_0_80",
+          "lower_bound": 0.7,
+          "lower_inclusive": false,
+          "upper_bound": 0.8,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Analysis-only high-diversity sensitivity bin."
+        },
+        {
+          "bin_id": "se_0_80_to_0_90",
+          "lower_bound": 0.8,
+          "lower_inclusive": false,
+          "upper_bound": 0.9,
+          "upper_inclusive": true,
+          "includes_upper_bound": true,
+          "note": "Analysis-only high-diversity sensitivity bin."
+        },
+        {
+          "bin_id": "se_0_90_plus",
+          "lower_bound": 0.9,
+          "lower_inclusive": false,
+          "upper_bound": null,
+          "upper_inclusive": false,
+          "includes_upper_bound": false,
+          "note": "Open-ended tail bin covering the rest of [0, +inf)."
+        }
+      ],
+      "notes": "These bins support crossover and threshold sensitivity analysis only. They do not replace the fixed operational TypeLabel thresholds."
+    }
+  },
+  "datasets": [
+    {
+      "name": "TruthfulQA",
+      "role": "core",
+      "hf_id": "truthful_qa",
+      "config": "generation",
+      "split": "validation",
+      "split_id": "truthfulqa_validation",
+      "target_sample_count": 817,
+      "seed": 13,
+      "label_source": {
+        "type": "gold_reference_answers_and_semantic_entropy",
+        "details": "Use TruthfulQA correct answers to determine correctness, then apply registry Semantic Entropy thresholds to every incorrect sample."
+      },
+      "label_policy": {
+        "correctness_judgment": "Mark the sample correct only when the generated answer is judged against the TruthfulQA correct answer set; correct rows become NORMAL.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Mandatory core dataset. Full dataset download is intentionally skipped during dry-run."
+    },
+    {
+      "name": "TriviaQA",
+      "role": "core",
+      "hf_id": "trivia_qa",
+      "config": "rc.nocontext",
+      "split": "validation",
+      "split_id": "triviaqa_validation",
+      "target_sample_count": 2000,
+      "seed": 17,
+      "label_source": {
+        "type": "gold_alias_match_and_semantic_entropy",
+        "details": "Use TriviaQA answer aliases and canonical answer strings to decide correctness before applying the fixed registry Semantic Entropy thresholds."
+      },
+      "label_policy": {
+        "correctness_judgment": "Mark the sample correct only when the generated answer matches the TriviaQA canonical answer or an accepted alias; correct rows become NORMAL.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Mandatory core dataset. TriviaQA correctness policy is alias-aware and must not be inferred from HaluEval annotations."
+    },
+    {
+      "name": "HaluEval-QA",
+      "role": "core",
+      "hf_id": "pminervini/HaluEval",
+      "config": "qa",
+      "split": "data",
+      "split_id": "halueval_qa_data",
+      "target_sample_count": 5000,
+      "seed": 23,
+      "label_source": {
+        "type": "dataset_hallucination_annotation_and_semantic_entropy",
+        "details": "Use the HaluEval-QA hallucination/right-answer annotation to decide correctness, then apply the fixed registry Semantic Entropy thresholds to incorrect samples."
+      },
+      "label_policy": {
+        "correctness_judgment": "Treat rows with non-hallucinated or right-answer-supported answers as correct and rows flagged by the HaluEval-QA hallucination annotation as incorrect before applying Semantic Entropy thresholds.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Mandatory core dataset. HaluEval-QA correctness comes from dataset hallucination annotations and must not be treated as the same label source as TriviaQA alias matching."
+    },
+    {
+      "name": "Natural Questions",
+      "role": "future",
+      "hf_id": "nq_open",
+      "config": null,
+      "split": "validation",
+      "split_id": "natural_questions_validation",
+      "target_sample_count": 2000,
+      "seed": 29,
+      "label_source": {
+        "type": "gold_open_domain_answers_and_semantic_entropy",
+        "details": "Future dataset. Use open-domain answer references for correctness before applying the fixed registry Semantic Entropy thresholds."
+      },
+      "label_policy": {
+        "correctness_judgment": "Future dataset policy: use accepted Natural Questions answers to determine correctness before Semantic Entropy threshold assignment.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
+    },
+    {
+      "name": "HotpotQA",
+      "role": "future",
+      "hf_id": "hotpotqa/hotpot_qa",
+      "config": "fullwiki",
+      "split": "validation",
+      "split_id": "hotpotqa_validation",
+      "target_sample_count": 2000,
+      "seed": 31,
+      "label_source": {
+        "type": "gold_multi_hop_answers_and_semantic_entropy",
+        "details": "Future dataset. Use HotpotQA gold answers for correctness before applying the fixed registry Semantic Entropy thresholds."
+      },
+      "label_policy": {
+        "correctness_judgment": "Future dataset policy: use HotpotQA gold answers to determine correctness before Semantic Entropy threshold assignment.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
+    },
+    {
+      "name": "FEVER",
+      "role": "future",
+      "hf_id": "fever",
+      "config": "v1.0",
+      "split": "validation",
+      "split_id": "fever_validation",
+      "target_sample_count": 2000,
+      "seed": 37,
+      "label_source": {
+        "type": "fact_verification_label_and_semantic_entropy",
+        "details": "Future dataset. Use FEVER-supportedness judgments to determine correctness before applying the fixed registry Semantic Entropy thresholds."
+      },
+      "label_policy": {
+        "correctness_judgment": "Future dataset policy: use FEVER support/refute correctness judgments before Semantic Entropy threshold assignment.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
+    },
+    {
+      "name": "BioASQ",
+      "role": "future",
+      "hf_id": "bioasq",
+      "config": "factoid",
+      "split": "test",
+      "split_id": "bioasq_test",
+      "target_sample_count": 1000,
+      "seed": 41,
+      "label_source": {
+        "type": "biomedical_reference_answers_and_semantic_entropy",
+        "details": "Future dataset. Use BioASQ reference answers to determine correctness before applying the fixed registry Semantic Entropy thresholds."
+      },
+      "label_policy": {
+        "correctness_judgment": "Future dataset policy: use BioASQ accepted biomedical answers before Semantic Entropy threshold assignment.",
+        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
+        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
+        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+      },
+      "promotion": {
+        "promoted_to_core": false,
+        "reported_in_run": false
+      },
+      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
+    }
+  ]
+}
