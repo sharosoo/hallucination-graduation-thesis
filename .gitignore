@@ -1,9 +1,25 @@
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# uv + Python packaging caches
+.python-version
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+*.egg-info/
+.eggs/
 
 # experiment outputs
 output/
+experiments/results/generation/
+
+# local model/data caches
+.cache/
+.hf/
 
 # agent workspace notes
 .sisyphus/
