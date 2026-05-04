@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "method_name": "Corpus-Grounded Selective Fusion Detector",
+  "binary_target": {
+    "positive_rule": "label != NORMAL",
+    "negative_label": "NORMAL"
+  },
+  "evaluation": {
+    "primary_split": "leave_one_dataset_out",
+    "prefer_dataset_level_visibility": true,
+    "headline_scope": "aggregate_across_dataset_holdouts",
+    "dataset_order": [
+      "HaluEval-QA",
+      "HaluEval-dialogue",
+      "Natural Questions",
+      "TriviaQA",
+      "TruthfulQA"
+    ]
+  },
+  "baselines": [
+    {
+      "name": "SE-only",
+      "kind": "single_signal",
+      "signal": "semantic_entropy"
+    },
+    {
+      "name": "Energy-only",
+      "kind": "energy_only",
+      "signal": "semantic_energy_boltzmann"
+    },
+    {
+      "name": "corpus-risk-only",
+      "kind": "single_signal",
+      "signal": "corpus_risk_only"
+    },
+    {
+      "name": "fixed linear 0.1/0.9",
+      "kind": "fixed_linear",
+      "semantic_entropy_weight": 0.1,
+      "semantic_energy_weight": 0.9
+    },
+    {
+      "name": "fixed linear 0.5/0.5",
+      "kind": "fixed_linear",
+      "semantic_entropy_weight": 0.5,
+      "semantic_energy_weight": 0.5
+    },
+    {
+      "name": "fixed linear 0.9/0.1",
+      "kind": "fixed_linear",
+      "semantic_entropy_weight": 0.9,
+      "semantic_energy_weight": 0.1
+    },
+    {
+      "name": "hard cascade",
+      "kind": "hard_cascade"
+    },
+    {
+      "name": "old coverage-adaptive baseline",
+      "kind": "coverage_adaptive"
+    },
+    {
+      "name": "learned fusion without corpus",
+      "kind": "learned_without_corpus"
+    },
+    {
+      "name": "learned fusion with corpus",
+      "kind": "learned_with_corpus"
+    }
+  ],
+  "learned_fusion": {
+    "optimizer": "stdlib_logistic_l2",
+    "standardize": true,
+    "l2_lambda": 0.1,
+    "learning_rate": 0.2,
+    "max_iterations": 1500,
+    "tolerance": 1e-06,
+    "feature_sets": {
+      "without_corpus": [
+        "semantic_entropy",
+        "cluster_count"
+      ],
+      "with_corpus": [
+        "semantic_entropy",
+        "cluster_count",
+        "entity_frequency_mean",
+        "entity_frequency_min",
+        "entity_pair_cooccurrence",
+        "low_frequency_entity_flag",
+        "zero_cooccurrence_flag",
+        "coverage_score",
+        "corpus_risk_only"
+      ]
+    },
+    "forbidden_features": [
+      "label",
+      "p_correct",
+      "pc_probe",
+      "hidden_state",
+      "semantic_energy_proxy",
+      "correctness",
+      "gold_answer",
+      "gold_answers",
+      "is_correct",
+      "correctness_judgment"
+    ]
+  },
+  "notes": [
+    "The fixed linear names use Semantic Entropy / Semantic Energy weight order.",
+    "Energy-dependent baselines must stay explicit and null when true Boltzmann energy is unavailable.",
+    "Learned fusion remains leakage-safe by training on held-in datasets only and scoring a held-out dataset per fold."
+  ]
+}

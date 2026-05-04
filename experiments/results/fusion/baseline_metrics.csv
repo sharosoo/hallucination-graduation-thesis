@@ -1,0 +1,61 @@
+method_name,scope,dataset,status,unavailable_reason,full_logits_required,rerun_required,row_count,positive_count,negative_count,auroc,auprc,accuracy,precision,recall,f1,threshold,predicted_positive_rate,brier_score,high_diversity_auroc,low_diversity_auroc
+SE-only,aggregate,AGGREGATE,ok,,False,False,1000,598,402,0.6752441804356145,0.7164119594601905,0.66,0.6832386363636364,0.8043478260869565,0.7388632872503841,0.2,0.704,0.4476918560780236,0.7853378636960726,0.22263681592039802
+SE-only,dataset_holdout,HaluEval-QA,ok,,False,False,200,21,179,0.5057196062782655,0.11496111302045545,0.105,0.105,1.0,0.19004524886877827,0.0,1.0,0.3887138972061103,0.8001241464928616,0.2849162011173184
+SE-only,dataset_holdout,HaluEval-dialogue,ok,,False,False,200,188,12,0.5986258865248227,0.9543893604324554,0.745,0.9536423841059603,0.7659574468085106,0.8495575221238938,0.5,0.755,0.37020988502942953,0.7178819444444444,0.20833333333333334
+SE-only,dataset_holdout,Natural Questions,ok,,False,False,200,114,86,0.6355569155446756,0.6591133439367812,0.57,0.57,1.0,0.7261146496815287,0.0,1.0,0.5882445645278956,0.6891510498983969,0.13372093023255813
+SE-only,dataset_holdout,TriviaQA,ok,,False,False,200,110,90,0.6686868686868687,0.6574299403932693,0.55,0.55,1.0,0.7096774193548387,0.0,1.0,0.47560820921834884,0.763064713064713,0.21666666666666667
+SE-only,dataset_holdout,TruthfulQA,ok,,False,False,200,165,35,0.6190476190476191,0.8727333396753127,0.72,0.8427672955974843,0.8121212121212121,0.8271604938271604,0.5,0.795,0.4156827244083334,0.7292110874200426,0.14285714285714285
+Energy-only,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+Energy-only,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+Energy-only,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+Energy-only,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+Energy-only,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+Energy-only,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+corpus-risk-only,aggregate,AGGREGATE,ok,,False,False,1000,598,402,0.4991326810762242,0.6031212043034736,0.591,0.5957446808510638,0.9832775919732442,0.741955835962145,0.1494838,0.987,0.382226154788106,0.503154704647242,0.48259769528426244
+corpus-risk-only,dataset_holdout,HaluEval-QA,ok,,False,False,200,21,179,0.43735035913806863,0.09904252095316715,0.105,0.105,1.0,0.19004524886877827,0.0,1.0,0.734200028283485,0.41527001862197394,0.45391061452513964
+corpus-risk-only,dataset_holdout,HaluEval-dialogue,ok,,False,False,200,188,12,0.4621010638297872,0.935572002407269,0.94,0.94,1.0,0.9690721649484536,0.0,1.0,0.065714544873995,0.46556712962962965,0.45075757575757575
+corpus-risk-only,dataset_holdout,Natural Questions,ok,,False,False,200,114,86,0.4928090575275398,0.5663803791193448,0.57,0.57,1.0,0.7261146496815287,0.0,1.0,0.42439512045161004,0.4992662000451569,0.4323467230443975
+corpus-risk-only,dataset_holdout,TriviaQA,ok,,False,False,200,110,90,0.5102525252525253,0.5553758751855702,0.55,0.55,1.0,0.7096774193548387,0.0,1.0,0.440232546421165,0.5054334554334554,0.5333333333333333
+corpus-risk-only,dataset_holdout,TruthfulQA,ok,,False,False,200,165,35,0.4438095238095238,0.8059873325672232,0.485,0.7980769230769231,0.503030303030303,0.6171003717472119,0.747419,0.52,0.246588533910275,0.4401918976545842,0.4594470046082949
+fixed linear 0.1/0.9,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.1/0.9,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.1/0.9,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.1/0.9,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.1/0.9,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.1/0.9,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.5/0.5,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+fixed linear 0.9/0.1,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+hard cascade,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,aggregate,AGGREGATE,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,dataset_holdout,HaluEval-QA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,dataset_holdout,HaluEval-dialogue,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,dataset_holdout,Natural Questions,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,dataset_holdout,TriviaQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+old coverage-adaptive baseline,dataset_holdout,TruthfulQA,unavailable,full_logits_required,True,True,0,0,0,,,,,,,,,,,
+learned fusion without corpus,aggregate,AGGREGATE,ok,,False,False,1000,598,402,0.4772937153696401,0.604289402726488,0.598,0.598,1.0,0.7484355444305382,0.18760550309399587,1.0,0.2633367885959931,0.5722970387149492,0.08672449717225837
+learned fusion without corpus,dataset_holdout,HaluEval-QA,ok,,False,False,200,21,179,0.5057196062782655,0.11496111302045545,0.105,0.105,1.0,0.19004524886877827,0.0,1.0,0.40584796294243863,0.8001241464928616,0.2849162011173184
+learned fusion without corpus,dataset_holdout,HaluEval-dialogue,ok,,False,False,200,188,12,0.5986258865248227,0.9543893604324554,0.745,0.9536423841059603,0.7659574468085106,0.8495575221238938,0.44786348097154394,0.755,0.24052139525221541,0.7178819444444444,0.20833333333333334
+learned fusion without corpus,dataset_holdout,Natural Questions,ok,,False,False,200,114,86,0.6355569155446756,0.6591133439367812,0.57,0.57,1.0,0.7261146496815287,0.0,1.0,0.237642110079105,0.6891510498983969,0.13372093023255813
+learned fusion without corpus,dataset_holdout,TriviaQA,ok,,False,False,200,110,90,0.6686868686868687,0.6574299403932693,0.55,0.55,1.0,0.7096774193548387,0.0,1.0,0.22871301056917961,0.763064713064713,0.21666666666666667
+learned fusion without corpus,dataset_holdout,TruthfulQA,ok,,False,False,200,165,35,0.6190476190476191,0.8727333396753127,0.72,0.8427672955974843,0.8121212121212121,0.8271604938271604,0.4901640344984355,0.795,0.20395946413702667,0.7292110874200426,0.14285714285714285
+learned fusion with corpus,aggregate,AGGREGATE,ok,,False,False,1000,598,402,0.44420664237341717,0.5936572926521888,0.521,0.5663322185061316,0.8494983277591973,0.6795986622073579,0.3483141468408746,0.897,0.2861370225179387,0.5183593467175557,0.13935663562529235
+learned fusion with corpus,dataset_holdout,HaluEval-QA,ok,,False,False,200,21,179,0.568901303538175,0.15975806333706588,0.105,0.105,1.0,0.19004524886877827,0.0,1.0,0.4109347417903595,0.7970204841713222,0.39781191806331473
+learned fusion with corpus,dataset_holdout,HaluEval-dialogue,ok,,False,False,200,188,12,0.6074911347517731,0.9562221697856375,0.745,0.9536423841059603,0.7659574468085106,0.8495575221238938,0.38279800168226424,0.755,0.25844315000153434,0.7306134259259259,0.20454545454545456
+learned fusion with corpus,dataset_holdout,Natural Questions,ok,,False,False,200,114,86,0.6352509179926561,0.6632976673793171,0.565,0.5678391959798995,0.9912280701754386,0.7220447284345048,0.42423193369791884,0.995,0.23387681950624656,0.6836193271618876,0.18234672304439747
+learned fusion with corpus,dataset_holdout,TriviaQA,ok,,False,False,200,110,90,0.667070707070707,0.6642964803538167,0.55,0.55,1.0,0.7096774193548387,0.42982401030110245,1.0,0.22677649134850394,0.7645909645909645,0.2
+learned fusion with corpus,dataset_holdout,TruthfulQA,ok,,False,False,200,165,35,0.5278787878787878,0.841584204071158,0.49,0.8181818181818182,0.4909090909090909,0.6136363636363636,0.5047167885230873,0.495,0.3006539099430491,0.5863539445628998,0.2751152073732719

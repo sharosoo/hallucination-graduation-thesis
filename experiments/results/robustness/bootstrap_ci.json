@@ -1,0 +1,166 @@
+{
+  "bootstrap_seed": 20260504,
+  "bootstrap_iterations": 2000,
+  "comparisons": [
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "learned fusion without corpus",
+      "status": "ok",
+      "sample_count": 1000,
+      "metrics": [
+        {
+          "metric": "auroc",
+          "observed_delta": -0.03308707299622293,
+          "ci_95_lower": -0.05320532148227693,
+          "ci_95_upper": -0.011724038590128993,
+          "bootstrap_mean_delta": -0.032749998525551986,
+          "bootstrap_seed": 20260504,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "learned fusion without corpus",
+          "sample_count": 1000
+        },
+        {
+          "metric": "auprc",
+          "observed_delta": -0.010632110074299206,
+          "ci_95_lower": -0.03127250422987557,
+          "ci_95_upper": 0.009851923125365784,
+          "bootstrap_mean_delta": -0.010633519620229162,
+          "bootstrap_seed": 20260505,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": false,
+          "ci_crosses_zero": true,
+          "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "learned fusion without corpus",
+          "sample_count": 1000
+        }
+      ]
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "SE-only",
+      "status": "ok",
+      "sample_count": 1000,
+      "metrics": [
+        {
+          "metric": "auroc",
+          "observed_delta": -0.23103753806219735,
+          "ci_95_lower": -0.2594928641929192,
+          "ci_95_upper": -0.20070367811934015,
+          "bootstrap_mean_delta": -0.2305600931779085,
+          "bootstrap_seed": 20260504,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "SE-only",
+          "sample_count": 1000
+        },
+        {
+          "metric": "auprc",
+          "observed_delta": -0.12275466680800173,
+          "ci_95_lower": -0.1474722873471395,
+          "ci_95_upper": -0.0956340266120849,
+          "bootstrap_mean_delta": -0.12194746505085717,
+          "bootstrap_seed": 20260505,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "SE-only",
+          "sample_count": 1000
+        }
+      ]
+    },
+    {
+      "candidate_method": "learned fusion without corpus",
+      "reference_method": "SE-only",
+      "status": "ok",
+      "sample_count": 1000,
+      "metrics": [
+        {
+          "metric": "auroc",
+          "observed_delta": -0.1979504650659744,
+          "ci_95_lower": -0.21915815886404527,
+          "ci_95_upper": -0.17705091685525617,
+          "bootstrap_mean_delta": -0.19781009465235652,
+          "bootstrap_seed": 20260504,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion without corpus",
+          "reference_method": "SE-only",
+          "sample_count": 1000
+        },
+        {
+          "metric": "auprc",
+          "observed_delta": -0.11212255673370253,
+          "ci_95_lower": -0.12608191905757316,
+          "ci_95_upper": -0.09621557529476273,
+          "bootstrap_mean_delta": -0.11131394543062802,
+          "bootstrap_seed": 20260505,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion without corpus",
+          "reference_method": "SE-only",
+          "sample_count": 1000
+        }
+      ]
+    },
+    {
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "corpus-risk-only",
+      "status": "ok",
+      "sample_count": 1000,
+      "metrics": [
+        {
+          "metric": "auroc",
+          "observed_delta": -0.054926038702807045,
+          "ci_95_lower": -0.10108114426481729,
+          "ci_95_upper": -0.00813445173483027,
+          "bootstrap_mean_delta": -0.055416113071509024,
+          "bootstrap_seed": 20260504,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": true,
+          "ci_crosses_zero": false,
+          "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "corpus-risk-only",
+          "sample_count": 1000
+        },
+        {
+          "metric": "auprc",
+          "observed_delta": -0.009463911651284795,
+          "ci_95_lower": -0.04321093571678086,
+          "ci_95_upper": 0.02716341537732088,
+          "bootstrap_mean_delta": -0.008285766898323306,
+          "bootstrap_seed": 20260505,
+          "bootstrap_iterations": 2000,
+          "valid_iterations": 2000,
+          "statistically_significant": false,
+          "ci_crosses_zero": true,
+          "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim.",
+          "candidate_method": "learned fusion with corpus",
+          "reference_method": "corpus-risk-only",
+          "sample_count": 1000
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5156 @@
+{
+  "run_id": "robustness-20260504T101701Z",
+  "generated_at": "2026-05-04T10:17:01.249171+00:00",
+  "method_name": "Corpus-Grounded Selective Fusion Detector",
+  "features_path": "experiments/results/features.parquet",
+  "features_storage": {
+    "requested_out_path": "experiments/results/features.parquet",
+    "row_count": 1000,
+    "generated_at": "2026-05-04T09:20:38.917902+00:00",
+    "report": {
+      "run_id": "feature-table-20260504T092038Z",
+      "generated_at": "2026-05-04T09:20:38.917086+00:00",
+      "requested_out_path": "experiments/results/features.parquet",
+      "row_count": 1000,
+      "source_artifacts": {
+        "corpus": {
+          "requested_path": "experiments/results/corpus_features.parquet",
+          "resolved_path": "experiments/results/corpus_features.parquet.jsonl",
+          "storage": {
+            "requested_out_path": "experiments/results/corpus_features.parquet",
+            "row_count": 1000,
+            "generated_at": "2026-05-04T08:50:50.934895+00:00",
+            "report": {
+              "run_id": "corpus-features-20260504T085050Z",
+              "mode": "cache-or-proxy",
+              "row_count": 1000,
+              "selected_artifact_count": 5,
+              "proxy_index": {
+                "available": true,
+                "term_count": 1071,
+                "pair_count": 1370,
+                "source_artifact_paths": [
+                  "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json",
+                  "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json"
+                ]
+              },
+              "corpus_source_counts": {
+                "cache_upstream_corpus_stats": 400,
+                "proxy_cached_artifact_index": 600
+              },
+              "skipped_artifacts": [],
+              "supported_methods": {
+                "learned_fusion_with_corpus": {
+                  "uses_direct_corpus_features": true,
+                  "proposed_method_not_scalar_coverage_only": true
+                },
+                "corpus_risk_only": {
+                  "column": "corpus_risk_only",
+                  "uses_only_corpus_features_or_proxies": true,
+                  "note": "Baseline support only. This is not the proposed learned fusion method."
+                }
+              }
+            },
+            "storage_kind": "jsonl_fallback_for_requested_parquet",
+            "materialized_path": "experiments/results/corpus_features.parquet.jsonl",
+            "parquet_unavailable_reason": "ModuleNotFoundError(\"No module named 'pyarrow'\")"
+          }
+        },
+        "energy": {
+          "requested_path": "experiments/results/energy_features.parquet",
+          "storage": {
+            "requested_out_path": "experiments/results/energy_features.parquet",
+            "generated_at": "2026-05-04T09:11:35.917946+00:00",
+            "storage_kind": "rerun_required_report",
+            "materialized_path": "experiments/results/energy_features.rerun_required.json",
+            "artifact_status": "rerun_required",
+            "report": {
+              "report_type": "energy_feature_rerun_required",
+              "status": "full_logits_required",
+              "full_logits_required": true,
+              "rerun_required": true,
+              "allow_proxy_diagnostic": false,
+              "require_true_boltzmann": true,
+              "diagnostic_only": false,
+              "not_for_thesis_claims": true,
+              "not_for_validation": true,
+              "true_boltzmann_available": false,
+              "selected_artifact_count": 5,
+              "selected_artifacts": [
+                {
+                  "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+                  "dataset_id": "halueval_qa",
+                  "dataset_name": "HaluEval-QA",
+                  "split_id": "halueval_qa_data",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+                  "dataset_id": "halueval_dialogue",
+                  "dataset_name": "HaluEval-dialogue",
+                  "split_id": "unknown_split",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+                  "dataset_id": "natural_questions",
+                  "dataset_name": "Natural Questions",
+                  "split_id": "natural_questions_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+                  "dataset_id": "triviaqa",
+                  "dataset_name": "TriviaQA",
+                  "split_id": "triviaqa_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+                },
+                {
+                  "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+                  "dataset_id": "truthfulqa",
+                  "dataset_name": "TruthfulQA",
+                  "split_id": "truthfulqa_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+                }
+              ],
+              "missing_full_logits_artifacts": [
+                {
+                  "artifact_id": "exp04_corpus_adaptive_halueval_with_corpus_halueval_qa",
+                  "dataset_id": "halueval_qa",
+                  "dataset_name": "HaluEval-QA",
+                  "split_id": "halueval_qa_data",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_halueval_dialogue_halueval_dialogue",
+                  "dataset_id": "halueval_dialogue",
+                  "dataset_name": "HaluEval-dialogue",
+                  "split_id": "unknown_split",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_halueval_dialogue.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_naturalquestions_llm_judge_natural_questions",
+                  "dataset_id": "natural_questions",
+                  "dataset_name": "Natural Questions",
+                  "split_id": "natural_questions_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_naturalquestions_llm_judge.json"
+                },
+                {
+                  "artifact_id": "exp07_zero_se_analysis_results_triviaqa_llm_judge_triviaqa",
+                  "dataset_id": "triviaqa",
+                  "dataset_name": "TriviaQA",
+                  "split_id": "triviaqa_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp07_zero_se_analysis/results_triviaqa_llm_judge.json"
+                },
+                {
+                  "artifact_id": "exp09_thesis_final_results_full_truthfulqa",
+                  "dataset_id": "truthfulqa",
+                  "dataset_name": "TruthfulQA",
+                  "split_id": "truthfulqa_validation",
+                  "has_logits": false,
+                  "has_full_logits": false,
+                  "path": "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp09_thesis_final/results_full.json"
+                }
+              ],
+              "rerun_instructions": "True Boltzmann semantic energy is unavailable from the current upstream artifacts. Re-run upstream generation/export with row-level raw per-token full logits or equivalent full-logit/logsumexp artifacts, then regenerate experiments/results/energy_features.parquet.",
+              "formula_manifest_ref": "experiments/literature/formula_notes.md",
+              "dataset_manifest_ref": "experiments/manifests/upstream_artifacts_manifest.json",
+              "message": "Current upstream artifacts do not expose row-level full logits, so paper-faithful Ma/Boltzmann Semantic Energy cannot be computed or validated for thesis/fusion claims."
+            }
+          }
+        }
+      },
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "label_counts_by_dataset": {
+        "HaluEval-QA": {
+          "NORMAL": 179,
+          "HIGH_DIVERSITY": 9,
+          "LOW_DIVERSITY": 12,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "HaluEval-dialogue": {
+          "NORMAL": 12,
+          "HIGH_DIVERSITY": 144,
+          "LOW_DIVERSITY": 44,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "Natural Questions": {
+          "NORMAL": 86,
+          "HIGH_DIVERSITY": 103,
+          "LOW_DIVERSITY": 11,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "TriviaQA": {
+          "NORMAL": 90,
+          "HIGH_DIVERSITY": 91,
+          "LOW_DIVERSITY": 19,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "TruthfulQA": {
+          "NORMAL": 35,
+          "HIGH_DIVERSITY": 134,
+          "LOW_DIVERSITY": 31,
+          "AMBIGUOUS_INCORRECT": 0
+        }
+      },
+      "label_presence_explanations": {
+        "AMBIGUOUS_INCORRECT": "No incorrect sample in the current corpus feature rows fell inside 0.1 < SE <= 0.5, so the gray-zone label is absent in this export instead of being force-filled."
+      },
+      "boundary_self_check": {
+        "cases": [
+          {
+            "semantic_entropy": 0.1,
+            "expected_label": "LOW_DIVERSITY",
+            "actual_label": "LOW_DIVERSITY",
+            "passes": true
+          },
+          {
+            "semantic_entropy": 0.5,
+            "expected_label": "AMBIGUOUS_INCORRECT",
+            "actual_label": "AMBIGUOUS_INCORRECT",
+            "passes": true
+          },
+          {
+            "semantic_entropy": 0.5001,
+            "expected_label": "HIGH_DIVERSITY",
+            "actual_label": "HIGH_DIVERSITY",
+            "passes": true
+          }
+        ],
+        "all_pass": true
+      },
+      "energy_status_counts": {
+        "full_logits_required_rerun_required": 1000
+      },
+      "missing_energy_matches": {},
+      "analysis_bin_scheme": "semantic_entropy_threshold_focus_bins",
+      "analysis_bin_count": 12,
+      "notes": [
+        "Rows are sourced from corpus_features as the validated row-level artifact and relabeled with the fixed four-way operational policy.",
+        "Energy availability comes from the energy_features rerun-required sidecar. Proxy scalar energy is retained only as diagnostic metadata and not treated as thesis-valid evidence."
+      ]
+    },
+    "storage_kind": "jsonl_fallback_for_requested_parquet",
+    "materialized_path": "experiments/results/features.parquet.jsonl",
+    "parquet_unavailable_reason": "ModuleNotFoundError(\"No module named 'pyarrow'\")"
+  },
+  "fusion_dir": "experiments/results/fusion",
+  "fusion_summary_path": "experiments/results/fusion/summary.json",
+  "baseline_metrics_path": "experiments/results/fusion/baseline_metrics.csv",
+  "predictions_path": "experiments/results/fusion/predictions.jsonl",
+  "row_count": 1000,
+  "datasets": [
+    "HaluEval-QA",
+    "HaluEval-dialogue",
+    "Natural Questions",
+    "TriviaQA",
+    "TruthfulQA"
+  ],
+  "formula_manifest_ref": "experiments/literature/formula_notes.md",
+  "dataset_manifest_ref": "experiments/manifests/upstream_artifacts_manifest.json",
+  "bootstrap": {
+    "bootstrap_seed": 20260504,
+    "bootstrap_iterations": 2000,
+    "comparisons": [
+      {
+        "candidate_method": "learned fusion with corpus",
+        "reference_method": "learned fusion without corpus",
+        "status": "ok",
+        "sample_count": 1000,
+        "metrics": [
+          {
+            "metric": "auroc",
+            "observed_delta": -0.03308707299622293,
+            "ci_95_lower": -0.05320532148227693,
+            "ci_95_upper": -0.011724038590128993,
+            "bootstrap_mean_delta": -0.032749998525551986,
+            "bootstrap_seed": 20260504,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "learned fusion without corpus",
+            "sample_count": 1000
+          },
+          {
+            "metric": "auprc",
+            "observed_delta": -0.010632110074299206,
+            "ci_95_lower": -0.03127250422987557,
+            "ci_95_upper": 0.009851923125365784,
+            "bootstrap_mean_delta": -0.010633519620229162,
+            "bootstrap_seed": 20260505,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": false,
+            "ci_crosses_zero": true,
+            "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "learned fusion without corpus",
+            "sample_count": 1000
+          }
+        ]
+      },
+      {
+        "candidate_method": "learned fusion with corpus",
+        "reference_method": "SE-only",
+        "status": "ok",
+        "sample_count": 1000,
+        "metrics": [
+          {
+            "metric": "auroc",
+            "observed_delta": -0.23103753806219735,
+            "ci_95_lower": -0.2594928641929192,
+            "ci_95_upper": -0.20070367811934015,
+            "bootstrap_mean_delta": -0.2305600931779085,
+            "bootstrap_seed": 20260504,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "SE-only",
+            "sample_count": 1000
+          },
+          {
+            "metric": "auprc",
+            "observed_delta": -0.12275466680800173,
+            "ci_95_lower": -0.1474722873471395,
+            "ci_95_upper": -0.0956340266120849,
+            "bootstrap_mean_delta": -0.12194746505085717,
+            "bootstrap_seed": 20260505,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "SE-only",
+            "sample_count": 1000
+          }
+        ]
+      },
+      {
+        "candidate_method": "learned fusion without corpus",
+        "reference_method": "SE-only",
+        "status": "ok",
+        "sample_count": 1000,
+        "metrics": [
+          {
+            "metric": "auroc",
+            "observed_delta": -0.1979504650659744,
+            "ci_95_lower": -0.21915815886404527,
+            "ci_95_upper": -0.17705091685525617,
+            "bootstrap_mean_delta": -0.19781009465235652,
+            "bootstrap_seed": 20260504,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion without corpus",
+            "reference_method": "SE-only",
+            "sample_count": 1000
+          },
+          {
+            "metric": "auprc",
+            "observed_delta": -0.11212255673370253,
+            "ci_95_lower": -0.12608191905757316,
+            "ci_95_upper": -0.09621557529476273,
+            "bootstrap_mean_delta": -0.11131394543062802,
+            "bootstrap_seed": 20260505,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion without corpus",
+            "reference_method": "SE-only",
+            "sample_count": 1000
+          }
+        ]
+      },
+      {
+        "candidate_method": "learned fusion with corpus",
+        "reference_method": "corpus-risk-only",
+        "status": "ok",
+        "sample_count": 1000,
+        "metrics": [
+          {
+            "metric": "auroc",
+            "observed_delta": -0.054926038702807045,
+            "ci_95_lower": -0.10108114426481729,
+            "ci_95_upper": -0.00813445173483027,
+            "bootstrap_mean_delta": -0.055416113071509024,
+            "bootstrap_seed": 20260504,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": true,
+            "ci_crosses_zero": false,
+            "claim_text": "Observed delta stays below zero in this bootstrap interval.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "corpus-risk-only",
+            "sample_count": 1000
+          },
+          {
+            "metric": "auprc",
+            "observed_delta": -0.009463911651284795,
+            "ci_95_lower": -0.04321093571678086,
+            "ci_95_upper": 0.02716341537732088,
+            "bootstrap_mean_delta": -0.008285766898323306,
+            "bootstrap_seed": 20260505,
+            "bootstrap_iterations": 2000,
+            "valid_iterations": 2000,
+            "statistically_significant": false,
+            "ci_crosses_zero": true,
+            "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim.",
+            "candidate_method": "learned fusion with corpus",
+            "reference_method": "corpus-risk-only",
+            "sample_count": 1000
+          }
+        ]
+      }
+    ]
+  },
+  "leave_one_dataset_out": {
+    "evaluation": {
+      "primary_split": "leave_one_dataset_out",
+      "prefer_dataset_level_visibility": true,
+      "headline_scope": "aggregate_across_dataset_holdouts",
+      "dataset_order": [
+        "HaluEval-QA",
+        "HaluEval-dialogue",
+        "Natural Questions",
+        "TriviaQA",
+        "TruthfulQA"
+      ]
+    },
+    "aggregate": {
+      "SE-only": {
+        "method_name": "SE-only",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "ok",
+        "unavailable_reason": null,
+        "full_logits_required": false,
+        "rerun_required": false,
+        "row_count": 1000.0,
+        "positive_count": 598.0,
+        "negative_count": 402.0,
+        "auroc": 0.6752441804356145,
+        "auprc": 0.7164119594601905,
+        "accuracy": 0.66,
+        "precision": 0.6832386363636364,
+        "recall": 0.8043478260869565,
+        "f1": 0.7388632872503841,
+        "threshold": 0.2,
+        "predicted_positive_rate": 0.704,
+        "brier_score": 0.4476918560780236,
+        "high_diversity_auroc": 0.7853378636960726,
+        "low_diversity_auroc": 0.22263681592039802
+      },
+      "Energy-only": {
+        "method_name": "Energy-only",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "corpus-risk-only": {
+        "method_name": "corpus-risk-only",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "ok",
+        "unavailable_reason": null,
+        "full_logits_required": false,
+        "rerun_required": false,
+        "row_count": 1000.0,
+        "positive_count": 598.0,
+        "negative_count": 402.0,
+        "auroc": 0.4991326810762242,
+        "auprc": 0.6031212043034736,
+        "accuracy": 0.591,
+        "precision": 0.5957446808510638,
+        "recall": 0.9832775919732442,
+        "f1": 0.741955835962145,
+        "threshold": 0.1494838,
+        "predicted_positive_rate": 0.987,
+        "brier_score": 0.382226154788106,
+        "high_diversity_auroc": 0.503154704647242,
+        "low_diversity_auroc": 0.48259769528426244
+      },
+      "fixed linear 0.1/0.9": {
+        "method_name": "fixed linear 0.1/0.9",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "fixed linear 0.5/0.5": {
+        "method_name": "fixed linear 0.5/0.5",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "fixed linear 0.9/0.1": {
+        "method_name": "fixed linear 0.9/0.1",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "hard cascade": {
+        "method_name": "hard cascade",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "old coverage-adaptive baseline": {
+        "method_name": "old coverage-adaptive baseline",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "unavailable",
+        "unavailable_reason": "full_logits_required",
+        "full_logits_required": true,
+        "rerun_required": true,
+        "row_count": 0.0,
+        "positive_count": 0.0,
+        "negative_count": 0.0,
+        "auroc": null,
+        "auprc": null,
+        "accuracy": null,
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "threshold": null,
+        "predicted_positive_rate": null,
+        "brier_score": null,
+        "high_diversity_auroc": null,
+        "low_diversity_auroc": null
+      },
+      "learned fusion without corpus": {
+        "method_name": "learned fusion without corpus",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "ok",
+        "unavailable_reason": null,
+        "full_logits_required": false,
+        "rerun_required": false,
+        "row_count": 1000.0,
+        "positive_count": 598.0,
+        "negative_count": 402.0,
+        "auroc": 0.4772937153696401,
+        "auprc": 0.604289402726488,
+        "accuracy": 0.598,
+        "precision": 0.598,
+        "recall": 1.0,
+        "f1": 0.7484355444305382,
+        "threshold": 0.18760550309399587,
+        "predicted_positive_rate": 1.0,
+        "brier_score": 0.2633367885959931,
+        "high_diversity_auroc": 0.5722970387149492,
+        "low_diversity_auroc": 0.08672449717225837
+      },
+      "learned fusion with corpus": {
+        "method_name": "learned fusion with corpus",
+        "scope": "aggregate",
+        "dataset": "AGGREGATE",
+        "status": "ok",
+        "unavailable_reason": null,
+        "full_logits_required": false,
+        "rerun_required": false,
+        "row_count": 1000.0,
+        "positive_count": 598.0,
+        "negative_count": 402.0,
+        "auroc": 0.44420664237341717,
+        "auprc": 0.5936572926521888,
+        "accuracy": 0.521,
+        "precision": 0.5663322185061316,
+        "recall": 0.8494983277591973,
+        "f1": 0.6795986622073579,
+        "threshold": 0.3483141468408746,
+        "predicted_positive_rate": 0.897,
+        "brier_score": 0.2861370225179387,
+        "high_diversity_auroc": 0.5183593467175557,
+        "low_diversity_auroc": 0.13935663562529235
+      }
+    },
+    "per_dataset": {
+      "HaluEval-QA": {
+        "SE-only": {
+          "method_name": "SE-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 21.0,
+          "negative_count": 179.0,
+          "auroc": 0.5057196062782655,
+          "auprc": 0.11496111302045545,
+          "accuracy": 0.105,
+          "precision": 0.105,
+          "recall": 1.0,
+          "f1": 0.19004524886877827,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.3887138972061103,
+          "high_diversity_auroc": 0.8001241464928616,
+          "low_diversity_auroc": 0.2849162011173184
+        },
+        "Energy-only": {
+          "method_name": "Energy-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "corpus-risk-only": {
+          "method_name": "corpus-risk-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 21.0,
+          "negative_count": 179.0,
+          "auroc": 0.43735035913806863,
+          "auprc": 0.09904252095316715,
+          "accuracy": 0.105,
+          "precision": 0.105,
+          "recall": 1.0,
+          "f1": 0.19004524886877827,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.734200028283485,
+          "high_diversity_auroc": 0.41527001862197394,
+          "low_diversity_auroc": 0.45391061452513964
+        },
+        "fixed linear 0.1/0.9": {
+          "method_name": "fixed linear 0.1/0.9",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.5/0.5": {
+          "method_name": "fixed linear 0.5/0.5",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.9/0.1": {
+          "method_name": "fixed linear 0.9/0.1",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "hard cascade": {
+          "method_name": "hard cascade",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "old coverage-adaptive baseline": {
+          "method_name": "old coverage-adaptive baseline",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "learned fusion without corpus": {
+          "method_name": "learned fusion without corpus",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 21.0,
+          "negative_count": 179.0,
+          "auroc": 0.5057196062782655,
+          "auprc": 0.11496111302045545,
+          "accuracy": 0.105,
+          "precision": 0.105,
+          "recall": 1.0,
+          "f1": 0.19004524886877827,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.40584796294243863,
+          "high_diversity_auroc": 0.8001241464928616,
+          "low_diversity_auroc": 0.2849162011173184
+        },
+        "learned fusion with corpus": {
+          "method_name": "learned fusion with corpus",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-QA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 21.0,
+          "negative_count": 179.0,
+          "auroc": 0.568901303538175,
+          "auprc": 0.15975806333706588,
+          "accuracy": 0.105,
+          "precision": 0.105,
+          "recall": 1.0,
+          "f1": 0.19004524886877827,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.4109347417903595,
+          "high_diversity_auroc": 0.7970204841713222,
+          "low_diversity_auroc": 0.39781191806331473
+        }
+      },
+      "HaluEval-dialogue": {
+        "SE-only": {
+          "method_name": "SE-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 188.0,
+          "negative_count": 12.0,
+          "auroc": 0.5986258865248227,
+          "auprc": 0.9543893604324554,
+          "accuracy": 0.745,
+          "precision": 0.9536423841059603,
+          "recall": 0.7659574468085106,
+          "f1": 0.8495575221238938,
+          "threshold": 0.5,
+          "predicted_positive_rate": 0.755,
+          "brier_score": 0.37020988502942953,
+          "high_diversity_auroc": 0.7178819444444444,
+          "low_diversity_auroc": 0.20833333333333334
+        },
+        "Energy-only": {
+          "method_name": "Energy-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "corpus-risk-only": {
+          "method_name": "corpus-risk-only",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 188.0,
+          "negative_count": 12.0,
+          "auroc": 0.4621010638297872,
+          "auprc": 0.935572002407269,
+          "accuracy": 0.94,
+          "precision": 0.94,
+          "recall": 1.0,
+          "f1": 0.9690721649484536,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.065714544873995,
+          "high_diversity_auroc": 0.46556712962962965,
+          "low_diversity_auroc": 0.45075757575757575
+        },
+        "fixed linear 0.1/0.9": {
+          "method_name": "fixed linear 0.1/0.9",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.5/0.5": {
+          "method_name": "fixed linear 0.5/0.5",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.9/0.1": {
+          "method_name": "fixed linear 0.9/0.1",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "hard cascade": {
+          "method_name": "hard cascade",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "old coverage-adaptive baseline": {
+          "method_name": "old coverage-adaptive baseline",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "learned fusion without corpus": {
+          "method_name": "learned fusion without corpus",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 188.0,
+          "negative_count": 12.0,
+          "auroc": 0.5986258865248227,
+          "auprc": 0.9543893604324554,
+          "accuracy": 0.745,
+          "precision": 0.9536423841059603,
+          "recall": 0.7659574468085106,
+          "f1": 0.8495575221238938,
+          "threshold": 0.44786348097154394,
+          "predicted_positive_rate": 0.755,
+          "brier_score": 0.24052139525221541,
+          "high_diversity_auroc": 0.7178819444444444,
+          "low_diversity_auroc": 0.20833333333333334
+        },
+        "learned fusion with corpus": {
+          "method_name": "learned fusion with corpus",
+          "scope": "dataset_holdout",
+          "dataset": "HaluEval-dialogue",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 188.0,
+          "negative_count": 12.0,
+          "auroc": 0.6074911347517731,
+          "auprc": 0.9562221697856375,
+          "accuracy": 0.745,
+          "precision": 0.9536423841059603,
+          "recall": 0.7659574468085106,
+          "f1": 0.8495575221238938,
+          "threshold": 0.38279800168226424,
+          "predicted_positive_rate": 0.755,
+          "brier_score": 0.25844315000153434,
+          "high_diversity_auroc": 0.7306134259259259,
+          "low_diversity_auroc": 0.20454545454545456
+        }
+      },
+      "Natural Questions": {
+        "SE-only": {
+          "method_name": "SE-only",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 114.0,
+          "negative_count": 86.0,
+          "auroc": 0.6355569155446756,
+          "auprc": 0.6591133439367812,
+          "accuracy": 0.57,
+          "precision": 0.57,
+          "recall": 1.0,
+          "f1": 0.7261146496815287,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.5882445645278956,
+          "high_diversity_auroc": 0.6891510498983969,
+          "low_diversity_auroc": 0.13372093023255813
+        },
+        "Energy-only": {
+          "method_name": "Energy-only",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "corpus-risk-only": {
+          "method_name": "corpus-risk-only",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 114.0,
+          "negative_count": 86.0,
+          "auroc": 0.4928090575275398,
+          "auprc": 0.5663803791193448,
+          "accuracy": 0.57,
+          "precision": 0.57,
+          "recall": 1.0,
+          "f1": 0.7261146496815287,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.42439512045161004,
+          "high_diversity_auroc": 0.4992662000451569,
+          "low_diversity_auroc": 0.4323467230443975
+        },
+        "fixed linear 0.1/0.9": {
+          "method_name": "fixed linear 0.1/0.9",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.5/0.5": {
+          "method_name": "fixed linear 0.5/0.5",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.9/0.1": {
+          "method_name": "fixed linear 0.9/0.1",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "hard cascade": {
+          "method_name": "hard cascade",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "old coverage-adaptive baseline": {
+          "method_name": "old coverage-adaptive baseline",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "learned fusion without corpus": {
+          "method_name": "learned fusion without corpus",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 114.0,
+          "negative_count": 86.0,
+          "auroc": 0.6355569155446756,
+          "auprc": 0.6591133439367812,
+          "accuracy": 0.57,
+          "precision": 0.57,
+          "recall": 1.0,
+          "f1": 0.7261146496815287,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.237642110079105,
+          "high_diversity_auroc": 0.6891510498983969,
+          "low_diversity_auroc": 0.13372093023255813
+        },
+        "learned fusion with corpus": {
+          "method_name": "learned fusion with corpus",
+          "scope": "dataset_holdout",
+          "dataset": "Natural Questions",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 114.0,
+          "negative_count": 86.0,
+          "auroc": 0.6352509179926561,
+          "auprc": 0.6632976673793171,
+          "accuracy": 0.565,
+          "precision": 0.5678391959798995,
+          "recall": 0.9912280701754386,
+          "f1": 0.7220447284345048,
+          "threshold": 0.42423193369791884,
+          "predicted_positive_rate": 0.995,
+          "brier_score": 0.23387681950624656,
+          "high_diversity_auroc": 0.6836193271618876,
+          "low_diversity_auroc": 0.18234672304439747
+        }
+      },
+      "TriviaQA": {
+        "SE-only": {
+          "method_name": "SE-only",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 110.0,
+          "negative_count": 90.0,
+          "auroc": 0.6686868686868687,
+          "auprc": 0.6574299403932693,
+          "accuracy": 0.55,
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.47560820921834884,
+          "high_diversity_auroc": 0.763064713064713,
+          "low_diversity_auroc": 0.21666666666666667
+        },
+        "Energy-only": {
+          "method_name": "Energy-only",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "corpus-risk-only": {
+          "method_name": "corpus-risk-only",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 110.0,
+          "negative_count": 90.0,
+          "auroc": 0.5102525252525253,
+          "auprc": 0.5553758751855702,
+          "accuracy": 0.55,
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.440232546421165,
+          "high_diversity_auroc": 0.5054334554334554,
+          "low_diversity_auroc": 0.5333333333333333
+        },
+        "fixed linear 0.1/0.9": {
+          "method_name": "fixed linear 0.1/0.9",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.5/0.5": {
+          "method_name": "fixed linear 0.5/0.5",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.9/0.1": {
+          "method_name": "fixed linear 0.9/0.1",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "hard cascade": {
+          "method_name": "hard cascade",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "old coverage-adaptive baseline": {
+          "method_name": "old coverage-adaptive baseline",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "learned fusion without corpus": {
+          "method_name": "learned fusion without corpus",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 110.0,
+          "negative_count": 90.0,
+          "auroc": 0.6686868686868687,
+          "auprc": 0.6574299403932693,
+          "accuracy": 0.55,
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "threshold": 0.0,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.22871301056917961,
+          "high_diversity_auroc": 0.763064713064713,
+          "low_diversity_auroc": 0.21666666666666667
+        },
+        "learned fusion with corpus": {
+          "method_name": "learned fusion with corpus",
+          "scope": "dataset_holdout",
+          "dataset": "TriviaQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 110.0,
+          "negative_count": 90.0,
+          "auroc": 0.667070707070707,
+          "auprc": 0.6642964803538167,
+          "accuracy": 0.55,
+          "precision": 0.55,
+          "recall": 1.0,
+          "f1": 0.7096774193548387,
+          "threshold": 0.42982401030110245,
+          "predicted_positive_rate": 1.0,
+          "brier_score": 0.22677649134850394,
+          "high_diversity_auroc": 0.7645909645909645,
+          "low_diversity_auroc": 0.2
+        }
+      },
+      "TruthfulQA": {
+        "SE-only": {
+          "method_name": "SE-only",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 165.0,
+          "negative_count": 35.0,
+          "auroc": 0.6190476190476191,
+          "auprc": 0.8727333396753127,
+          "accuracy": 0.72,
+          "precision": 0.8427672955974843,
+          "recall": 0.8121212121212121,
+          "f1": 0.8271604938271604,
+          "threshold": 0.5,
+          "predicted_positive_rate": 0.795,
+          "brier_score": 0.4156827244083334,
+          "high_diversity_auroc": 0.7292110874200426,
+          "low_diversity_auroc": 0.14285714285714285
+        },
+        "Energy-only": {
+          "method_name": "Energy-only",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "corpus-risk-only": {
+          "method_name": "corpus-risk-only",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 165.0,
+          "negative_count": 35.0,
+          "auroc": 0.4438095238095238,
+          "auprc": 0.8059873325672232,
+          "accuracy": 0.485,
+          "precision": 0.7980769230769231,
+          "recall": 0.503030303030303,
+          "f1": 0.6171003717472119,
+          "threshold": 0.747419,
+          "predicted_positive_rate": 0.52,
+          "brier_score": 0.246588533910275,
+          "high_diversity_auroc": 0.4401918976545842,
+          "low_diversity_auroc": 0.4594470046082949
+        },
+        "fixed linear 0.1/0.9": {
+          "method_name": "fixed linear 0.1/0.9",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.5/0.5": {
+          "method_name": "fixed linear 0.5/0.5",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "fixed linear 0.9/0.1": {
+          "method_name": "fixed linear 0.9/0.1",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "hard cascade": {
+          "method_name": "hard cascade",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "old coverage-adaptive baseline": {
+          "method_name": "old coverage-adaptive baseline",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "unavailable",
+          "unavailable_reason": "full_logits_required",
+          "full_logits_required": true,
+          "rerun_required": true,
+          "row_count": 0.0,
+          "positive_count": 0.0,
+          "negative_count": 0.0,
+          "auroc": null,
+          "auprc": null,
+          "accuracy": null,
+          "precision": null,
+          "recall": null,
+          "f1": null,
+          "threshold": null,
+          "predicted_positive_rate": null,
+          "brier_score": null,
+          "high_diversity_auroc": null,
+          "low_diversity_auroc": null
+        },
+        "learned fusion without corpus": {
+          "method_name": "learned fusion without corpus",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 165.0,
+          "negative_count": 35.0,
+          "auroc": 0.6190476190476191,
+          "auprc": 0.8727333396753127,
+          "accuracy": 0.72,
+          "precision": 0.8427672955974843,
+          "recall": 0.8121212121212121,
+          "f1": 0.8271604938271604,
+          "threshold": 0.4901640344984355,
+          "predicted_positive_rate": 0.795,
+          "brier_score": 0.20395946413702667,
+          "high_diversity_auroc": 0.7292110874200426,
+          "low_diversity_auroc": 0.14285714285714285
+        },
+        "learned fusion with corpus": {
+          "method_name": "learned fusion with corpus",
+          "scope": "dataset_holdout",
+          "dataset": "TruthfulQA",
+          "status": "ok",
+          "unavailable_reason": null,
+          "full_logits_required": false,
+          "rerun_required": false,
+          "row_count": 200.0,
+          "positive_count": 165.0,
+          "negative_count": 35.0,
+          "auroc": 0.5278787878787878,
+          "auprc": 0.841584204071158,
+          "accuracy": 0.49,
+          "precision": 0.8181818181818182,
+          "recall": 0.4909090909090909,
+          "f1": 0.6136363636363636,
+          "threshold": 0.5047167885230873,
+          "predicted_positive_rate": 0.495,
+          "brier_score": 0.3006539099430491,
+          "high_diversity_auroc": 0.5863539445628998,
+          "low_diversity_auroc": 0.2751152073732719
+        }
+      }
+    },
+    "learned_fusion_comparison": {
+      "aggregate": {
+        "status": "ok",
+        "reason": null,
+        "without_corpus": {
+          "row_count": 1000,
+          "positive_count": 598,
+          "negative_count": 402,
+          "auroc": 0.4772937153696401,
+          "auprc": 0.604289402726488,
+          "accuracy": 0.598,
+          "precision": 0.598,
+          "recall": 1.0,
+          "f1": 0.7484355444305382,
+          "threshold": 0.18760550309399587,
+          "predicted_positive_rate": 1.0,
+          "confusion": {
+            "tp": 598,
+            "fp": 402,
+            "tn": 0,
+            "fn": 0
+          },
+          "score_summary": {
+            "mean": 0.6079857503259148,
+            "min": 0.3397383757113073,
+            "max": 0.8079322461083395,
+            "std": 0.12769651824960432
+          },
+          "brier_score": 0.2633367885959931,
+          "type_specific": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "per_label": {
+            "HIGH_DIVERSITY": {
+              "row_count": 481,
+              "score_mean": 0.649545634642237,
+              "score_min": 0.44786348097154394,
+              "score_max": 0.8079322461083395,
+              "predicted_positive_rate": 1.0
+            },
+            "LOW_DIVERSITY": {
+              "row_count": 117,
+              "score_mean": 0.40920249679748705,
+              "score_min": 0.3397383757113073,
+              "score_max": 0.6187337822164806,
+              "predicted_positive_rate": 1.0
+            },
+            "NORMAL": {
+              "row_count": 402,
+              "score_mean": 0.6161134525813252,
+              "score_min": 0.3397383757113073,
+              "score_max": 0.8079322461083395,
+              "predicted_positive_rate": 1.0
+            }
+          }
+        },
+        "with_corpus": {
+          "row_count": 1000,
+          "positive_count": 598,
+          "negative_count": 402,
+          "auroc": 0.44420664237341717,
+          "auprc": 0.5936572926521888,
+          "accuracy": 0.521,
+          "precision": 0.5663322185061316,
+          "recall": 0.8494983277591973,
+          "f1": 0.6795986622073579,
+          "threshold": 0.3483141468408746,
+          "predicted_positive_rate": 0.897,
+          "confusion": {
+            "tp": 508,
+            "fp": 389,
+            "tn": 13,
+            "fn": 90
+          },
+          "score_summary": {
+            "mean": 0.5826520209731698,
+            "min": 0.08631812001818777,
+            "max": 1.0,
+            "std": 0.1684165158716536
+          },
+          "brier_score": 0.2861370225179387,
+          "type_specific": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          },
+          "per_label": {
+            "HIGH_DIVERSITY": {
+              "row_count": 481,
+              "score_mean": 0.6112821693798749,
+              "score_min": 0.15745391901905012,
+              "score_max": 1.0,
+              "predicted_positive_rate": 0.918918918918919
+            },
+            "LOW_DIVERSITY": {
+              "row_count": 117,
+              "score_mean": 0.3916967132525113,
+              "score_min": 0.08631812001818777,
+              "score_max": 1.0,
+              "predicted_positive_rate": 0.5641025641025641
+            },
+            "NORMAL": {
+              "row_count": 402,
+              "score_mean": 0.6039720946539953,
+              "score_min": 0.14163284128612985,
+              "score_max": 1.0,
+              "predicted_positive_rate": 0.9676616915422885
+            }
+          }
+        },
+        "delta": {
+          "auroc": -0.03308707299622293,
+          "auprc": -0.010632110074299206,
+          "accuracy": -0.07699999999999996,
+          "precision": -0.0316677814938684,
+          "recall": -0.1505016722408027,
+          "f1": -0.0688368822231803
+        }
+      },
+      "per_dataset": {
+        "HaluEval-QA": {
+          "status": "ok",
+          "reason": null,
+          "without_corpus": {
+            "row_count": 200,
+            "positive_count": 21,
+            "negative_count": 179,
+            "auroc": 0.5057196062782655,
+            "auprc": 0.11496111302045545,
+            "accuracy": 0.105,
+            "precision": 0.105,
+            "recall": 1.0,
+            "f1": 0.19004524886877827,
+            "threshold": 0.0,
+            "predicted_positive_rate": 1.0,
+            "confusion": {
+              "tp": 21,
+              "fp": 179,
+              "tn": 0,
+              "fn": 0
+            },
+            "score_summary": {
+              "mean": 0.6611737624277283,
+              "min": 0.6187337822164806,
+              "max": 0.8079322461083395,
+              "std": 0.05606178787289331
+            },
+            "brier_score": 0.40584796294243863,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 188,
+                "positive_count": 9,
+                "negative_count": 179,
+                "auroc": 0.8001241464928616,
+                "auprc": 0.12824259704772936,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 191,
+                "positive_count": 12,
+                "negative_count": 179,
+                "auroc": 0.2849162011173184,
+                "auprc": 0.06282722513089005,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 9,
+                "score_mean": 0.7244183485991895,
+                "score_min": 0.6798657263294958,
+                "score_max": 0.8079322461083395,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 12,
+                "score_mean": 0.6187337822164806,
+                "score_min": 0.6187337822164806,
+                "score_max": 0.6187337822164806,
+                "predicted_positive_rate": 1.0
+              },
+              "NORMAL": {
+                "row_count": 179,
+                "score_mean": 0.6608390053718167,
+                "score_min": 0.6187337822164806,
+                "score_max": 0.8079322461083395,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "with_corpus": {
+            "row_count": 200,
+            "positive_count": 21,
+            "negative_count": 179,
+            "auroc": 0.568901303538175,
+            "auprc": 0.15975806333706588,
+            "accuracy": 0.105,
+            "precision": 0.105,
+            "recall": 1.0,
+            "f1": 0.19004524886877827,
+            "threshold": 0.0,
+            "predicted_positive_rate": 1.0,
+            "confusion": {
+              "tp": 21,
+              "fp": 179,
+              "tn": 0,
+              "fn": 0
+            },
+            "score_summary": {
+              "mean": 0.6664278890967901,
+              "min": 0.5892571463394263,
+              "max": 0.8927645329756395,
+              "std": 0.0777810686974205
+            },
+            "brier_score": 0.4109347417903595,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 188,
+                "positive_count": 9,
+                "negative_count": 179,
+                "auroc": 0.7970204841713222,
+                "auprc": 0.17542112254197958,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 191,
+                "positive_count": 12,
+                "negative_count": 179,
+                "auroc": 0.39781191806331473,
+                "auprc": 0.05975192073361844,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 9,
+                "score_mean": 0.7494251506495034,
+                "score_min": 0.6533244068595588,
+                "score_max": 0.8894539529382636,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 12,
+                "score_mean": 0.6399418388741801,
+                "score_min": 0.5892571463394263,
+                "score_max": 0.7749064514245654,
+                "predicted_positive_rate": 1.0
+              },
+              "NORMAL": {
+                "row_count": 179,
+                "score_mean": 0.6640304435587839,
+                "score_min": 0.5892571463394263,
+                "score_max": 0.8927645329756395,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "delta": {
+            "auroc": 0.06318169725990952,
+            "auprc": 0.044796950316610434,
+            "accuracy": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "HaluEval-dialogue": {
+          "status": "ok",
+          "reason": null,
+          "without_corpus": {
+            "row_count": 200,
+            "positive_count": 188,
+            "negative_count": 12,
+            "auroc": 0.5986258865248227,
+            "auprc": 0.9543893604324554,
+            "accuracy": 0.745,
+            "precision": 0.9536423841059603,
+            "recall": 0.7659574468085106,
+            "f1": 0.8495575221238938,
+            "threshold": 0.44786348097154394,
+            "predicted_positive_rate": 0.755,
+            "confusion": {
+              "tp": 144,
+              "fp": 7,
+              "tn": 5,
+              "fn": 44
+            },
+            "score_summary": {
+              "mean": 0.525800545026229,
+              "min": 0.3397383757113073,
+              "max": 0.723024265837026,
+              "std": 0.13406566845069104
+            },
+            "brier_score": 0.24052139525221541,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 156,
+                "positive_count": 144,
+                "negative_count": 12,
+                "auroc": 0.7178819444444444,
+                "auprc": 0.9587861094534835,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 56,
+                "positive_count": 44,
+                "negative_count": 12,
+                "auroc": 0.20833333333333334,
+                "auprc": 0.7857142857142857,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 144,
+                "score_mean": 0.5864121778068191,
+                "score_min": 0.44786348097154394,
+                "score_max": 0.723024265837026,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 44,
+                "score_mean": 0.3397383757113073,
+                "score_min": 0.3397383757113073,
+                "score_max": 0.3397383757113073,
+                "predicted_positive_rate": 0.0
+              },
+              "NORMAL": {
+                "row_count": 12,
+                "score_mean": 0.4806889058138606,
+                "score_min": 0.3397383757113073,
+                "score_max": 0.6493644668369829,
+                "predicted_positive_rate": 0.5833333333333334
+              }
+            }
+          },
+          "with_corpus": {
+            "row_count": 200,
+            "positive_count": 188,
+            "negative_count": 12,
+            "auroc": 0.6074911347517731,
+            "auprc": 0.9562221697856375,
+            "accuracy": 0.745,
+            "precision": 0.9536423841059603,
+            "recall": 0.7659574468085106,
+            "f1": 0.8495575221238938,
+            "threshold": 0.38279800168226424,
+            "predicted_positive_rate": 0.755,
+            "confusion": {
+              "tp": 144,
+              "fp": 7,
+              "tn": 5,
+              "fn": 44
+            },
+            "score_summary": {
+              "mean": 0.50418734901921,
+              "min": 0.30812754956237837,
+              "max": 0.7514593186213328,
+              "std": 0.13453447413093314
+            },
+            "brier_score": 0.25844315000153434,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 156,
+                "positive_count": 144,
+                "negative_count": 12,
+                "auroc": 0.7306134259259259,
+                "auprc": 0.9606233883312487,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 56,
+                "positive_count": 44,
+                "negative_count": 12,
+                "auroc": 0.20454545454545456,
+                "auprc": 0.7337662337662337,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 144,
+                "score_mean": 0.5649009125202741,
+                "score_min": 0.4139336145839306,
+                "score_max": 0.7514593186213328,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 44,
+                "score_mean": 0.3190998718408556,
+                "score_min": 0.30812754956237837,
+                "score_max": 0.368475322094003,
+                "predicted_positive_rate": 0.0
+              },
+              "NORMAL": {
+                "row_count": 12,
+                "score_mean": 0.45427866999374134,
+                "score_min": 0.30812754956237837,
+                "score_max": 0.619781661128286,
+                "predicted_positive_rate": 0.5833333333333334
+              }
+            }
+          },
+          "delta": {
+            "auroc": 0.00886524822695034,
+            "auprc": 0.0018328093531820855,
+            "accuracy": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "Natural Questions": {
+          "status": "ok",
+          "reason": null,
+          "without_corpus": {
+            "row_count": 200,
+            "positive_count": 114,
+            "negative_count": 86,
+            "auroc": 0.6355569155446756,
+            "auprc": 0.6591133439367812,
+            "accuracy": 0.57,
+            "precision": 0.57,
+            "recall": 1.0,
+            "f1": 0.7261146496815287,
+            "threshold": 0.0,
+            "predicted_positive_rate": 1.0,
+            "confusion": {
+              "tp": 114,
+              "fp": 86,
+              "tn": 0,
+              "fn": 0
+            },
+            "score_summary": {
+              "mean": 0.6581171620991233,
+              "min": 0.44338640461786333,
+              "max": 0.8042449785585356,
+              "std": 0.12992662569232966
+            },
+            "brier_score": 0.237642110079105,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 189,
+                "positive_count": 103,
+                "negative_count": 86,
+                "auroc": 0.6891510498983969,
+                "auprc": 0.668630302997991,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 97,
+                "positive_count": 11,
+                "negative_count": 86,
+                "auroc": 0.13372093023255813,
+                "auprc": 0.1134020618556701,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 103,
+                "score_mean": 0.7122179733263384,
+                "score_min": 0.5577305792303319,
+                "score_max": 0.8042449785585356,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 11,
+                "score_mean": 0.4433864046178633,
+                "score_min": 0.44338640461786333,
+                "score_max": 0.44338640461786333,
+                "predicted_positive_rate": 1.0
+              },
+              "NORMAL": {
+                "row_count": 86,
+                "score_mean": 0.6207875664699455,
+                "score_min": 0.44338640461786333,
+                "score_max": 0.8042449785585356,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "with_corpus": {
+            "row_count": 200,
+            "positive_count": 114,
+            "negative_count": 86,
+            "auroc": 0.6352509179926561,
+            "auprc": 0.6632976673793171,
+            "accuracy": 0.565,
+            "precision": 0.5678391959798995,
+            "recall": 0.9912280701754386,
+            "f1": 0.7220447284345048,
+            "threshold": 0.42423193369791884,
+            "predicted_positive_rate": 0.995,
+            "confusion": {
+              "tp": 113,
+              "fp": 86,
+              "tn": 0,
+              "fn": 1
+            },
+            "score_summary": {
+              "mean": 0.6451223251524284,
+              "min": 0.42396393021658024,
+              "max": 0.9244366903700109,
+              "std": 0.13312143535694074
+            },
+            "brier_score": 0.23387681950624656,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 189,
+                "positive_count": 103,
+                "negative_count": 86,
+                "auroc": 0.6836193271618876,
+                "auprc": 0.6702981385750039,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 97,
+                "positive_count": 11,
+                "negative_count": 86,
+                "auroc": 0.18234672304439747,
+                "auprc": 0.10058705612829325,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 103,
+                "score_mean": 0.6992530597412457,
+                "score_min": 0.5382667508671385,
+                "score_max": 0.9244366903700109,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 11,
+                "score_mean": 0.45269690838034593,
+                "score_min": 0.42396393021658024,
+                "score_max": 0.7335578896551876,
+                "predicted_positive_rate": 0.9090909090909091
+              },
+              "NORMAL": {
+                "row_count": 86,
+                "score_mean": 0.604903882383181,
+                "score_min": 0.42468268581244856,
+                "score_max": 0.7943460293571988,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "delta": {
+            "auroc": -0.0003059975520195435,
+            "auprc": 0.004184323442535831,
+            "accuracy": -0.0050000000000000044,
+            "precision": -0.0021608040201004375,
+            "recall": -0.00877192982456143,
+            "f1": -0.004069921247023878
+          }
+        },
+        "TriviaQA": {
+          "status": "ok",
+          "reason": null,
+          "without_corpus": {
+            "row_count": 200,
+            "positive_count": 110,
+            "negative_count": 90,
+            "auroc": 0.6686868686868687,
+            "auprc": 0.6574299403932693,
+            "accuracy": 0.55,
+            "precision": 0.55,
+            "recall": 1.0,
+            "f1": 0.7096774193548387,
+            "threshold": 0.0,
+            "predicted_positive_rate": 1.0,
+            "confusion": {
+              "tp": 110,
+              "fp": 90,
+              "tn": 0,
+              "fn": 0
+            },
+            "score_summary": {
+              "mean": 0.6125442650876003,
+              "min": 0.4528421936506967,
+              "max": 0.7855874999402678,
+              "std": 0.12353160642532272
+            },
+            "brier_score": 0.22871301056917961,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 181,
+                "positive_count": 91,
+                "negative_count": 90,
+                "auroc": 0.763064713064713,
+                "auprc": 0.6798603675083476,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 109,
+                "positive_count": 19,
+                "negative_count": 90,
+                "auroc": 0.21666666666666667,
+                "auprc": 0.1743119266055046,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 91,
+                "score_mean": 0.6876016561702387,
+                "score_min": 0.5566948732041708,
+                "score_max": 0.7855874999402678,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 19,
+                "score_mean": 0.4528421936506967,
+                "score_min": 0.4528421936506967,
+                "score_max": 0.4528421936506967,
+                "predicted_positive_rate": 1.0
+              },
+              "NORMAL": {
+                "row_count": 90,
+                "score_mean": 0.5703677847407234,
+                "score_min": 0.4528421936506967,
+                "score_max": 0.7855874999402678,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "with_corpus": {
+            "row_count": 200,
+            "positive_count": 110,
+            "negative_count": 90,
+            "auroc": 0.667070707070707,
+            "auprc": 0.6642964803538167,
+            "accuracy": 0.55,
+            "precision": 0.55,
+            "recall": 1.0,
+            "f1": 0.7096774193548387,
+            "threshold": 0.42982401030110245,
+            "predicted_positive_rate": 1.0,
+            "confusion": {
+              "tp": 110,
+              "fp": 90,
+              "tn": 0,
+              "fn": 0
+            },
+            "score_summary": {
+              "mean": 0.5942425241926163,
+              "min": 0.42982401030110245,
+              "max": 0.7989979935473519,
+              "std": 0.12718454395006007
+            },
+            "brier_score": 0.22677649134850394,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 181,
+                "positive_count": 91,
+                "negative_count": 90,
+                "auroc": 0.7645909645909645,
+                "auprc": 0.6881605806474708,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 109,
+                "positive_count": 19,
+                "negative_count": 90,
+                "auroc": 0.2,
+                "auprc": 0.1743119266055046,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 91,
+                "score_mean": 0.6712714642559159,
+                "score_min": 0.5349366203225813,
+                "score_max": 0.7989979935473519,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 19,
+                "score_mean": 0.42982401030110245,
+                "score_min": 0.42982401030110245,
+                "score_max": 0.42982401030110245,
+                "predicted_positive_rate": 1.0
+              },
+              "NORMAL": {
+                "row_count": 90,
+                "score_mean": 0.5510682821723774,
+                "score_min": 0.42982401030110245,
+                "score_max": 0.7751518807140787,
+                "predicted_positive_rate": 1.0
+              }
+            }
+          },
+          "delta": {
+            "auroc": -0.0016161616161616266,
+            "auprc": 0.006866539960547424,
+            "accuracy": 0.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "TruthfulQA": {
+          "status": "ok",
+          "reason": null,
+          "without_corpus": {
+            "row_count": 200,
+            "positive_count": 165,
+            "negative_count": 35,
+            "auroc": 0.6190476190476191,
+            "auprc": 0.8727333396753127,
+            "accuracy": 0.72,
+            "precision": 0.8427672955974843,
+            "recall": 0.8121212121212121,
+            "f1": 0.8271604938271604,
+            "threshold": 0.4901640344984355,
+            "predicted_positive_rate": 0.795,
+            "confusion": {
+              "tp": 134,
+              "fp": 25,
+              "tn": 10,
+              "fn": 31
+            },
+            "score_summary": {
+              "mean": 0.5822930169888931,
+              "min": 0.3878111637822892,
+              "max": 0.7366687709411209,
+              "std": 0.12448719953423817
+            },
+            "brier_score": 0.20395946413702667,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 169,
+                "positive_count": 134,
+                "negative_count": 35,
+                "auroc": 0.7292110874200426,
+                "auprc": 0.8837761272121389,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 66,
+                "positive_count": 31,
+                "negative_count": 35,
+                "auroc": 0.14285714285714285,
+                "auprc": 0.4696969696969697,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 134,
+                "score_mean": 0.6383442504271405,
+                "score_min": 0.4901640344984355,
+                "score_max": 0.7366687709411209,
+                "predicted_positive_rate": 1.0
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 31,
+                "score_mean": 0.38781116378228925,
+                "score_min": 0.3878111637822892,
+                "score_max": 0.3878111637822892,
+                "predicted_positive_rate": 0.0
+              },
+              "NORMAL": {
+                "row_count": 35,
+                "score_mean": 0.5399522218083096,
+                "score_min": 0.3878111637822892,
+                "score_max": 0.7366687709411209,
+                "predicted_positive_rate": 0.7142857142857143
+              }
+            }
+          },
+          "with_corpus": {
+            "row_count": 200,
+            "positive_count": 165,
+            "negative_count": 35,
+            "auroc": 0.5278787878787878,
+            "auprc": 0.841584204071158,
+            "accuracy": 0.49,
+            "precision": 0.8181818181818182,
+            "recall": 0.4909090909090909,
+            "f1": 0.6136363636363636,
+            "threshold": 0.5047167885230873,
+            "predicted_positive_rate": 0.495,
+            "confusion": {
+              "tp": 81,
+              "fp": 18,
+              "tn": 17,
+              "fn": 84
+            },
+            "score_summary": {
+              "mean": 0.5032800174048038,
+              "min": 0.08631812001818777,
+              "max": 1.0,
+              "std": 0.24548335075675443
+            },
+            "brier_score": 0.3006539099430491,
+            "type_specific": {
+              "high_diversity_vs_normal": {
+                "row_count": 169,
+                "positive_count": 134,
+                "negative_count": 35,
+                "auroc": 0.5863539445628998,
+                "auprc": 0.8342217801806949,
+                "reason": null
+              },
+              "low_diversity_vs_normal": {
+                "row_count": 66,
+                "positive_count": 31,
+                "negative_count": 35,
+                "auroc": 0.2751152073732719,
+                "auprc": 0.3972507962093118,
+                "reason": null
+              }
+            },
+            "per_label": {
+              "HIGH_DIVERSITY": {
+                "row_count": 134,
+                "score_mean": 0.5434880396441655,
+                "score_min": 0.15745391901905012,
+                "score_max": 1.0,
+                "predicted_positive_rate": 0.5746268656716418
+              },
+              "LOW_DIVERSITY": {
+                "row_count": 31,
+                "score_mean": 0.3536289301661699,
+                "score_min": 0.08631812001818777,
+                "score_max": 1.0,
+                "predicted_positive_rate": 0.12903225806451613
+              },
+              "NORMAL": {
+                "row_count": 35,
+                "score_mean": 0.4818888380997523,
+                "score_min": 0.14163284128612985,
+                "score_max": 1.0,
+                "predicted_positive_rate": 0.5142857142857142
+              }
+            }
+          },
+          "delta": {
+            "auroc": -0.09116883116883123,
+            "auprc": -0.031149135604154776,
+            "accuracy": -0.22999999999999998,
+            "precision": -0.02458547741566608,
+            "recall": -0.3212121212121212,
+            "f1": -0.21352413019079675
+          }
+        }
+      }
+    }
+  },
+  "threshold_sensitivity": {
+    "reference_cutoffs": {
+      "low": 0.1,
+      "high": 0.5
+    },
+    "evaluations": [
+      {
+        "low_cutoff": 0.05,
+        "high_cutoff": 0.4,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.05,
+        "high_cutoff": 0.5,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.05,
+        "high_cutoff": 0.6,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 410,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 71
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.8313038466205558,
+              "auprc": 0.7559473379887215,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5067103506855964,
+              "auprc": 0.5145171866409576,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.6356085426525907,
+              "auprc": 0.6097714412720747,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5635177769688144,
+              "auprc": 0.5680735140556519,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.1,
+        "high_cutoff": 0.4,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.1,
+        "high_cutoff": 0.5,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.1,
+        "high_cutoff": 0.6,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 410,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 71
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.8313038466205558,
+              "auprc": 0.7559473379887215,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5067103506855964,
+              "auprc": 0.5145171866409576,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.6356085426525907,
+              "auprc": 0.6097714412720747,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5635177769688144,
+              "auprc": 0.5680735140556519,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.2,
+        "high_cutoff": 0.4,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.2,
+        "high_cutoff": 0.5,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 481,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 0
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.7853378636960726,
+              "auprc": 0.7452148685180748,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.503154704647242,
+              "auprc": 0.5521882877562613,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5722970387149492,
+              "auprc": 0.6065043580585927,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 883,
+              "positive_count": 481,
+              "negative_count": 402,
+              "auroc": 0.5183593467175557,
+              "auprc": 0.5827543036550991,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      },
+      {
+        "low_cutoff": 0.2,
+        "high_cutoff": 0.6,
+        "label_counts": {
+          "NORMAL": 402,
+          "HIGH_DIVERSITY": 410,
+          "LOW_DIVERSITY": 117,
+          "AMBIGUOUS_INCORRECT": 71
+        },
+        "methods": {
+          "SE-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.8313038466205558,
+              "auprc": 0.7559473379887215,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.22263681592039802,
+              "auprc": 0.2254335260115607,
+              "reason": null
+            }
+          },
+          "corpus-risk-only": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5067103506855964,
+              "auprc": 0.5145171866409576,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.48259769528426244,
+              "auprc": 0.2233106423368814,
+              "reason": null
+            }
+          },
+          "learned fusion without corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.6356085426525907,
+              "auprc": 0.6097714412720747,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.08672449717225837,
+              "auprc": 0.15235616488879414,
+              "reason": null
+            }
+          },
+          "learned fusion with corpus": {
+            "high_diversity_vs_normal": {
+              "row_count": 812,
+              "positive_count": 410,
+              "negative_count": 402,
+              "auroc": 0.5635177769688144,
+              "auprc": 0.5680735140556519,
+              "reason": null
+            },
+            "low_diversity_vs_normal": {
+              "row_count": 519,
+              "positive_count": 117,
+              "negative_count": 402,
+              "auroc": 0.13935663562529235,
+              "auprc": 0.15553071833240414,
+              "reason": null
+            }
+          }
+        }
+      }
+    ]
+  },
+  "within_dataset_checks": {
+    "scheme": {
+      "type": "deterministic_hash_split",
+      "sample_id_hash": "sha256",
+      "test_bucket": 0,
+      "bucket_modulus": 5
+    },
+    "per_dataset": {
+      "HaluEval-QA": {
+        "row_count": 200,
+        "train_count": 163,
+        "test_count": 37,
+        "train_positive_count": 17,
+        "test_positive_count": 4,
+        "grouped_split": {
+          "status": "unavailable",
+          "reason": "Existing feature rows expose dataset and sample identifiers, but no higher-level group id for a group-preserving within-dataset split."
+        },
+        "deterministic_split": {
+          "SE-only": {
+            "status": "ok",
+            "threshold": 1.0,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 4,
+              "negative_count": 33,
+              "auroc": 0.3446969696969697,
+              "auprc": 0.09578696343402227,
+              "accuracy": 0.7567567567567568,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "threshold": 1.0,
+              "predicted_positive_rate": 0.13513513513513514,
+              "confusion": {
+                "tp": 0,
+                "fp": 5,
+                "tn": 28,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.35814896293622245,
+                "min": 0.0,
+                "max": 1.6094379124341005,
+                "std": 0.4543165932943837
+              },
+              "brier_score": 0.41573357505230135,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 34,
+                  "positive_count": 1,
+                  "negative_count": 33,
+                  "auroc": 0.6060606060606061,
+                  "auprc": 0.058823529411764705,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 36,
+                  "positive_count": 3,
+                  "negative_count": 33,
+                  "auroc": 0.25757575757575757,
+                  "auprc": 0.08333333333333333,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 1,
+                  "score_mean": 0.5004024235381879,
+                  "score_min": 0.5004024235381879,
+                  "score_max": 0.5004024235381879,
+                  "predicted_positive_rate": 0.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 3,
+                  "score_mean": 0.0,
+                  "score_min": 0.0,
+                  "score_max": 0.0,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 33,
+                  "score_mean": 0.38639724863945585,
+                  "score_min": 0.0,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 0.15151515151515152
+                }
+              }
+            }
+          },
+          "learned fusion without corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count"
+            ],
+            "threshold": 0.11990204856264693,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 4,
+              "negative_count": 33,
+              "auroc": 0.3446969696969697,
+              "auprc": 0.09578696343402227,
+              "accuracy": 0.7567567567567568,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "threshold": 0.11990204856264693,
+              "predicted_positive_rate": 0.13513513513513514,
+              "confusion": {
+                "tp": 0,
+                "fp": 5,
+                "tn": 28,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.1041080153104746,
+                "min": 0.09581476516266596,
+                "max": 0.14173489247864943,
+                "std": 0.011447318670765066
+              },
+              "brier_score": 0.0977584447631303,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 34,
+                  "positive_count": 1,
+                  "negative_count": 33,
+                  "auroc": 0.6060606060606061,
+                  "auprc": 0.058823529411764705,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 36,
+                  "positive_count": 3,
+                  "negative_count": 33,
+                  "auroc": 0.25757575757575757,
+                  "auprc": 0.08333333333333333,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 1,
+                  "score_mean": 0.10696059559185882,
+                  "score_min": 0.10696059559185882,
+                  "score_max": 0.10696059559185882,
+                  "predicted_positive_rate": 0.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 3,
+                  "score_mean": 0.09581476516266596,
+                  "score_min": 0.09581476516266596,
+                  "score_max": 0.09581476516266596,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 33,
+                  "score_mean": 0.10477550531538496,
+                  "score_min": 0.09581476516266596,
+                  "score_max": 0.14173489247864943,
+                  "predicted_positive_rate": 0.15151515151515152
+                }
+              }
+            }
+          },
+          "learned fusion with corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count",
+              "entity_frequency_mean",
+              "entity_frequency_min",
+              "entity_pair_cooccurrence",
+              "low_frequency_entity_flag",
+              "zero_cooccurrence_flag",
+              "coverage_score",
+              "corpus_risk_only"
+            ],
+            "threshold": 0.17528945764262455,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 4,
+              "negative_count": 33,
+              "auroc": 0.4431818181818182,
+              "auprc": 0.20405405405405405,
+              "accuracy": 0.8648648648648649,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "threshold": 0.17528945764262455,
+              "predicted_positive_rate": 0.02702702702702703,
+              "confusion": {
+                "tp": 0,
+                "fp": 1,
+                "tn": 32,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.09236024808424186,
+                "min": 0.07680631048784853,
+                "max": 0.2268408972869041,
+                "std": 0.027811074721984224
+              },
+              "brier_score": 0.09581067906382273,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 34,
+                  "positive_count": 1,
+                  "negative_count": 33,
+                  "auroc": 0.5,
+                  "auprc": 0.05263157894736842,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 36,
+                  "positive_count": 3,
+                  "negative_count": 33,
+                  "auroc": 0.42424242424242425,
+                  "auprc": 0.2222222222222222,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 1,
+                  "score_mean": 0.08615404280574603,
+                  "score_min": 0.08615404280574603,
+                  "score_max": 0.08615404280574603,
+                  "predicted_positive_rate": 0.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 3,
+                  "score_mean": 0.10449000454198716,
+                  "score_min": 0.07680631048784853,
+                  "score_max": 0.15985739265026447,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 33,
+                  "score_mean": 0.09144560977834065,
+                  "score_min": 0.07680631048784853,
+                  "score_max": 0.2268408972869041,
+                  "predicted_positive_rate": 0.030303030303030304
+                }
+              }
+            }
+          }
+        }
+      },
+      "HaluEval-dialogue": {
+        "row_count": 200,
+        "train_count": 159,
+        "test_count": 41,
+        "train_positive_count": 150,
+        "test_positive_count": 38,
+        "grouped_split": {
+          "status": "unavailable",
+          "reason": "Existing feature rows expose dataset and sample identifiers, but no higher-level group id for a group-preserving within-dataset split."
+        },
+        "deterministic_split": {
+          "SE-only": {
+            "status": "ok",
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 41,
+              "positive_count": 38,
+              "negative_count": 3,
+              "auroc": 0.6140350877192983,
+              "auprc": 0.9471841355210285,
+              "accuracy": 0.926829268292683,
+              "precision": 0.926829268292683,
+              "recall": 1.0,
+              "f1": 0.9620253164556963,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 38,
+                "fp": 3,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.8930897774076431,
+                "min": 0.0,
+                "max": 1.6094379124341005,
+                "std": 0.47142363609876936
+              },
+              "brier_score": 0.25831348949998484,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 37,
+                  "positive_count": 34,
+                  "negative_count": 3,
+                  "auroc": 0.6666666666666666,
+                  "auprc": 0.9495788257831868,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 7,
+                  "positive_count": 4,
+                  "negative_count": 3,
+                  "auroc": 0.16666666666666666,
+                  "auprc": 0.5714285714285714,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 34,
+                  "score_mean": 1.017985004896882,
+                  "score_min": 0.5004024235381879,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.0,
+                  "score_min": 0.0,
+                  "score_max": 0.0,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 3,
+                  "score_mean": 0.6683969024064597,
+                  "score_min": 0.0,
+                  "score_max": 1.3321790402101223,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          },
+          "learned fusion without corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count"
+            ],
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 41,
+              "positive_count": 38,
+              "negative_count": 3,
+              "auroc": 0.6140350877192983,
+              "auprc": 0.9471841355210285,
+              "accuracy": 0.926829268292683,
+              "precision": 0.926829268292683,
+              "recall": 1.0,
+              "f1": 0.9620253164556963,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 38,
+                "fp": 3,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.9444748143041706,
+                "min": 0.9311444612433006,
+                "max": 0.9552082280001897,
+                "std": 0.007006282965735397
+              },
+              "brier_score": 0.06764592786800416,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 37,
+                  "positive_count": 34,
+                  "negative_count": 3,
+                  "auroc": 0.6666666666666666,
+                  "auprc": 0.9495788257831868,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 7,
+                  "positive_count": 4,
+                  "negative_count": 3,
+                  "auroc": 0.16666666666666666,
+                  "auprc": 0.5714285714285714,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 34,
+                  "score_mean": 0.9463634344787804,
+                  "score_min": 0.9389498925566455,
+                  "score_max": 0.9552082280001897,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.9311444612433006,
+                  "score_min": 0.9311444612433006,
+                  "score_max": 0.9311444612433006,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 3,
+                  "score_mean": 0.9408442564064212,
+                  "score_min": 0.9311444612433006,
+                  "score_max": 0.9509629471541801,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          },
+          "learned fusion with corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count",
+              "entity_frequency_mean",
+              "entity_frequency_min",
+              "entity_pair_cooccurrence",
+              "low_frequency_entity_flag",
+              "zero_cooccurrence_flag",
+              "coverage_score",
+              "corpus_risk_only"
+            ],
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 41,
+              "positive_count": 38,
+              "negative_count": 3,
+              "auroc": 0.6622807017543859,
+              "auprc": 0.9593800901511936,
+              "accuracy": 0.926829268292683,
+              "precision": 0.926829268292683,
+              "recall": 1.0,
+              "f1": 0.9620253164556963,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 38,
+                "fp": 3,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.9441944617490936,
+                "min": 0.9279994310158661,
+                "max": 0.9604636569135071,
+                "std": 0.009154991964150781
+              },
+              "brier_score": 0.06736599950295515,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 37,
+                  "positive_count": 34,
+                  "negative_count": 3,
+                  "auroc": 0.7205882352941176,
+                  "auprc": 0.9632095986051361,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 7,
+                  "positive_count": 4,
+                  "negative_count": 3,
+                  "auroc": 0.16666666666666666,
+                  "auprc": 0.5714285714285714,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 34,
+                  "score_mean": 0.9466039027463,
+                  "score_min": 0.9364546088598921,
+                  "score_max": 0.9604636569135071,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.9279994310158661,
+                  "score_min": 0.9279994310158661,
+                  "score_max": 0.9279994310158661,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 3,
+                  "score_mean": 0.9384808380917237,
+                  "score_min": 0.9279994310158661,
+                  "score_max": 0.9493993011445649,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          }
+        }
+      },
+      "Natural Questions": {
+        "row_count": 200,
+        "train_count": 163,
+        "test_count": 37,
+        "train_positive_count": 93,
+        "test_positive_count": 21,
+        "grouped_split": {
+          "status": "unavailable",
+          "reason": "Existing feature rows expose dataset and sample identifiers, but no higher-level group id for a group-preserving within-dataset split."
+        },
+        "deterministic_split": {
+          "SE-only": {
+            "status": "ok",
+            "threshold": 0.5,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 21,
+              "negative_count": 16,
+              "auroc": 0.40625,
+              "auprc": 0.5037800289901131,
+              "accuracy": 0.5405405405405406,
+              "precision": 0.5714285714285714,
+              "recall": 0.7619047619047619,
+              "f1": 0.6530612244897959,
+              "threshold": 0.5,
+              "predicted_positive_rate": 0.7567567567567568,
+              "confusion": {
+                "tp": 16,
+                "fp": 12,
+                "tn": 4,
+                "fn": 5
+              },
+              "score_summary": {
+                "mean": 0.8927583783897164,
+                "min": 0.0,
+                "max": 1.6094379124341005,
+                "std": 0.5915450166207585
+              },
+              "brier_score": 0.7761397637843346,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 32,
+                  "positive_count": 16,
+                  "negative_count": 16,
+                  "auroc": 0.494140625,
+                  "auprc": 0.4838464231846584,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 21,
+                  "positive_count": 5,
+                  "negative_count": 16,
+                  "auroc": 0.125,
+                  "auprc": 0.23809523809523808,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 16,
+                  "score_mean": 1.0849912752597977,
+                  "score_min": 0.5004024235381879,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 5,
+                  "score_mean": 0.0,
+                  "score_min": 0.0,
+                  "score_max": 0.0,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 16,
+                  "score_mean": 0.9795124747664212,
+                  "score_min": 0.0,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 0.75
+                }
+              }
+            }
+          },
+          "learned fusion without corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count"
+            ],
+            "threshold": 0.4554681289627802,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 21,
+              "negative_count": 16,
+              "auroc": 0.40625,
+              "auprc": 0.5037800289901131,
+              "accuracy": 0.5405405405405406,
+              "precision": 0.5714285714285714,
+              "recall": 0.7619047619047619,
+              "f1": 0.6530612244897959,
+              "threshold": 0.4554681289627802,
+              "predicted_positive_rate": 0.7567567567567568,
+              "confusion": {
+                "tp": 16,
+                "fp": 12,
+                "tn": 4,
+                "fn": 5
+              },
+              "score_summary": {
+                "mean": 0.5510981582301338,
+                "min": 0.3471279644863997,
+                "max": 0.72672501697441,
+                "std": 0.13923796112178197
+              },
+              "brier_score": 0.2837553329944269,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 32,
+                  "positive_count": 16,
+                  "negative_count": 16,
+                  "auroc": 0.494140625,
+                  "auprc": 0.4838464231846584,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 21,
+                  "positive_count": 5,
+                  "negative_count": 16,
+                  "auroc": 0.125,
+                  "auprc": 0.23809523809523808,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 16,
+                  "score_mean": 0.5932606080548775,
+                  "score_min": 0.4554681289627802,
+                  "score_max": 0.72672501697441,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 5,
+                  "score_mean": 0.3471279644863997,
+                  "score_min": 0.3471279644863997,
+                  "score_max": 0.3471279644863997,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 16,
+                  "score_mean": 0.5726763939503071,
+                  "score_min": 0.3471279644863997,
+                  "score_max": 0.72672501697441,
+                  "predicted_positive_rate": 0.75
+                }
+              }
+            }
+          },
+          "learned fusion with corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count",
+              "entity_frequency_mean",
+              "entity_frequency_min",
+              "entity_pair_cooccurrence",
+              "low_frequency_entity_flag",
+              "zero_cooccurrence_flag",
+              "coverage_score",
+              "corpus_risk_only"
+            ],
+            "threshold": 0.4374890642449705,
+            "metrics": {
+              "row_count": 37,
+              "positive_count": 21,
+              "negative_count": 16,
+              "auroc": 0.4166666666666667,
+              "auprc": 0.504608957052566,
+              "accuracy": 0.5405405405405406,
+              "precision": 0.5714285714285714,
+              "recall": 0.7619047619047619,
+              "f1": 0.6530612244897959,
+              "threshold": 0.4374890642449705,
+              "predicted_positive_rate": 0.7567567567567568,
+              "confusion": {
+                "tp": 16,
+                "fp": 12,
+                "tn": 4,
+                "fn": 5
+              },
+              "score_summary": {
+                "mean": 0.567317810709053,
+                "min": 0.3255510129417273,
+                "max": 0.8874543618966212,
+                "std": 0.17584099925044108
+              },
+              "brier_score": 0.30251087581953057,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 32,
+                  "positive_count": 16,
+                  "negative_count": 16,
+                  "auroc": 0.5078125,
+                  "auprc": 0.4849343912666281,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 21,
+                  "positive_count": 5,
+                  "negative_count": 16,
+                  "auroc": 0.125,
+                  "auprc": 0.23809523809523808,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 16,
+                  "score_mean": 0.6126269066802823,
+                  "score_min": 0.4374890642449705,
+                  "score_max": 0.7980021516060262,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 5,
+                  "score_mean": 0.3255510129417273,
+                  "score_min": 0.3255510129417273,
+                  "score_max": 0.3255510129417273,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 16,
+                  "score_mean": 0.5975608390401128,
+                  "score_min": 0.3255510129417273,
+                  "score_max": 0.8874543618966212,
+                  "predicted_positive_rate": 0.75
+                }
+              }
+            }
+          }
+        }
+      },
+      "TriviaQA": {
+        "row_count": 200,
+        "train_count": 153,
+        "test_count": 47,
+        "train_positive_count": 86,
+        "test_positive_count": 24,
+        "grouped_split": {
+          "status": "unavailable",
+          "reason": "Existing feature rows expose dataset and sample identifiers, but no higher-level group id for a group-preserving within-dataset split."
+        },
+        "deterministic_split": {
+          "SE-only": {
+            "status": "ok",
+            "threshold": 0.5,
+            "metrics": {
+              "row_count": 47,
+              "positive_count": 24,
+              "negative_count": 23,
+              "auroc": 0.6114130434782609,
+              "auprc": 0.574248799204473,
+              "accuracy": 0.5957446808510638,
+              "precision": 0.5714285714285714,
+              "recall": 0.8333333333333334,
+              "f1": 0.6779661016949152,
+              "threshold": 0.5,
+              "predicted_positive_rate": 0.7446808510638298,
+              "confusion": {
+                "tp": 20,
+                "fp": 15,
+                "tn": 8,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.7950351825927393,
+                "min": 0.0,
+                "max": 1.6094379124341005,
+                "std": 0.5874209655054359
+              },
+              "brier_score": 0.553252860910578,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 43,
+                  "positive_count": 20,
+                  "negative_count": 23,
+                  "auroc": 0.6989130434782609,
+                  "auprc": 0.5869708994708994,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 27,
+                  "positive_count": 4,
+                  "negative_count": 23,
+                  "auroc": 0.17391304347826086,
+                  "auprc": 0.14814814814814814,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 20,
+                  "score_mean": 1.0980724788539113,
+                  "score_min": 0.5004024235381879,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.0,
+                  "score_min": 0.0,
+                  "score_max": 0.0,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 23,
+                  "score_mean": 0.6697914784687186,
+                  "score_min": 0.0,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 0.6521739130434783
+                }
+              }
+            }
+          },
+          "learned fusion without corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count"
+            ],
+            "threshold": 0.4987574560746854,
+            "metrics": {
+              "row_count": 47,
+              "positive_count": 24,
+              "negative_count": 23,
+              "auroc": 0.6114130434782609,
+              "auprc": 0.574248799204473,
+              "accuracy": 0.5957446808510638,
+              "precision": 0.5714285714285714,
+              "recall": 0.8333333333333334,
+              "f1": 0.6779661016949152,
+              "threshold": 0.4987574560746854,
+              "predicted_positive_rate": 0.7446808510638298,
+              "confusion": {
+                "tp": 20,
+                "fp": 15,
+                "tn": 8,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.56650450023636,
+                "min": 0.3893753952474758,
+                "max": 0.7553074164493664,
+                "std": 0.13350902186816904
+              },
+              "brier_score": 0.24281626218771687,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 43,
+                  "positive_count": 20,
+                  "negative_count": 23,
+                  "auroc": 0.6989130434782609,
+                  "auprc": 0.5869708994708994,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 27,
+                  "positive_count": 4,
+                  "negative_count": 23,
+                  "auroc": 0.17391304347826086,
+                  "auprc": 0.14814814814814814,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 20,
+                  "score_mean": 0.6348494219371235,
+                  "score_min": 0.4987574560746854,
+                  "score_max": 0.7553074164493664,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.3893753952474758,
+                  "score_min": 0.3893753952474758,
+                  "score_max": 0.3893753952474758,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 23,
+                  "score_mean": 0.5378791952772414,
+                  "score_min": 0.3893753952474758,
+                  "score_max": 0.7553074164493664,
+                  "predicted_positive_rate": 0.6521739130434783
+                }
+              }
+            }
+          },
+          "learned fusion with corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count",
+              "entity_frequency_mean",
+              "entity_frequency_min",
+              "entity_pair_cooccurrence",
+              "low_frequency_entity_flag",
+              "zero_cooccurrence_flag",
+              "coverage_score",
+              "corpus_risk_only"
+            ],
+            "threshold": 0.5,
+            "metrics": {
+              "row_count": 47,
+              "positive_count": 24,
+              "negative_count": 23,
+              "auroc": 0.6159420289855072,
+              "auprc": 0.5817539751879098,
+              "accuracy": 0.5957446808510638,
+              "precision": 0.5714285714285714,
+              "recall": 0.8333333333333334,
+              "f1": 0.6779661016949152,
+              "threshold": 0.5,
+              "predicted_positive_rate": 0.7446808510638298,
+              "confusion": {
+                "tp": 20,
+                "fp": 15,
+                "tn": 8,
+                "fn": 4
+              },
+              "score_summary": {
+                "mean": 0.5672359366020817,
+                "min": 0.3922221157607533,
+                "max": 0.7555014685227287,
+                "std": 0.13162673134813574
+              },
+              "brier_score": 0.24210016093791492,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 43,
+                  "positive_count": 20,
+                  "negative_count": 23,
+                  "auroc": 0.7043478260869566,
+                  "auprc": 0.5959771106510238,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 27,
+                  "positive_count": 4,
+                  "negative_count": 23,
+                  "auroc": 0.17391304347826086,
+                  "auprc": 0.14814814814814814,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 20,
+                  "score_mean": 0.6355094776552257,
+                  "score_min": 0.5011245791742805,
+                  "score_max": 0.7555014685227287,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 4,
+                  "score_mean": 0.3922221157607533,
+                  "score_min": 0.3922221157607533,
+                  "score_max": 0.3922221157607533,
+                  "predicted_positive_rate": 0.0
+                },
+                "NORMAL": {
+                  "row_count": 23,
+                  "score_mean": 0.538304826267405,
+                  "score_min": 0.3922221157607533,
+                  "score_max": 0.7555014685227287,
+                  "predicted_positive_rate": 0.6521739130434783
+                }
+              }
+            }
+          }
+        }
+      },
+      "TruthfulQA": {
+        "row_count": 200,
+        "train_count": 158,
+        "test_count": 42,
+        "train_positive_count": 129,
+        "test_positive_count": 36,
+        "grouped_split": {
+          "status": "unavailable",
+          "reason": "Existing feature rows expose dataset and sample identifiers, but no higher-level group id for a group-preserving within-dataset split."
+        },
+        "deterministic_split": {
+          "SE-only": {
+            "status": "ok",
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 42,
+              "positive_count": 36,
+              "negative_count": 6,
+              "auroc": 0.5856481481481481,
+              "auprc": 0.8728923513849984,
+              "accuracy": 0.8571428571428571,
+              "precision": 0.8571428571428571,
+              "recall": 1.0,
+              "f1": 0.923076923076923,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 36,
+                "fp": 6,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.8935476082044777,
+                "min": 0.0,
+                "max": 1.6094379124341005,
+                "std": 0.5713127122125886
+              },
+              "brier_score": 0.38518447545613765,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 35,
+                  "positive_count": 29,
+                  "negative_count": 6,
+                  "auroc": 0.6666666666666666,
+                  "auprc": 0.8766939534434464,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 13,
+                  "positive_count": 7,
+                  "negative_count": 6,
+                  "auroc": 0.25,
+                  "auprc": 0.5384615384615384,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 29,
+                  "score_mean": 1.156291807722679,
+                  "score_min": 0.5004024235381879,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 7,
+                  "score_mean": 0.0,
+                  "score_min": 0.0,
+                  "score_max": 0.0,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 6,
+                  "score_mean": 0.6660895201050612,
+                  "score_min": 0.0,
+                  "score_max": 1.6094379124341005,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          },
+          "learned fusion without corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count"
+            ],
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 42,
+              "positive_count": 36,
+              "negative_count": 6,
+              "auroc": 0.5856481481481481,
+              "auprc": 0.8728923513849984,
+              "accuracy": 0.8571428571428571,
+              "precision": 0.8571428571428571,
+              "recall": 1.0,
+              "f1": 0.923076923076923,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 36,
+                "fp": 6,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.8126420058564783,
+                "min": 0.739923518094379,
+                "max": 0.8707891989582246,
+                "std": 0.04648033395884521
+              },
+              "brier_score": 0.1211685131234276,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 35,
+                  "positive_count": 29,
+                  "negative_count": 6,
+                  "auroc": 0.6666666666666666,
+                  "auprc": 0.8766939534434464,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 13,
+                  "positive_count": 7,
+                  "negative_count": 6,
+                  "auroc": 0.25,
+                  "auprc": 0.5384615384615384,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 29,
+                  "score_mean": 0.8341204507386916,
+                  "score_min": 0.7832516528035957,
+                  "score_max": 0.8707891989582246,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 7,
+                  "score_mean": 0.739923518094379,
+                  "score_min": 0.739923518094379,
+                  "score_max": 0.739923518094379,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 6,
+                  "score_mean": 0.7936677579815626,
+                  "score_min": 0.739923518094379,
+                  "score_max": 0.8707891989582246,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          },
+          "learned fusion with corpus": {
+            "status": "ok",
+            "feature_names": [
+              "semantic_entropy",
+              "cluster_count",
+              "entity_frequency_mean",
+              "entity_frequency_min",
+              "entity_pair_cooccurrence",
+              "low_frequency_entity_flag",
+              "zero_cooccurrence_flag",
+              "coverage_score",
+              "corpus_risk_only"
+            ],
+            "threshold": 0.0,
+            "metrics": {
+              "row_count": 42,
+              "positive_count": 36,
+              "negative_count": 6,
+              "auroc": 0.5787037037037037,
+              "auprc": 0.8788701259664706,
+              "accuracy": 0.8571428571428571,
+              "precision": 0.8571428571428571,
+              "recall": 1.0,
+              "f1": 0.923076923076923,
+              "threshold": 0.0,
+              "predicted_positive_rate": 1.0,
+              "confusion": {
+                "tp": 36,
+                "fp": 6,
+                "tn": 0,
+                "fn": 0
+              },
+              "score_summary": {
+                "mean": 0.8071977429294587,
+                "min": 0.6898017144619787,
+                "max": 0.9005708023324454,
+                "std": 0.05675167217008978
+              },
+              "brier_score": 0.1252214827053447,
+              "type_specific": {
+                "high_diversity_vs_normal": {
+                  "row_count": 35,
+                  "positive_count": 29,
+                  "negative_count": 6,
+                  "auroc": 0.6695402298850575,
+                  "auprc": 0.8808371427582745,
+                  "reason": null
+                },
+                "low_diversity_vs_normal": {
+                  "row_count": 13,
+                  "positive_count": 7,
+                  "negative_count": 6,
+                  "auroc": 0.20238095238095238,
+                  "auprc": 0.41886882958311533,
+                  "reason": null
+                }
+              },
+              "per_label": {
+                "HIGH_DIVERSITY": {
+                  "row_count": 29,
+                  "score_mean": 0.8276615169890249,
+                  "score_min": 0.7507901165889588,
+                  "score_max": 0.9005708023324454,
+                  "predicted_positive_rate": 1.0
+                },
+                "LOW_DIVERSITY": {
+                  "row_count": 7,
+                  "score_mean": 0.7312475412401184,
+                  "score_min": 0.6898017144619787,
+                  "score_max": 0.8011912345071877,
+                  "predicted_positive_rate": 1.0
+                },
+                "NORMAL": {
+                  "row_count": 6,
+                  "score_mean": 0.796898070279119,
+                  "score_min": 0.6898017144619787,
+                  "score_max": 0.8936595854578543,
+                  "predicted_positive_rate": 1.0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "selective_risk": {
+    "label": "Phillips-inspired evaluation only. This is a selective-prediction framing check, not a probe-paper reproduction.",
+    "coverage_levels": [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "methods": {
+      "SE-only": {
+        "status": "ok",
+        "coverage_curve": [
+          {
+            "coverage": 0.1,
+            "retained_count": 100,
+            "risk": 0.27,
+            "selective_accuracy": 0.73,
+            "minimum_retained_confidence": 0.8418418418418419
+          },
+          {
+            "coverage": 0.2,
+            "retained_count": 200,
+            "risk": 0.365,
+            "selective_accuracy": 0.635,
+            "minimum_retained_confidence": 0.7047047047047047
+          },
+          {
+            "coverage": 0.3,
+            "retained_count": 300,
+            "risk": 0.5366666666666666,
+            "selective_accuracy": 0.4633333333333333,
+            "minimum_retained_confidence": 0.7047047047047047
+          },
+          {
+            "coverage": 0.4,
+            "retained_count": 400,
+            "risk": 0.5800000000000001,
+            "selective_accuracy": 0.42,
+            "minimum_retained_confidence": 0.7047047047047047
+          },
+          {
+            "coverage": 0.5,
+            "retained_count": 500,
+            "risk": 0.56,
+            "selective_accuracy": 0.44,
+            "minimum_retained_confidence": 0.5155155155155156
+          },
+          {
+            "coverage": 0.6,
+            "retained_count": 600,
+            "risk": 0.5266666666666666,
+            "selective_accuracy": 0.47333333333333333,
+            "minimum_retained_confidence": 0.5155155155155156
+          },
+          {
+            "coverage": 0.7,
+            "retained_count": 700,
+            "risk": 0.5071428571428571,
+            "selective_accuracy": 0.4928571428571429,
+            "minimum_retained_confidence": 0.27727727727727725
+          },
+          {
+            "coverage": 0.8,
+            "retained_count": 800,
+            "risk": 0.49,
+            "selective_accuracy": 0.51,
+            "minimum_retained_confidence": 0.2692692692692693
+          },
+          {
+            "coverage": 0.9,
+            "retained_count": 900,
+            "risk": 0.4688888888888889,
+            "selective_accuracy": 0.5311111111111111,
+            "minimum_retained_confidence": 0.0880880880880881
+          },
+          {
+            "coverage": 1.0,
+            "retained_count": 1000,
+            "risk": 0.46199999999999997,
+            "selective_accuracy": 0.538,
+            "minimum_retained_confidence": 0.08008008008008005
+          }
+        ],
+        "aurc": 0.44003650793650795,
+        "overall_error_rate": 0.46199999999999997,
+        "tce_like": {
+          "name": "low_confidence_error_concentration",
+          "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+          "low_confidence_fraction": 0.2,
+          "low_confidence_error_rate": 0.35,
+          "error_concentration_ratio": 0.7575757575757576
+        }
+      },
+      "corpus-risk-only": {
+        "status": "ok",
+        "coverage_curve": [
+          {
+            "coverage": 0.1,
+            "retained_count": 100,
+            "risk": 0.86,
+            "selective_accuracy": 0.14,
+            "minimum_retained_confidence": 0.8078078078078078
+          },
+          {
+            "coverage": 0.2,
+            "retained_count": 200,
+            "risk": 0.655,
+            "selective_accuracy": 0.345,
+            "minimum_retained_confidence": 0.6016016016016016
+          },
+          {
+            "coverage": 0.3,
+            "retained_count": 300,
+            "risk": 0.65,
+            "selective_accuracy": 0.35,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.4,
+            "retained_count": 400,
+            "risk": 0.49750000000000005,
+            "selective_accuracy": 0.5025,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.5,
+            "retained_count": 500,
+            "risk": 0.474,
+            "selective_accuracy": 0.526,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.6,
+            "retained_count": 600,
+            "risk": 0.5183333333333333,
+            "selective_accuracy": 0.4816666666666667,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.7,
+            "retained_count": 700,
+            "risk": 0.5042857142857142,
+            "selective_accuracy": 0.4957142857142857,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.8,
+            "retained_count": 800,
+            "risk": 0.49375,
+            "selective_accuracy": 0.50625,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 0.9,
+            "retained_count": 900,
+            "risk": 0.4833333333333333,
+            "selective_accuracy": 0.5166666666666667,
+            "minimum_retained_confidence": 0.29329329329329323
+          },
+          {
+            "coverage": 1.0,
+            "retained_count": 1000,
+            "risk": 0.47,
+            "selective_accuracy": 0.53,
+            "minimum_retained_confidence": 0.29329329329329323
+          }
+        ],
+        "aurc": 0.4941202380952381,
+        "overall_error_rate": 0.47,
+        "tce_like": {
+          "name": "low_confidence_error_concentration",
+          "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+          "low_confidence_fraction": 0.2,
+          "low_confidence_error_rate": 0.375,
+          "error_concentration_ratio": 0.797872340425532
+        }
+      },
+      "learned fusion without corpus": {
+        "status": "ok",
+        "coverage_curve": [
+          {
+            "coverage": 0.1,
+            "retained_count": 100,
+            "risk": 0.62,
+            "selective_accuracy": 0.38,
+            "minimum_retained_confidence": 0.9369369369369369
+          },
+          {
+            "coverage": 0.2,
+            "retained_count": 200,
+            "risk": 0.61,
+            "selective_accuracy": 0.39,
+            "minimum_retained_confidence": 0.7867867867867868
+          },
+          {
+            "coverage": 0.3,
+            "retained_count": 300,
+            "risk": 0.55,
+            "selective_accuracy": 0.45,
+            "minimum_retained_confidence": 0.7027027027027026
+          },
+          {
+            "coverage": 0.4,
+            "retained_count": 400,
+            "risk": 0.52,
+            "selective_accuracy": 0.48,
+            "minimum_retained_confidence": 0.6426426426426426
+          },
+          {
+            "coverage": 0.5,
+            "retained_count": 500,
+            "risk": 0.45999999999999996,
+            "selective_accuracy": 0.54,
+            "minimum_retained_confidence": 0.5085085085085085
+          },
+          {
+            "coverage": 0.6,
+            "retained_count": 600,
+            "risk": 0.47,
+            "selective_accuracy": 0.53,
+            "minimum_retained_confidence": 0.41241241241241244
+          },
+          {
+            "coverage": 0.7,
+            "retained_count": 700,
+            "risk": 0.4485714285714286,
+            "selective_accuracy": 0.5514285714285714,
+            "minimum_retained_confidence": 0.31831831831831836
+          },
+          {
+            "coverage": 0.8,
+            "retained_count": 800,
+            "risk": 0.43125,
+            "selective_accuracy": 0.56875,
+            "minimum_retained_confidence": 0.1811811811811812
+          },
+          {
+            "coverage": 0.9,
+            "retained_count": 900,
+            "risk": 0.41222222222222227,
+            "selective_accuracy": 0.5877777777777777,
+            "minimum_retained_confidence": 0.048048048048048075
+          },
+          {
+            "coverage": 1.0,
+            "retained_count": 1000,
+            "risk": 0.46199999999999997,
+            "selective_accuracy": 0.538,
+            "minimum_retained_confidence": 0.048048048048048075
+          }
+        ],
+        "aurc": 0.44430436507936505,
+        "overall_error_rate": 0.46199999999999997,
+        "tce_like": {
+          "name": "low_confidence_error_concentration",
+          "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+          "low_confidence_fraction": 0.2,
+          "low_confidence_error_rate": 0.585,
+          "error_concentration_ratio": 1.2662337662337662
+        }
+      },
+      "learned fusion with corpus": {
+        "status": "ok",
+        "coverage_curve": [
+          {
+            "coverage": 0.1,
+            "retained_count": 100,
+            "risk": 0.5800000000000001,
+            "selective_accuracy": 0.42,
+            "minimum_retained_confidence": 0.8748748748748749
+          },
+          {
+            "coverage": 0.2,
+            "retained_count": 200,
+            "risk": 0.62,
+            "selective_accuracy": 0.38,
+            "minimum_retained_confidence": 0.8018018018018018
+          },
+          {
+            "coverage": 0.3,
+            "retained_count": 300,
+            "risk": 0.6066666666666667,
+            "selective_accuracy": 0.3933333333333333,
+            "minimum_retained_confidence": 0.7017017017017018
+          },
+          {
+            "coverage": 0.4,
+            "retained_count": 400,
+            "risk": 0.5775,
+            "selective_accuracy": 0.4225,
+            "minimum_retained_confidence": 0.5885885885885886
+          },
+          {
+            "coverage": 0.5,
+            "retained_count": 500,
+            "risk": 0.5700000000000001,
+            "selective_accuracy": 0.43,
+            "minimum_retained_confidence": 0.5285285285285286
+          },
+          {
+            "coverage": 0.6,
+            "retained_count": 600,
+            "risk": 0.5233333333333333,
+            "selective_accuracy": 0.4766666666666667,
+            "minimum_retained_confidence": 0.40240240240240244
+          },
+          {
+            "coverage": 0.7,
+            "retained_count": 700,
+            "risk": 0.5114285714285715,
+            "selective_accuracy": 0.48857142857142855,
+            "minimum_retained_confidence": 0.3003003003003002
+          },
+          {
+            "coverage": 0.8,
+            "retained_count": 800,
+            "risk": 0.50625,
+            "selective_accuracy": 0.49375,
+            "minimum_retained_confidence": 0.1971971971971973
+          },
+          {
+            "coverage": 0.9,
+            "retained_count": 900,
+            "risk": 0.5211111111111111,
+            "selective_accuracy": 0.47888888888888886,
+            "minimum_retained_confidence": 0.10910910910910909
+          },
+          {
+            "coverage": 1.0,
+            "retained_count": 1000,
+            "risk": 0.509,
+            "selective_accuracy": 0.491,
+            "minimum_retained_confidence": 0.0010010010010010895
+          }
+        ],
+        "aurc": 0.4980789682539682,
+        "overall_error_rate": 0.509,
+        "tce_like": {
+          "name": "low_confidence_error_concentration",
+          "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+          "low_confidence_fraction": 0.2,
+          "low_confidence_error_rate": 0.52,
+          "error_concentration_ratio": 1.0216110019646365
+        }
+      }
+    }
+  },
+  "report_claims": [
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__learned_fusion_without_corpus__auroc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "learned fusion without corpus",
+      "metric": "auroc",
+      "observed_delta": -0.03308707299622293,
+      "ci_95_lower": -0.05320532148227693,
+      "ci_95_upper": -0.011724038590128993,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__learned_fusion_without_corpus__auprc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "learned fusion without corpus",
+      "metric": "auprc",
+      "observed_delta": -0.010632110074299206,
+      "ci_95_lower": -0.03127250422987557,
+      "ci_95_upper": 0.009851923125365784,
+      "statistically_significant": false,
+      "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim."
+    },
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__SE-only__auroc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "SE-only",
+      "metric": "auroc",
+      "observed_delta": -0.23103753806219735,
+      "ci_95_lower": -0.2594928641929192,
+      "ci_95_upper": -0.20070367811934015,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__SE-only__auprc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "SE-only",
+      "metric": "auprc",
+      "observed_delta": -0.12275466680800173,
+      "ci_95_lower": -0.1474722873471395,
+      "ci_95_upper": -0.0956340266120849,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_without_corpus__minus__SE-only__auroc",
+      "candidate_method": "learned fusion without corpus",
+      "reference_method": "SE-only",
+      "metric": "auroc",
+      "observed_delta": -0.1979504650659744,
+      "ci_95_lower": -0.21915815886404527,
+      "ci_95_upper": -0.17705091685525617,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_without_corpus__minus__SE-only__auprc",
+      "candidate_method": "learned fusion without corpus",
+      "reference_method": "SE-only",
+      "metric": "auprc",
+      "observed_delta": -0.11212255673370253,
+      "ci_95_lower": -0.12608191905757316,
+      "ci_95_upper": -0.09621557529476273,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__corpus-risk-only__auroc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "corpus-risk-only",
+      "metric": "auroc",
+      "observed_delta": -0.054926038702807045,
+      "ci_95_lower": -0.10108114426481729,
+      "ci_95_upper": -0.00813445173483027,
+      "statistically_significant": true,
+      "claim_text": "Observed delta stays below zero in this bootstrap interval."
+    },
+    {
+      "comparison_id": "learned_fusion_with_corpus__minus__corpus-risk-only__auprc",
+      "candidate_method": "learned fusion with corpus",
+      "reference_method": "corpus-risk-only",
+      "metric": "auprc",
+      "observed_delta": -0.009463911651284795,
+      "ci_95_lower": -0.04321093571678086,
+      "ci_95_upper": 0.02716341537732088,
+      "statistically_significant": false,
+      "claim_text": "Observed delta only. The bootstrap interval crosses zero, so this run does not support a directional claim."
+    }
+  ],
+  "caveats": [
+    "Phillips is used only for selective-prediction framing. No probe-style correctness or hidden-representation feature is implemented here.",
+    "True Energy robustness remains unavailable because current rows do not carry row-level full logits. semantic_energy_proxy is not treated as thesis-valid Energy evidence.",
+    "The current feature table contains no AMBIGUOUS_INCORRECT rows, so gray-zone threshold sensitivity reports absence explicitly instead of fabricating that slice.",
+    "All current rows mark true Boltzmann Energy as unavailable, so Energy-dependent robustness baselines stay null or rerun-required in this report."
+  ]
+}

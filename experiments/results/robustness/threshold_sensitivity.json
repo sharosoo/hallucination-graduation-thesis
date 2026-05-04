@@ -1,0 +1,764 @@
+{
+  "reference_cutoffs": {
+    "low": 0.1,
+    "high": 0.5
+  },
+  "evaluations": [
+    {
+      "low_cutoff": 0.05,
+      "high_cutoff": 0.4,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.05,
+      "high_cutoff": 0.5,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.05,
+      "high_cutoff": 0.6,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 410,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 71
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.8313038466205558,
+            "auprc": 0.7559473379887215,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5067103506855964,
+            "auprc": 0.5145171866409576,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.6356085426525907,
+            "auprc": 0.6097714412720747,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5635177769688144,
+            "auprc": 0.5680735140556519,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.1,
+      "high_cutoff": 0.4,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.1,
+      "high_cutoff": 0.5,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.1,
+      "high_cutoff": 0.6,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 410,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 71
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.8313038466205558,
+            "auprc": 0.7559473379887215,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5067103506855964,
+            "auprc": 0.5145171866409576,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.6356085426525907,
+            "auprc": 0.6097714412720747,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5635177769688144,
+            "auprc": 0.5680735140556519,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.2,
+      "high_cutoff": 0.4,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.2,
+      "high_cutoff": 0.5,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 481,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 0
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.7853378636960726,
+            "auprc": 0.7452148685180748,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.503154704647242,
+            "auprc": 0.5521882877562613,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5722970387149492,
+            "auprc": 0.6065043580585927,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 883,
+            "positive_count": 481,
+            "negative_count": 402,
+            "auroc": 0.5183593467175557,
+            "auprc": 0.5827543036550991,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    },
+    {
+      "low_cutoff": 0.2,
+      "high_cutoff": 0.6,
+      "label_counts": {
+        "NORMAL": 402,
+        "HIGH_DIVERSITY": 410,
+        "LOW_DIVERSITY": 117,
+        "AMBIGUOUS_INCORRECT": 71
+      },
+      "methods": {
+        "SE-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.8313038466205558,
+            "auprc": 0.7559473379887215,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.22263681592039802,
+            "auprc": 0.2254335260115607,
+            "reason": null
+          }
+        },
+        "corpus-risk-only": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5067103506855964,
+            "auprc": 0.5145171866409576,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.48259769528426244,
+            "auprc": 0.2233106423368814,
+            "reason": null
+          }
+        },
+        "learned fusion without corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.6356085426525907,
+            "auprc": 0.6097714412720747,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.08672449717225837,
+            "auprc": 0.15235616488879414,
+            "reason": null
+          }
+        },
+        "learned fusion with corpus": {
+          "high_diversity_vs_normal": {
+            "row_count": 812,
+            "positive_count": 410,
+            "negative_count": 402,
+            "auroc": 0.5635177769688144,
+            "auprc": 0.5680735140556519,
+            "reason": null
+          },
+          "low_diversity_vs_normal": {
+            "row_count": 519,
+            "positive_count": 117,
+            "negative_count": 402,
+            "auroc": 0.13935663562529235,
+            "auprc": 0.15553071833240414,
+            "reason": null
+          }
+        }
+      }
+    }
+  ]
+}

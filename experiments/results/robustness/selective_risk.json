@@ -1,0 +1,353 @@
+{
+  "label": "Phillips-inspired evaluation only. This is a selective-prediction framing check, not a probe-paper reproduction.",
+  "coverage_levels": [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "methods": {
+    "SE-only": {
+      "status": "ok",
+      "coverage_curve": [
+        {
+          "coverage": 0.1,
+          "retained_count": 100,
+          "risk": 0.27,
+          "selective_accuracy": 0.73,
+          "minimum_retained_confidence": 0.8418418418418419
+        },
+        {
+          "coverage": 0.2,
+          "retained_count": 200,
+          "risk": 0.365,
+          "selective_accuracy": 0.635,
+          "minimum_retained_confidence": 0.7047047047047047
+        },
+        {
+          "coverage": 0.3,
+          "retained_count": 300,
+          "risk": 0.5366666666666666,
+          "selective_accuracy": 0.4633333333333333,
+          "minimum_retained_confidence": 0.7047047047047047
+        },
+        {
+          "coverage": 0.4,
+          "retained_count": 400,
+          "risk": 0.5800000000000001,
+          "selective_accuracy": 0.42,
+          "minimum_retained_confidence": 0.7047047047047047
+        },
+        {
+          "coverage": 0.5,
+          "retained_count": 500,
+          "risk": 0.56,
+          "selective_accuracy": 0.44,
+          "minimum_retained_confidence": 0.5155155155155156
+        },
+        {
+          "coverage": 0.6,
+          "retained_count": 600,
+          "risk": 0.5266666666666666,
+          "selective_accuracy": 0.47333333333333333,
+          "minimum_retained_confidence": 0.5155155155155156
+        },
+        {
+          "coverage": 0.7,
+          "retained_count": 700,
+          "risk": 0.5071428571428571,
+          "selective_accuracy": 0.4928571428571429,
+          "minimum_retained_confidence": 0.27727727727727725
+        },
+        {
+          "coverage": 0.8,
+          "retained_count": 800,
+          "risk": 0.49,
+          "selective_accuracy": 0.51,
+          "minimum_retained_confidence": 0.2692692692692693
+        },
+        {
+          "coverage": 0.9,
+          "retained_count": 900,
+          "risk": 0.4688888888888889,
+          "selective_accuracy": 0.5311111111111111,
+          "minimum_retained_confidence": 0.0880880880880881
+        },
+        {
+          "coverage": 1.0,
+          "retained_count": 1000,
+          "risk": 0.46199999999999997,
+          "selective_accuracy": 0.538,
+          "minimum_retained_confidence": 0.08008008008008005
+        }
+      ],
+      "aurc": 0.44003650793650795,
+      "overall_error_rate": 0.46199999999999997,
+      "tce_like": {
+        "name": "low_confidence_error_concentration",
+        "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+        "low_confidence_fraction": 0.2,
+        "low_confidence_error_rate": 0.35,
+        "error_concentration_ratio": 0.7575757575757576
+      }
+    },
+    "corpus-risk-only": {
+      "status": "ok",
+      "coverage_curve": [
+        {
+          "coverage": 0.1,
+          "retained_count": 100,
+          "risk": 0.86,
+          "selective_accuracy": 0.14,
+          "minimum_retained_confidence": 0.8078078078078078
+        },
+        {
+          "coverage": 0.2,
+          "retained_count": 200,
+          "risk": 0.655,
+          "selective_accuracy": 0.345,
+          "minimum_retained_confidence": 0.6016016016016016
+        },
+        {
+          "coverage": 0.3,
+          "retained_count": 300,
+          "risk": 0.65,
+          "selective_accuracy": 0.35,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.4,
+          "retained_count": 400,
+          "risk": 0.49750000000000005,
+          "selective_accuracy": 0.5025,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.5,
+          "retained_count": 500,
+          "risk": 0.474,
+          "selective_accuracy": 0.526,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.6,
+          "retained_count": 600,
+          "risk": 0.5183333333333333,
+          "selective_accuracy": 0.4816666666666667,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.7,
+          "retained_count": 700,
+          "risk": 0.5042857142857142,
+          "selective_accuracy": 0.4957142857142857,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.8,
+          "retained_count": 800,
+          "risk": 0.49375,
+          "selective_accuracy": 0.50625,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 0.9,
+          "retained_count": 900,
+          "risk": 0.4833333333333333,
+          "selective_accuracy": 0.5166666666666667,
+          "minimum_retained_confidence": 0.29329329329329323
+        },
+        {
+          "coverage": 1.0,
+          "retained_count": 1000,
+          "risk": 0.47,
+          "selective_accuracy": 0.53,
+          "minimum_retained_confidence": 0.29329329329329323
+        }
+      ],
+      "aurc": 0.4941202380952381,
+      "overall_error_rate": 0.47,
+      "tce_like": {
+        "name": "low_confidence_error_concentration",
+        "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+        "low_confidence_fraction": 0.2,
+        "low_confidence_error_rate": 0.375,
+        "error_concentration_ratio": 0.797872340425532
+      }
+    },
+    "learned fusion without corpus": {
+      "status": "ok",
+      "coverage_curve": [
+        {
+          "coverage": 0.1,
+          "retained_count": 100,
+          "risk": 0.62,
+          "selective_accuracy": 0.38,
+          "minimum_retained_confidence": 0.9369369369369369
+        },
+        {
+          "coverage": 0.2,
+          "retained_count": 200,
+          "risk": 0.61,
+          "selective_accuracy": 0.39,
+          "minimum_retained_confidence": 0.7867867867867868
+        },
+        {
+          "coverage": 0.3,
+          "retained_count": 300,
+          "risk": 0.55,
+          "selective_accuracy": 0.45,
+          "minimum_retained_confidence": 0.7027027027027026
+        },
+        {
+          "coverage": 0.4,
+          "retained_count": 400,
+          "risk": 0.52,
+          "selective_accuracy": 0.48,
+          "minimum_retained_confidence": 0.6426426426426426
+        },
+        {
+          "coverage": 0.5,
+          "retained_count": 500,
+          "risk": 0.45999999999999996,
+          "selective_accuracy": 0.54,
+          "minimum_retained_confidence": 0.5085085085085085
+        },
+        {
+          "coverage": 0.6,
+          "retained_count": 600,
+          "risk": 0.47,
+          "selective_accuracy": 0.53,
+          "minimum_retained_confidence": 0.41241241241241244
+        },
+        {
+          "coverage": 0.7,
+          "retained_count": 700,
+          "risk": 0.4485714285714286,
+          "selective_accuracy": 0.5514285714285714,
+          "minimum_retained_confidence": 0.31831831831831836
+        },
+        {
+          "coverage": 0.8,
+          "retained_count": 800,
+          "risk": 0.43125,
+          "selective_accuracy": 0.56875,
+          "minimum_retained_confidence": 0.1811811811811812
+        },
+        {
+          "coverage": 0.9,
+          "retained_count": 900,
+          "risk": 0.41222222222222227,
+          "selective_accuracy": 0.5877777777777777,
+          "minimum_retained_confidence": 0.048048048048048075
+        },
+        {
+          "coverage": 1.0,
+          "retained_count": 1000,
+          "risk": 0.46199999999999997,
+          "selective_accuracy": 0.538,
+          "minimum_retained_confidence": 0.048048048048048075
+        }
+      ],
+      "aurc": 0.44430436507936505,
+      "overall_error_rate": 0.46199999999999997,
+      "tce_like": {
+        "name": "low_confidence_error_concentration",
+        "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+        "low_confidence_fraction": 0.2,
+        "low_confidence_error_rate": 0.585,
+        "error_concentration_ratio": 1.2662337662337662
+      }
+    },
+    "learned fusion with corpus": {
+      "status": "ok",
+      "coverage_curve": [
+        {
+          "coverage": 0.1,
+          "retained_count": 100,
+          "risk": 0.5800000000000001,
+          "selective_accuracy": 0.42,
+          "minimum_retained_confidence": 0.8748748748748749
+        },
+        {
+          "coverage": 0.2,
+          "retained_count": 200,
+          "risk": 0.62,
+          "selective_accuracy": 0.38,
+          "minimum_retained_confidence": 0.8018018018018018
+        },
+        {
+          "coverage": 0.3,
+          "retained_count": 300,
+          "risk": 0.6066666666666667,
+          "selective_accuracy": 0.3933333333333333,
+          "minimum_retained_confidence": 0.7017017017017018
+        },
+        {
+          "coverage": 0.4,
+          "retained_count": 400,
+          "risk": 0.5775,
+          "selective_accuracy": 0.4225,
+          "minimum_retained_confidence": 0.5885885885885886
+        },
+        {
+          "coverage": 0.5,
+          "retained_count": 500,
+          "risk": 0.5700000000000001,
+          "selective_accuracy": 0.43,
+          "minimum_retained_confidence": 0.5285285285285286
+        },
+        {
+          "coverage": 0.6,
+          "retained_count": 600,
+          "risk": 0.5233333333333333,
+          "selective_accuracy": 0.4766666666666667,
+          "minimum_retained_confidence": 0.40240240240240244
+        },
+        {
+          "coverage": 0.7,
+          "retained_count": 700,
+          "risk": 0.5114285714285715,
+          "selective_accuracy": 0.48857142857142855,
+          "minimum_retained_confidence": 0.3003003003003002
+        },
+        {
+          "coverage": 0.8,
+          "retained_count": 800,
+          "risk": 0.50625,
+          "selective_accuracy": 0.49375,
+          "minimum_retained_confidence": 0.1971971971971973
+        },
+        {
+          "coverage": 0.9,
+          "retained_count": 900,
+          "risk": 0.5211111111111111,
+          "selective_accuracy": 0.47888888888888886,
+          "minimum_retained_confidence": 0.10910910910910909
+        },
+        {
+          "coverage": 1.0,
+          "retained_count": 1000,
+          "risk": 0.509,
+          "selective_accuracy": 0.491,
+          "minimum_retained_confidence": 0.0010010010010010895
+        }
+      ],
+      "aurc": 0.4980789682539682,
+      "overall_error_rate": 0.509,
+      "tce_like": {
+        "name": "low_confidence_error_concentration",
+        "description": "Phillips-inspired only. Error concentration in the lowest-confidence 20 percent, not a literal paper TCE reproduction.",
+        "low_confidence_fraction": 0.2,
+        "low_confidence_error_rate": 0.52,
+        "error_concentration_ratio": 1.0216110019646365
+      }
+    }
+  }
+}
