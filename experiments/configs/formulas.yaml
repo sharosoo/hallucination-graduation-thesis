@@ -1,0 +1,39 @@
+{
+  "required_formulas": [
+    {
+      "id": "semantic_entropy",
+      "title": "Semantic Entropy",
+      "source_id": "farquhar_semantic_entropy_2024",
+      "computed_feature": true,
+      "allowed_caveat": true
+    },
+    {
+      "id": "semantic_energy_boltzmann_or_proxy",
+      "title": "Semantic Energy / Boltzmann Energy or proxy",
+      "source_id": "ma_semantic_energy_2025",
+      "computed_feature": true,
+      "allowed_caveat": true
+    },
+    {
+      "id": "quco_entity_frequency",
+      "title": "QuCo entity frequency proxy",
+      "source_id": "quco_rag_2025",
+      "computed_feature": true,
+      "allowed_caveat": true
+    },
+    {
+      "id": "quco_entity_pair_cooccurrence",
+      "title": "QuCo entity-pair co-occurrence proxy",
+      "source_id": "quco_rag_2025",
+      "computed_feature": true,
+      "allowed_caveat": true
+    },
+    {
+      "id": "selective_risk_metrics",
+      "title": "Selective / risk framing notes if referenced",
+      "source_id": "phillips_pc_probe_2026",
+      "computed_feature": false,
+      "allowed_caveat": true
+    }
+  ]
+}

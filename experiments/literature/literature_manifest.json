@@ -1,0 +1,68 @@
+{
+  "config_path": "experiments/configs/literature.yaml",
+  "output_dir": "experiments/literature",
+  "sources": [
+    {
+      "id": "farquhar_semantic_entropy_2024",
+      "title": "Detecting hallucinations in large language models using semantic entropy",
+      "artifact_type": "pdf",
+      "canonical_url": "https://www.nature.com/articles/s41586-024-07421-0",
+      "source_url": "https://www.nature.com/articles/s41586-024-07421-0.pdf",
+      "official_urls": [
+        "https://github.com/jlko/semantic_uncertainty",
+        "https://github.com/jlko/long_hallucinations"
+      ],
+      "status": "nature_version_of_record",
+      "citation_caveat": "Nature version of record published 2024-06-19. Use the paper PDF as the semantic entropy implementation source; code repositories are auxiliary only.",
+      "local_path": "literature/farquhar_semantic_entropy_2024/farquhar_semantic_entropy_2024.pdf",
+      "sha256": "52e7ad2740b25cc7697b69e12d69ca0dde844eca9f79dfa304a79be5b0e99c1a",
+      "size_bytes": 2294477
+    },
+    {
+      "id": "ma_semantic_energy_2025",
+      "title": "Semantic Energy",
+      "artifact_type": "pdf",
+      "canonical_url": "https://arxiv.org/abs/2508.14496",
+      "source_url": "https://arxiv.org/pdf/2508.14496",
+      "official_urls": [
+        "https://arxiv.org/abs/2508.14496"
+      ],
+      "status": "arxiv_preprint",
+      "citation_caveat": "Treat as arXiv preprint / submission-caveated source unless archival publication is explicitly verified.",
+      "local_path": "literature/ma_semantic_energy_2025/ma_semantic_energy_2025.pdf",
+      "sha256": "7e35b1dfa8d9ec36bf5ddad5ad93b606420091739c42353712456f6f1fd91e26",
+      "size_bytes": 753298
+    },
+    {
+      "id": "quco_rag_2025",
+      "title": "QuCo-RAG",
+      "artifact_type": "pdf",
+      "canonical_url": "https://arxiv.org/abs/2512.19134",
+      "source_url": "https://arxiv.org/pdf/2512.19134",
+      "official_urls": [
+        "https://arxiv.org/abs/2512.19134",
+        "https://github.com/ZhishanQ/QuCo-RAG"
+      ],
+      "status": "preprint_with_official_code",
+      "citation_caveat": "Use as preprint or status-caveated source unless official archival status is verified.",
+      "local_path": "literature/quco_rag_2025/quco_rag_2025.pdf",
+      "sha256": "a6c3befe9cd6ea610caf8ad5826e48f4a0df96511057097414e2d14be2ec378c",
+      "size_bytes": 762203
+    },
+    {
+      "id": "phillips_pc_probe_2026",
+      "title": "Entropy Alone is Insufficient for Safe Selective Prediction in LLMs",
+      "artifact_type": "pdf",
+      "canonical_url": "https://arxiv.org/abs/2603.21172",
+      "source_url": "https://arxiv.org/pdf/2603.21172",
+      "official_urls": [
+        "https://arxiv.org/abs/2603.21172"
+      ],
+      "status": "preprint_reference_only",
+      "citation_caveat": "Use only for reference-only framing around learned combination and probe-assisted selective prediction. Do not implement probe features or hidden-state methods in this repo.",
+      "local_path": "literature/phillips_pc_probe_2026/phillips_pc_probe_2026.pdf",
+      "sha256": "cf7f3601009e247fafa191e5eb3e0c0ddeba6d032f41020d3a06398ba63072d9",
+      "size_bytes": 522269
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "sources": [
+    {
+      "id": "farquhar_semantic_entropy_2024",
+      "title": "Detecting hallucinations in large language models using semantic entropy",
+      "artifact_type": "pdf",
+      "filename": "farquhar_semantic_entropy_2024.pdf",
+      "status": "nature_version_of_record",
+      "citation_caveat": "Nature version of record published 2024-06-19. Use the paper PDF as the semantic entropy implementation source; code repositories are auxiliary only.",
+      "canonical_url": "https://www.nature.com/articles/s41586-024-07421-0",
+      "source_urls": [
+        "https://www.nature.com/articles/s41586-024-07421-0.pdf"
+      ],
+      "official_urls": [
+        "https://github.com/jlko/semantic_uncertainty",
+        "https://github.com/jlko/long_hallucinations"
+      ]
+    },
+    {
+      "id": "ma_semantic_energy_2025",
+      "title": "Semantic Energy",
+      "artifact_type": "pdf",
+      "filename": "ma_semantic_energy_2025.pdf",
+      "status": "arxiv_preprint",
+      "citation_caveat": "Treat as arXiv preprint / submission-caveated source unless archival publication is explicitly verified.",
+      "canonical_url": "https://arxiv.org/abs/2508.14496",
+      "source_urls": [
+        "https://arxiv.org/pdf/2508.14496"
+      ],
+      "official_urls": [
+        "https://arxiv.org/abs/2508.14496"
+      ]
+    },
+    {
+      "id": "quco_rag_2025",
+      "title": "QuCo-RAG",
+      "artifact_type": "pdf",
+      "filename": "quco_rag_2025.pdf",
+      "status": "preprint_with_official_code",
+      "citation_caveat": "Use as preprint or status-caveated source unless official archival status is verified.",
+      "canonical_url": "https://arxiv.org/abs/2512.19134",
+      "source_urls": [
+        "https://arxiv.org/pdf/2512.19134"
+      ],
+      "official_urls": [
+        "https://arxiv.org/abs/2512.19134",
+        "https://github.com/ZhishanQ/QuCo-RAG"
+      ]
+    },
+    {
+      "id": "phillips_pc_probe_2026",
+      "title": "Entropy Alone is Insufficient for Safe Selective Prediction in LLMs",
+      "artifact_type": "pdf",
+      "filename": "phillips_pc_probe_2026.pdf",
+      "status": "preprint_reference_only",
+      "citation_caveat": "Use only for reference-only framing around learned combination and probe-assisted selective prediction. Do not implement probe features or hidden-state methods in this repo.",
+      "canonical_url": "https://arxiv.org/abs/2603.21172",
+      "source_urls": [
+        "https://arxiv.org/pdf/2603.21172"
+      ],
+      "official_urls": [
+        "https://arxiv.org/abs/2603.21172"
+      ]
+    }
+  ]
+}
