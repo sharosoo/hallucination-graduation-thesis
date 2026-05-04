@@ -5,6 +5,9 @@ __pycache__/
 # experiment outputs
 output/
 
+# agent workspace notes
+.sisyphus/
+
 # LaTeX build artifacts
 thesis/*.aux
 thesis/*.log
