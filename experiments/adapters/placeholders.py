@@ -162,7 +162,7 @@ class PlaceholderEvaluator(EvaluatorPort):
 
 
 class InMemoryArtifactStore(ArtifactStorePort):
-    """Minimal in-memory artifact store for smoke tests and wiring."""
+    """Minimal in-memory artifact store for contract wiring tests."""
 
     def __init__(self) -> None:
         self.manifests: list[ExperimentManifest] = []
