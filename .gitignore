@@ -44,6 +44,9 @@ graphify-out/
 # agent workspace notes
 .sisyphus/
 
+# private viva prep notes (not for commit)
+FAQ.md
+
 # LaTeX build artifacts
 thesis/*.aux
 thesis/*.log
