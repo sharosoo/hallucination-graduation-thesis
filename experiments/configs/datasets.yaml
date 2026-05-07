@@ -1,28 +1,29 @@
 {
   "version": 1,
-  "registry_name": "corpus_grounded_selective_fusion_datasets",
+  "registry_name": "paired_discriminative_experiment_datasets",
+  "experiment_dataset_policy": {
+    "dataset_contract": "single_paired_discriminative_experiment_dataset",
+    "active_datasets": [
+      "TruthfulQA",
+      "HaluEval-QA"
+    ],
+    "candidate_rows_per_prompt": 2,
+    "candidate_policy": "Each prompt contributes one dataset-provided correct candidate and one dataset-provided incorrect or hallucinated candidate. Candidates are fixed before model scoring; no answer is generated for later correctness labeling.",
+    "excluded_active_datasets": [
+      "TriviaQA",
+      "Natural Questions",
+      "HotpotQA",
+      "FEVER",
+      "BioASQ"
+    ],
+    "exclusion_reason": "Excluded datasets do not provide clean dataset-level correct/hallucinated candidate pairs for the active thesis path."
+  },
   "mandatory_core_datasets": [
     "TruthfulQA",
-    "TriviaQA",
     "HaluEval-QA"
   ],
-  "future_datasets": [
-    "Natural Questions",
-    "HotpotQA",
-    "FEVER",
-    "BioASQ"
-  ],
-  "dataset_expansion_policy": {
-    "default_selected_roles": [
-      "core"
-    ],
-    "allow_optional_promotions": true,
-    "require_explicit_promotion": true,
-    "require_reported_expansion": true,
-    "default_mode": "metadata_only_dry_run",
-    "download_policy": "Validation and dry-run must remain metadata-only. Large dataset downloads require later implementation and explicit reporting."
-  },
   "label_policy": {
+    "operational_label_status": "archived_diagnostic_only",
     "operational_labels": [
       "NORMAL",
       "HIGH_DIVERSITY",
@@ -31,18 +32,18 @@
     ],
     "fixed_operational_thresholds": {
       "NORMAL": {
-        "rule": "correct -> NORMAL"
+        "rule": "archived diagnostic: correct -> NORMAL"
       },
       "HIGH_DIVERSITY": {
-        "rule": "incorrect and SE > 0.5 -> HIGH_DIVERSITY",
+        "rule": "archived diagnostic: incorrect and SE > 0.5 -> HIGH_DIVERSITY",
         "min_exclusive": 0.5
       },
       "LOW_DIVERSITY": {
-        "rule": "incorrect and SE <= 0.1 -> LOW_DIVERSITY",
+        "rule": "archived diagnostic: incorrect and SE <= 0.1 -> LOW_DIVERSITY",
         "max_inclusive": 0.1
       },
       "AMBIGUOUS_INCORRECT": {
-        "rule": "incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
+        "rule": "archived diagnostic: incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
         "min_exclusive": 0.1,
         "max_inclusive": 0.5
       }
@@ -57,7 +58,7 @@
         "LOW_DIVERSITY",
         "AMBIGUOUS_INCORRECT"
       ],
-      "notes": "Fine-grained Semantic Entropy bins are analysis metadata only and never replace the row-level operational label field."
+      "notes": "This label field is preserved for archived diagnostic artifacts only. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins; fine-grained Semantic Entropy bins never replace correctness labels."
     },
     "analysis_se_bins": {
       "scheme_name": "semantic_entropy_threshold_focus_bins",
@@ -190,46 +191,32 @@
       "split_id": "truthfulqa_validation",
       "target_sample_count": 817,
       "seed": 13,
+      "candidate_pair_policy": {
+        "type": "dataset_provided_deterministic_correct_incorrect_pair",
+        "source_fields": {
+          "correct_candidate_source": "correct_answers[]",
+          "incorrect_candidate_source": "incorrect_answers[]"
+        },
+        "selection": {
+          "correct_candidate": "Select exactly one deterministic correct candidate from dataset-provided correct_answers[] per prompt.",
+          "incorrect_candidate": "Select exactly one deterministic incorrect/hallucinated candidate from dataset-provided incorrect_answers[] per prompt.",
+          "determinism": "Use the configured dataset seed and stable prompt identity so the same prompt always yields the same correct and incorrect candidate."
+        },
+        "candidate_rows_per_prompt": 2
+      },
       "label_source": {
-        "type": "gold_reference_answers_and_semantic_entropy",
-        "details": "Use TruthfulQA correct answers to determine correctness, then apply registry Semantic Entropy thresholds to every incorrect sample."
+        "type": "dataset_provided_candidate_pair",
+        "correct_candidate_source": "correct_answers[]",
+        "incorrect_candidate_source": "incorrect_answers[]",
+        "details": "TruthfulQA dataset-provided correct_answers[] and incorrect_answers[] create one deterministic correct and one deterministic incorrect/hallucinated candidate per prompt."
       },
       "label_policy": {
-        "correctness_judgment": "Mark the sample correct only when the generated answer is judged against the TruthfulQA correct answer set; correct rows become NORMAL.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "correctness_judgment": "Dataset-provided candidate role decides correctness: selected correct_answers[] candidate is correct; selected incorrect_answers[] candidate is incorrect/hallucinated.",
+        "operational_label_assignment": "Archived diagnostic artifacts only: correct -> NORMAL; incorrect/hallucinated candidates apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins.",
         "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+        "row_level_output": "Archived diagnostic feature rows include a label field with one explicit operational TypeLabel value; thesis-valid rows must keep annotation-backed correctness as the primary label."
       },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Mandatory core dataset. Full dataset download is intentionally skipped during dry-run."
-    },
-    {
-      "name": "TriviaQA",
-      "role": "core",
-      "hf_id": "trivia_qa",
-      "config": "rc.nocontext",
-      "split": "validation",
-      "split_id": "triviaqa_validation",
-      "target_sample_count": 2000,
-      "seed": 17,
-      "label_source": {
-        "type": "gold_alias_match_and_semantic_entropy",
-        "details": "Use TriviaQA answer aliases and canonical answer strings to decide correctness before applying the fixed registry Semantic Entropy thresholds."
-      },
-      "label_policy": {
-        "correctness_judgment": "Mark the sample correct only when the generated answer matches the TriviaQA canonical answer or an accepted alias; correct rows become NORMAL.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
-      },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Mandatory core dataset. TriviaQA correctness policy is alias-aware and must not be inferred from HaluEval annotations."
+      "notes": "Mandatory active paired dataset. Loader must build fixed candidate rows from dataset-provided correct_answers[] and incorrect_answers[] without generated-answer correctness labeling."
     },
     {
       "name": "HaluEval-QA",
@@ -240,121 +227,32 @@
       "split_id": "halueval_qa_data",
       "target_sample_count": 5000,
       "seed": 23,
+      "candidate_pair_policy": {
+        "type": "dataset_provided_right_hallucinated_pair",
+        "source_fields": {
+          "correct_candidate_source": "right_answer",
+          "hallucinated_candidate_source": "hallucinated_answer"
+        },
+        "selection": {
+          "correct_candidate": "Use dataset-provided right_answer directly.",
+          "incorrect_candidate": "Use dataset-provided hallucinated_answer directly.",
+          "determinism": "No synthetic candidate generation; source fields define the fixed pair."
+        },
+        "candidate_rows_per_prompt": 2
+      },
       "label_source": {
-        "type": "dataset_hallucination_annotation_and_semantic_entropy",
-        "details": "Use the HaluEval-QA hallucination/right-answer annotation to decide correctness, then apply the fixed registry Semantic Entropy thresholds to incorrect samples."
+        "type": "dataset_provided_candidate_pair",
+        "correct_candidate_source": "right_answer",
+        "incorrect_candidate_source": "hallucinated_answer",
+        "details": "HaluEval-QA dataset-provided right_answer and hallucinated_answer are used directly as the fixed correct and hallucinated candidates."
       },
       "label_policy": {
-        "correctness_judgment": "Treat rows with non-hallucinated or right-answer-supported answers as correct and rows flagged by the HaluEval-QA hallucination annotation as incorrect before applying Semantic Entropy thresholds.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT.",
+        "correctness_judgment": "Dataset-provided candidate role decides correctness: right_answer is correct; hallucinated_answer is incorrect/hallucinated.",
+        "operational_label_assignment": "Archived diagnostic artifacts only: correct -> NORMAL; incorrect/hallucinated candidates apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins.",
         "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
+        "row_level_output": "Archived diagnostic feature rows include a label field with one explicit operational TypeLabel value; thesis-valid rows must keep annotation-backed correctness as the primary label."
       },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Mandatory core dataset. HaluEval-QA correctness comes from dataset hallucination annotations and must not be treated as the same label source as TriviaQA alias matching."
-    },
-    {
-      "name": "Natural Questions",
-      "role": "future",
-      "hf_id": "nq_open",
-      "config": null,
-      "split": "validation",
-      "split_id": "natural_questions_validation",
-      "target_sample_count": 2000,
-      "seed": 29,
-      "label_source": {
-        "type": "gold_open_domain_answers_and_semantic_entropy",
-        "details": "Future dataset. Use open-domain answer references for correctness before applying the fixed registry Semantic Entropy thresholds."
-      },
-      "label_policy": {
-        "correctness_judgment": "Future dataset policy: use accepted Natural Questions answers to determine correctness before Semantic Entropy threshold assignment.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
-      },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
-    },
-    {
-      "name": "HotpotQA",
-      "role": "future",
-      "hf_id": "hotpotqa/hotpot_qa",
-      "config": "fullwiki",
-      "split": "validation",
-      "split_id": "hotpotqa_validation",
-      "target_sample_count": 2000,
-      "seed": 31,
-      "label_source": {
-        "type": "gold_multi_hop_answers_and_semantic_entropy",
-        "details": "Future dataset. Use HotpotQA gold answers for correctness before applying the fixed registry Semantic Entropy thresholds."
-      },
-      "label_policy": {
-        "correctness_judgment": "Future dataset policy: use HotpotQA gold answers to determine correctness before Semantic Entropy threshold assignment.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
-      },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
-    },
-    {
-      "name": "FEVER",
-      "role": "future",
-      "hf_id": "fever",
-      "config": "v1.0",
-      "split": "validation",
-      "split_id": "fever_validation",
-      "target_sample_count": 2000,
-      "seed": 37,
-      "label_source": {
-        "type": "fact_verification_label_and_semantic_entropy",
-        "details": "Future dataset. Use FEVER-supportedness judgments to determine correctness before applying the fixed registry Semantic Entropy thresholds."
-      },
-      "label_policy": {
-        "correctness_judgment": "Future dataset policy: use FEVER support/refute correctness judgments before Semantic Entropy threshold assignment.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
-      },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
-    },
-    {
-      "name": "BioASQ",
-      "role": "future",
-      "hf_id": "bioasq",
-      "config": "factoid",
-      "split": "test",
-      "split_id": "bioasq_test",
-      "target_sample_count": 1000,
-      "seed": 41,
-      "label_source": {
-        "type": "biomedical_reference_answers_and_semantic_entropy",
-        "details": "Future dataset. Use BioASQ reference answers to determine correctness before applying the fixed registry Semantic Entropy thresholds."
-      },
-      "label_policy": {
-        "correctness_judgment": "Future dataset policy: use BioASQ accepted biomedical answers before Semantic Entropy threshold assignment.",
-        "operational_label_assignment": "correct -> NORMAL; otherwise apply the fixed registry Semantic Entropy thresholds.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Every exported row must include a label field with one explicit operational TypeLabel value."
-      },
-      "promotion": {
-        "promoted_to_core": false,
-        "reported_in_run": false
-      },
-      "notes": "Future/stretch dataset. Disabled by default unless explicitly promoted and reported."
+      "notes": "Mandatory active paired dataset. Loader must use right_answer and hallucinated_answer directly without generated-answer correctness labeling."
     }
   ]
 }
