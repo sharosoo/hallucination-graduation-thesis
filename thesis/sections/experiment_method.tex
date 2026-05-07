@@ -1,44 +1,96 @@
 % 실험 방법 섹션 (main.tex에 \input으로 포함)
-% 이 파일은 \chapter{실험} 아래 \section{실험 설정}을 대체함
 
 \section{실험 설정}
 
-본 절에서는 현재 저장소의 \texttt{experiments/} 산출물을 기준으로 평가 절차를 설명한다. 이전 초안의 TruthfulQA 단일 설정과 SE 선택 규칙은 최종 주장으로 사용하지 않고, 현재 실험명인 \textit{Corpus-Grounded Selective Fusion Detector}와 그 기준선 비교를 중심으로 정리한다.
+본 절에서는 본 연구에서 사용한 환각 탐지 실험 절차를 설명한다. 실험의 핵심은 모델이 새 답변을 생성한 뒤 사후에 정답성을 판정하는 방식이 아니라, 데이터셋이 제공하는 정답 후보와 환각 후보를 같은 질문 아래에서 비교하는 것이다. 이를 통해 문자열 휴리스틱이나 LLM-as-judge에 의존하지 않고, 이미 annotation으로 구분된 후보 쌍을 대상으로 불확실성 및 corpus-grounded 특징이 환각 탐지에 어떤 신호를 제공하는지 분석한다.
 
-\subsection{데이터셋과 표본}
+\subsection{데이터셋 구성}
 
-현재 feature table은 5개 데이터셋에서 총 1000개 행을 포함한다. 데이터셋은 HaluEval-QA, HaluEval-dialogue, Natural Questions, TriviaQA, TruthfulQA이며, 평가 산출물은 데이터셋별 가시성을 유지하기 위해 leave-one-dataset-out 방식으로 집계된다. 전체 레이블 수는 정상 402개, high-diversity hallucination 481개, low-diversity hallucination 117개, ambiguous incorrect 0개이다. 현재 행에는 \texttt{AMBIGUOUS\_INCORRECT}가 없으므로, 회색지대 성능이나 임계값 민감도 주장은 새로 만들지 않는다.
+실험에는 TruthfulQA와 HaluEval-QA 두 데이터셋을 사용하였다. 두 데이터셋은 질문에 대해 정답 후보와 잘못된 또는 환각 후보를 명시적으로 제공하므로, 본 연구의 paired discriminative protocol에 적합하다. TruthfulQA에서는 각 질문의 \texttt{correct\_answers}와 \texttt{incorrect\_answers}에서 하나의 정답 후보와 하나의 오답 후보를 결정론적으로 선택하였다. HaluEval-QA에서는 데이터셋이 제공하는 \texttt{right\_answer}와 \texttt{hallucinated\_answer}를 그대로 사용하였다.
+
+각 질문은 하나의 prompt 단위로 취급되며, 각 prompt에서 정확히 두 개의 평가 row를 만든다. 하나는 정답 후보이고, 다른 하나는 환각 후보이다. 최종 실험 데이터는 5,815개 prompt와 11,630개 candidate row로 구성된다. HaluEval-QA는 5,000개 prompt와 10,000개 row를 제공하고, TruthfulQA는 정제 후 815개 prompt와 1,630개 row를 제공한다.
 
 \begin{table}[htbp]
 \centering
-\caption{현재 feature table의 운영 레이블 분포}
-\label{tab:dataset}
-\begin{tabular}{@{}lr@{}}
+\caption{실험 데이터셋 구성}
+\label{tab:dataset_composition}
+\begin{tabular}{@{}lrrl@{}}
 \toprule
-레이블 & 행 수 \\
+데이터셋 & Prompt 수 & Candidate row 수 & 후보 쌍 출처 \\
 \midrule
-NORMAL & 402 \\
-HIGH\_DIVERSITY & 481 \\
-LOW\_DIVERSITY & 117 \\
-AMBIGUOUS\_INCORRECT & 0 \\
+TruthfulQA & 815 & 1,630 & 정답/오답 answer list \\
+HaluEval-QA & 5,000 & 10,000 & right/hallucinated answer \\
+\midrule
+합계 & 5,815 & 11,630 & paired candidates \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{실험 파이프라인}
+\subsection{정답성 라벨링}
 
-현재 파이프라인은 저장소 내부의 \texttt{experiments/} 코드와 uv-managed 환경을 기준으로 실행된다. 검증 명령은 전역 인터프리터나 임의의 package 설치가 아니라 \verb|uv run|으로 실행한다. 이전 산출물에는 외부 실험 디렉터리에서 온 캐시와 프록시가 포함되어 있지만, 향후 논문 유효 실행 경로는 repo-owned generation을 사용해야 한다. 그 실행 경로는 행 단위 \texttt{full logits}, per-step \texttt{logsumexp}, 생성 토큰 id, 모델 및 토크나이저 provenance를 보존해야 한다.
+정답성 라벨은 모델 출력이나 후처리 judge에서 오지 않는다. 각 candidate row의 주 라벨은 데이터셋 annotation이 제공하는 \texttt{is\_correct}/\texttt{is\_hallucination}이며, 이것이 최종 hallucination detection 평가의 기준이다. 아래의 \texttt{NORMAL}, \texttt{HIGH\_DIVERSITY}, \texttt{LOW\_DIVERSITY}, \texttt{AMBIGUOUS\_INCORRECT} 표기는 이전 repo-local baseline을 해석하기 위해 보존한 archived diagnostic 운영 라벨이다. 즉, thesis-valid corpus-axis 분석에서는 이 운영 라벨이 새로운 class ontology가 아니며, annotation-backed correctness와 corpus-axis bin이 주 분석 단위가 된다. 이때 Semantic Entropy는 prompt-level 값이므로 같은 질문의 정답 후보와 환각 후보가 동일한 SE 값을 공유한다.
 
-\subsubsection{지표와 특징}
+\begin{table}[htbp]
+\centering
+\caption{Archived diagnostic 운영 라벨 정의}
+\label{tab:operational_labels}
+\begin{tabular}{@{}llr@{}}
+\toprule
+라벨 & archived diagnostic 조건 & 현재 baseline row 수 \\
+\midrule
+\texttt{NORMAL} & 정답 후보 & 5,815 \\
+\texttt{HIGH\_DIVERSITY} & 환각 후보이고 $SE > 0.5$ & 4,737 \\
+\texttt{LOW\_DIVERSITY} & 환각 후보이고 $SE \leq 0.1$ & 1,078 \\
+\texttt{AMBIGUOUS\_INCORRECT} & 환각 후보이고 $0.1 < SE \leq 0.5$ & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-Semantic Entropy는 반복 응답의 의미 클러스터 분포에서 계산한 신호로 유지한다. Corpus feature는 QuCo-RAG-style entity frequency, entity-pair co-occurrence, low-frequency flag를 외부 corpus-grounded proxy로 사용한다. 이 corpus 신호는 hidden-state probe가 아니며, Phillips et al.은 선택 예측과 learned combination의 개념적 배경으로만 사용한다. \texttt{experiments/literature/evidence\_notes/quco\_vs\_probe.md}는 이 구분을 보존하기 위한 evidence note이다.
+현재 full paired 특징 테이블에는 \texttt{AMBIGUOUS\_INCORRECT} row가 없다. 이는 해당 구간의 sample을 강제로 제거하거나 다른 라벨로 바꾼 결과가 아니라, archived diagnostic 운영 라벨을 붙였을 때 현재 baseline 환각 후보의 SE 값이 고정 threshold 기준으로 해당 구간에 들어가지 않았기 때문이다. 이 관찰은 gray-zone 사례가 현재 baseline artifact에 없다는 뜻이지, 최종 corpus-axis reliability 분석의 라벨 공간을 정의하지 않는다.
 
-Semantic Energy는 Ma 등의 preprint에서 제안된 low-diversity 또는 single-cluster 상황의 동기 신호로만 다룬다. 현재 저장소의 산출물은 true Boltzmann Energy 계산에 필요한 행 단위 full logits를 포함하지 않는다. 따라서 \verb|semantic_energy_proxy|는 진단 메타데이터일 뿐이며, 논문 성능 주장에는 쓰지 않는다. \texttt{experiments/literature/evidence\_notes/semantic\_energy\_single\_cluster.md}도 Zero-SE 숫자를 직접 인용하지 말고 single-cluster 문헌 동기로만 쓰라는 guardrail을 둔다.
+\subsection{모델 scoring 절차}
 
-\subsubsection{평가 기준}
+모델은 Qwen2.5-3B 계열 causal language model을 사용하였다. 실험은 두 종류의 모델 출력을 필요로 한다. 첫째, final protocol에서는 Semantic Entropy 계산을 위해 각 prompt에 대해 answer-only 조건으로 N=10개의 짧은 답변을 free sampling한다. 현재 repo-local baseline의 N=5 exact-string artifact는 preliminary diagnostic으로만 보존한다. 둘째, candidate-level 특징을 계산하기 위해 각 정답/환각 후보를 teacher-forced 방식으로 scoring한다. 즉, 모델이 후보 답을 새로 생성하는 것이 아니라, 주어진 후보 답의 각 토큰 위치에서 full-vocabulary logit, logsumexp, 선택 token logit 등을 기록한다.
 
-탐지 성능은 AUROC, AUPRC, accuracy, precision, recall, F1로 보고한다. Energy-only, fixed linear SE/Energy 조합, hard cascade는 모두 true Boltzmann Energy가 필요하므로 현재 결과에서는 unavailable로 남긴다. learned fusion with corpus는 corpus feature를 직접 학습 특징으로 추가한 방법이며, corpus-risk-only는 제안 방법이 아니라 corpus feature만 보는 기준선이다.
+Free sampling은 Semantic Entropy를 계산하기 위한 prompt-level 절차이다. 반면 teacher-forced candidate scoring은 Energy, negative log probability, logit variance, confidence margin 등 candidate-level 특징을 계산하기 위한 절차이다. 이 구분은 이후 평가 해석에서 중요하다. Semantic Entropy는 같은 prompt의 두 candidate row에 broadcast되지만, Energy 계열 특징은 candidate마다 서로 다른 값을 갖는다.
 
-\subsection{재현성}
+\subsection{특징 계산}
 
-현재 논문 문장은 exported JSON summary와 table에서 값을 가져온다. 파일명은 \path{thesis_evidence_summary.json}, \path{thesis_evidence_table.tex}이다. 두 파일은 \verb|uv run|으로 실행하는 export script로 생성된다. evidence note와 thesis 연결도 \verb|uv run| 기반 validator로 검증한다.
+본 연구는 세 종류의 특징군을 사용한다.
+
+\paragraph{Semantic Entropy.}
+최종 thesis-valid Semantic Entropy는 한 prompt에서 얻은 N=10 answer-only free-sample 답변을 NLI entailment 기반 semantic cluster로 묶은 뒤, sample likelihood를 cluster 단위로 log-sum-exp 집계하여 계산한다. 현재 N=5 exact-string/count entropy artifact는 preliminary diagnostic이며, 최종 paper-faithful SE evidence로 쓰지 않는다. SE는 질문 자체에 대한 응답 분산을 나타내므로 prompt-level 특징이고, paired candidate setting에서 정답 후보와 환각 후보는 동일한 SE 값을 가진다.
+
+\paragraph{Semantic Energy 및 logit diagnostics.}
+Paper-faithful Semantic Energy는 여러 generated answers, semantic clustering, selected-token logit-derived energy, cluster-level aggregation을 모두 포함해야 한다. 현재 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$ 평균, 평균 negative log probability, logit variance, confidence margin은 candidate-level diagnostic으로 보존하되, 최종 Semantic Energy 재현과 구분한다.
+
+\paragraph{Corpus-grounded 특징.}
+Corpus 특징은 candidate 답변 텍스트에서 entity를 추출한 뒤, corpus count 기반 entity frequency, entity-pair co-occurrence, low-frequency flag, zero-cooccurrence flag 등을 계산한다. 이 특징들은 외부 corpus에서 후보 답변의 지지 가능성을 간접적으로 나타내는 continuous corpus-support axis이며, hidden-state probe나 정답성 라벨을 사용하지 않는다. Low frequency와 zero co-occurrence는 hallucination label이 아니라 metric reliability를 조건화하는 binning 변수이다.
+
+\subsection{실험 단계}
+
+전체 실험은 다음 단계로 구성된다.
+
+\begin{enumerate}
+    \item \textbf{Paired dataset 생성}: TruthfulQA와 HaluEval-QA에서 prompt별 정답 후보와 환각 후보를 구성한다.
+    \item \textbf{모델 출력 수집}: 각 prompt에 대해 N=10 answer-only free samples를 생성하고, 각 candidate 답변에 대해 teacher-forced full-logit scoring을 수행한다.
+    \item \textbf{정답성 라벨 데이터 생성}: 데이터셋 annotation만 사용하여 정답 후보와 환각 후보의 정답성 라벨을 확정한다.
+    \item \textbf{Semantic Entropy 계산}: prompt-level N=10 free samples를 NLI semantic cluster로 묶고 likelihood-based SE와 cluster metadata를 계산한다.
+    \item \textbf{Corpus axis 계산}: candidate 답변에서 entity frequency와 entity-pair co-occurrence를 continuous axis와 bin으로 계산한다.
+    \item \textbf{Semantic Energy 계산}: generated answers의 semantic clusters와 selected-token logits에서 paper-faithful Semantic Energy를 계산하고, candidate-level logit diagnostics를 별도 계산한다.
+    \item \textbf{Feature table 결합}: prompt-level SE를 두 candidate row에 broadcast하고, candidate-level Energy/corpus 특징을 candidate id 기준으로 결합한다.
+    \item \textbf{Fusion 및 baseline 평가}: SE-only, Energy-only, logit-diagnostic-only, corpus-axis-only, global fusion, corpus-bin-aware fusion, axis-interaction fusion을 비교한다.
+    \item \textbf{Robustness 분석}: prompt 단위 bootstrap, leave-one-dataset-out, corpus-bin metric reliability, binning sensitivity를 수행한다.
+\end{enumerate}
+
+\subsection{평가 지표와 해석 원칙}
+
+공통 baseline table에는 AUROC, AUPRC와 F1 등 표준 분류 지표를 보고한다. 다만 이 candidate-row aggregate metric은 모든 특징군에 대해 같은 의미를 갖지 않는다. Semantic Entropy는 prompt-level 특징이기 때문에, 같은 prompt의 정답 후보와 환각 후보가 동일한 SE 값을 가진다. 따라서 SE-only candidate-row AUROC가 0.5에 가까운 것은 SE가 무의미하다는 뜻이 아니라, prompt-level 특징을 candidate-level paired row ranking으로 평가한 구조적 결과일 수 있다.
+
+Semantic Energy와 logit diagnostics는 candidate-level 또는 cluster-level 신호이지만, 그 신뢰도는 corpus support 조건에 따라 달라질 수 있다. 따라서 핵심 평가는 각 corpus-axis bin에서 환각 후보가 paired correct 후보보다 더 높은 risk를 받는지 확인하는 matched-pair metric이어야 한다. 이를 위해 hallucinated-minus-normal paired delta, pairwise win rate, prompt-grouped bootstrap confidence interval을 추가 분석 지표로 사용해야 한다.
+
+현재 생성된 S8/S9 headline 결과는 candidate-row aggregate table로서 참고할 수 있지만, corpus-axis reliability에 대한 최종 결론으로 사용하기에는 충분하지 않다. 따라서 본 논문에서는 현재 aggregate fusion 결과를 과장하지 않고, corpus frequency/co-occurrence bin별 SE, Semantic Energy, logit diagnostic 성능 분석이 추가되어야 함을 명시한다.
+
+\subsection{재현성 및 재분석 계획}
+
+현재 full paired 특징 테이블은 11,630개 candidate row에 대해 preliminary SE, Energy/logit diagnostics, corpus 특징을 포함한다. 이 artifact는 baseline으로 보존하지만, redesigned thesis-valid 실험은 S2--S9를 확장해야 한다. 구체적으로는 N=10 NLI likelihood SE, paper-faithful Semantic Energy, QuCo-style corpus continuous axis, corpus-bin metric reliability, condition-aware fusion 평가를 추가해야 한다. 단, 재분석 중 candidate id, prompt id, label 결합의 불일치가 발견되면 해당 특징 생성 단계로 돌아가 재검증한다.

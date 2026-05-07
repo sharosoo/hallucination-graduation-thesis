@@ -1,39 +1,12 @@
 {
   "requested_out_path": "experiments/results/corpus_features.parquet",
-  "row_count": 1000,
-  "generated_at": "2026-05-04T08:50:50.934895+00:00",
-  "report": {
-    "run_id": "corpus-features-20260504T085050Z",
-    "mode": "cache-or-proxy",
-    "row_count": 1000,
-    "selected_artifact_count": 5,
-    "proxy_index": {
-      "available": true,
-      "term_count": 1071,
-      "pair_count": 1370,
-      "source_artifact_paths": [
-        "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/halueval_with_corpus.json",
-        "/home/global/workspaces/sharosoo/hallucination_lfe/experiment_notes/exp04_corpus_adaptive/truthfulqa_with_corpus.json"
-      ]
-    },
-    "corpus_source_counts": {
-      "cache_upstream_corpus_stats": 400,
-      "proxy_cached_artifact_index": 600
-    },
-    "skipped_artifacts": [],
-    "supported_methods": {
-      "learned_fusion_with_corpus": {
-        "uses_direct_corpus_features": true,
-        "proposed_method_not_scalar_coverage_only": true
-      },
-      "corpus_risk_only": {
-        "column": "corpus_risk_only",
-        "uses_only_corpus_features_or_proxies": true,
-        "note": "Baseline support only. This is not the proposed learned fusion method."
-      }
-    }
-  },
-  "storage_kind": "jsonl_fallback_for_requested_parquet",
-  "materialized_path": "experiments/results/corpus_features.parquet.jsonl",
-  "parquet_unavailable_reason": "ModuleNotFoundError(\"No module named 'pyarrow'\")"
+  "generated_at": "2026-05-07T05:15:47.823688+00:00",
+  "storage_kind": "parquet",
+  "artifact_status": "ok",
+  "materialized_path": "experiments/results/corpus_features.parquet",
+  "row_count": 11630,
+  "column_count": 117528,
+  "stage": "S5",
+  "materialized_from": "qwen25-3b-full-s1-answeronly-20260506T085629Z/results/corpus_features.parquet",
+  "supersedes": "experiments/results/corpus_features.parquet.jsonl"
 }

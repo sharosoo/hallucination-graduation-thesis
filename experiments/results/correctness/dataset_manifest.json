@@ -1,0 +1,40 @@
+{
+  "artifact_type": "annotation_driven_correctness_label_manifest",
+  "candidate_rows_path": "experiments/results/datasets/candidate_rows.jsonl",
+  "counts_by_candidate_role": {
+    "hallucinated": 5815,
+    "right": 5815
+  },
+  "counts_by_correctness": {
+    "correct": 5815,
+    "incorrect": 5815
+  },
+  "counts_by_dataset": {
+    "HaluEval-QA": 10000,
+    "TruthfulQA": 1630
+  },
+  "counts_by_label_source": {
+    "halueval_annotation": 10000,
+    "truthfulqa_correct_answers": 815,
+    "truthfulqa_incorrect_answers": 815
+  },
+  "files": {
+    "card": "README.md",
+    "data": "data/correctness_judgments.jsonl",
+    "manifest": "dataset_manifest.json"
+  },
+  "forbidden_field_scan": {
+    "forbidden_fields": [
+      "judge_mode",
+      "judge_name",
+      "rationale",
+      "raw_judge_response"
+    ],
+    "passed": true,
+    "present_forbidden_fields": []
+  },
+  "heuristic_matching_used": false,
+  "llm_as_judge_used": false,
+  "row_count": 11630,
+  "schema_version": "candidate_label_manifest_v1"
+}

@@ -8,81 +8,81 @@
       "low_cutoff": 0.05,
       "high_cutoff": 0.4,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -92,81 +92,81 @@
       "low_cutoff": 0.05,
       "high_cutoff": 0.5,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -176,81 +176,81 @@
       "low_cutoff": 0.05,
       "high_cutoff": 0.6,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 410,
-        "LOW_DIVERSITY": 117,
-        "AMBIGUOUS_INCORRECT": 71
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 3477,
+        "LOW_DIVERSITY": 1078,
+        "AMBIGUOUS_INCORRECT": 1260
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.8313038466205558,
-            "auprc": 0.7559473379887215,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.7010318142734308,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5067103506855964,
-            "auprc": 0.5145171866409576,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.5107772956346719,
+            "auprc": 0.34608629401842517,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.6356085426525907,
-            "auprc": 0.6097714412720747,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.4085882637185128,
+            "auprc": 0.3342039634929229,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5635177769688144,
-            "auprc": 0.5680735140556519,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.3696190987031595,
+            "auprc": 0.31557456802130474,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -260,81 +260,81 @@
       "low_cutoff": 0.1,
       "high_cutoff": 0.4,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -344,81 +344,81 @@
       "low_cutoff": 0.1,
       "high_cutoff": 0.5,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -428,81 +428,81 @@
       "low_cutoff": 0.1,
       "high_cutoff": 0.6,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 410,
-        "LOW_DIVERSITY": 117,
-        "AMBIGUOUS_INCORRECT": 71
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 3477,
+        "LOW_DIVERSITY": 1078,
+        "AMBIGUOUS_INCORRECT": 1260
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.8313038466205558,
-            "auprc": 0.7559473379887215,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.7010318142734308,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5067103506855964,
-            "auprc": 0.5145171866409576,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.5107772956346719,
+            "auprc": 0.34608629401842517,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.6356085426525907,
-            "auprc": 0.6097714412720747,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.4085882637185128,
+            "auprc": 0.3342039634929229,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5635177769688144,
-            "auprc": 0.5680735140556519,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.3696190987031595,
+            "auprc": 0.31557456802130474,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -512,81 +512,81 @@
       "low_cutoff": 0.2,
       "high_cutoff": 0.4,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -596,81 +596,81 @@
       "low_cutoff": 0.2,
       "high_cutoff": 0.5,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 481,
-        "LOW_DIVERSITY": 117,
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 4737,
+        "LOW_DIVERSITY": 1078,
         "AMBIGUOUS_INCORRECT": 0
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.7853378636960726,
-            "auprc": 0.7452148685180748,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5926913155631987,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.503154704647242,
-            "auprc": 0.5521882877562613,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.5143110592214998,
+            "auprc": 0.41843923542606953,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5722970387149492,
-            "auprc": 0.6065043580585927,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3858007732980029,
+            "auprc": 0.38338482834604065,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 883,
-            "positive_count": 481,
-            "negative_count": 402,
-            "auroc": 0.5183593467175557,
-            "auprc": 0.5827543036550991,
+            "row_count": 10552,
+            "positive_count": 4737,
+            "negative_count": 5815,
+            "auroc": 0.3519863296044331,
+            "auprc": 0.36785251783957695,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
@@ -680,81 +680,81 @@
       "low_cutoff": 0.2,
       "high_cutoff": 0.6,
       "label_counts": {
-        "NORMAL": 402,
-        "HIGH_DIVERSITY": 410,
-        "LOW_DIVERSITY": 117,
-        "AMBIGUOUS_INCORRECT": 71
+        "NORMAL": 5815,
+        "HIGH_DIVERSITY": 3477,
+        "LOW_DIVERSITY": 1078,
+        "AMBIGUOUS_INCORRECT": 1260
       },
       "methods": {
         "SE-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.8313038466205558,
-            "auprc": 0.7559473379887215,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.7010318142734308,
+            "auprc": 0.5,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.22263681592039802,
-            "auprc": 0.2254335260115607,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.09269131556319862,
+            "auprc": 0.15639054112868128,
             "reason": null
           }
         },
         "corpus-risk-only": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5067103506855964,
-            "auprc": 0.5145171866409576,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.5107772956346719,
+            "auprc": 0.34608629401842517,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.48259769528426244,
-            "auprc": 0.2233106423368814,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.5324542120451714,
+            "auprc": 0.1512041983185821,
             "reason": null
           }
         },
         "learned fusion without corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.6356085426525907,
-            "auprc": 0.6097714412720747,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.4085882637185128,
+            "auprc": 0.3342039634929229,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.08672449717225837,
-            "auprc": 0.15235616488879414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.319071335248709,
+            "auprc": 0.10740410501622248,
             "reason": null
           }
         },
         "learned fusion with corpus": {
           "high_diversity_vs_normal": {
-            "row_count": 812,
-            "positive_count": 410,
-            "negative_count": 402,
-            "auroc": 0.5635177769688144,
-            "auprc": 0.5680735140556519,
+            "row_count": 9292,
+            "positive_count": 3477,
+            "negative_count": 5815,
+            "auroc": 0.3696190987031595,
+            "auprc": 0.31557456802130474,
             "reason": null
           },
           "low_diversity_vs_normal": {
-            "row_count": 519,
-            "positive_count": 117,
-            "negative_count": 402,
-            "auroc": 0.13935663562529235,
-            "auprc": 0.15553071833240414,
+            "row_count": 6893,
+            "positive_count": 1078,
+            "negative_count": 5815,
+            "auroc": 0.3064099148609651,
+            "auprc": 0.10568124518575735,
             "reason": null
           }
         }
