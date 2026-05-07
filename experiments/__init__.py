@@ -1,1 +1,1 @@
-"""Experiment package for the Corpus-Grounded Selective Fusion Detector."""
+"""Experiment package for the Corpus-Conditioned Hallucination Metric Reliability Study."""

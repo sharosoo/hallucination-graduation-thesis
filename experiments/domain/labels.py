@@ -28,4 +28,6 @@ class EnergyComputationKind(Enum):
     """Semantic Energy calculation mode."""
 
     TRUE_BOLTZMANN = "true_boltzmann"
+    SAMPLED_RESPONSE_CLUSTER = "sampled_response_cluster"
+    CANDIDATE_BOLTZMANN_DIAGNOSTIC = "candidate_boltzmann_diagnostic"
     PROXY_SELECTED_LOGIT = "proxy_selected_logit"

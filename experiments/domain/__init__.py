@@ -5,17 +5,24 @@ from .labels import EnergyComputationKind, FeatureRole, TypeLabel
 from .manifests import ExperimentManifest
 from .metrics import MetricResult
 from .records import (
+    CandidateLabelRow,
+    CandidateRow,
     CorrectnessJudgment,
     CorpusStats,
     EnergyResult,
     ModelResponse,
+    PromptGroup,
     PromptRow,
     QuestionExample,
     SemanticEntropyResult,
+    TeacherForcedCandidateScore,
+    TeacherForcedTokenScore,
 )
 
 __all__ = [
     "AnalysisBin",
+    "CandidateLabelRow",
+    "CandidateRow",
     "CorrectnessJudgment",
     "CorpusStats",
     "EnergyComputationKind",
@@ -26,8 +33,11 @@ __all__ = [
     "FeatureVector",
     "MetricResult",
     "ModelResponse",
+    "PromptGroup",
     "PromptRow",
     "QuestionExample",
     "SemanticEntropyResult",
+    "TeacherForcedCandidateScore",
+    "TeacherForcedTokenScore",
     "TypeLabel",
 ]

@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from .artifact_store import ArtifactStorePort
+from .corpus_counts import CorpusCountBackendPort, CorpusCountProvenance, CorpusCountResult
 from .corpus_stats import CorpusStatsPort
 from .dataset_loader import DatasetLoaderPort
 from .evaluator import EvaluatorPort
@@ -22,6 +23,9 @@ class ModelLogitsPort(ABC):
 
 __all__ = [
     "ArtifactStorePort",
+    "CorpusCountBackendPort",
+    "CorpusCountProvenance",
+    "CorpusCountResult",
     "CorpusStatsPort",
     "DatasetLoaderPort",
     "EvaluatorPort",
