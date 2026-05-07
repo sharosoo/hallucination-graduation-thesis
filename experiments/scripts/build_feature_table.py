@@ -97,7 +97,6 @@ def main() -> int:
                 "prompt_broadcast_key": payload["report"]["prompt_broadcast_key"],
                 "target_label_field": payload["report"]["target_label_field"],
                 "target_counts_by_dataset": payload["report"]["target_counts_by_dataset"],
-                "archived_type_label_counts": payload["report"]["archived_type_label_counts"],
                 "prompt_balance": {
                     "prompt_count": payload["report"]["prompt_balance"]["prompt_count"],
                     "valid_prompt_count": payload["report"]["prompt_balance"]["valid_prompt_count"],

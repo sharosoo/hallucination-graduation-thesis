@@ -1,7 +1,7 @@
 """Typed domain records for the experiments package."""
 
 from .features import AnalysisBin, FeatureProvenance, FeatureVector
-from .labels import EnergyComputationKind, FeatureRole, TypeLabel
+from .labels import EnergyComputationKind, FeatureRole
 from .manifests import ExperimentManifest
 from .metrics import MetricResult
 from .records import (
@@ -39,5 +39,4 @@ __all__ = [
     "SemanticEntropyResult",
     "TeacherForcedCandidateScore",
     "TeacherForcedTokenScore",
-    "TypeLabel",
 ]

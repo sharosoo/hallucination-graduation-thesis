@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .labels import EnergyComputationKind, FeatureRole, TypeLabel
+from .labels import EnergyComputationKind, FeatureRole
 
 
 @dataclass(frozen=True)
@@ -29,7 +29,7 @@ class AnalysisBin:
     lower_bound: float | None = None
     upper_bound: float | None = None
     includes_upper_bound: bool = True
-    note: str = "Analysis-only bin. Operational labels remain fixed in TypeLabel."
+    note: str = "Analysis-only bin. Supervised target is annotation-backed is_hallucination."
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class FeatureVector:
     dataset: str
     split_id: str
     sample_id: str
-    label: TypeLabel
+    is_hallucination: bool
     semantic_entropy: float
     cluster_count: int
     semantic_energy: float | None = None

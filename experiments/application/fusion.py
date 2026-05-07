@@ -190,10 +190,6 @@ def _pair_id(row: dict[str, Any]) -> str:
     return str(row.get("pair_id", "unknown_pair"))
 
 
-def _archived_label(row: dict[str, Any]) -> str:
-    return str(row.get("label", ""))
-
-
 def _candidate_label(row: dict[str, Any]) -> str | None:
     raw = row.get("candidate_label")
     if raw is None:
@@ -736,7 +732,6 @@ def _prediction_rows(
                 "prompt_id": _prompt_id(row),
                 "pair_id": _pair_id(row),
                 "candidate_label": _candidate_label(row),
-                "label": _archived_label(row),
                 "is_correct": _coerce_bool(row.get("is_correct")),
                 "is_hallucination": is_hallucination,
                 PRIMARY_BIN_FIELD: _bin_value(row, PRIMARY_BIN_FIELD),
@@ -1123,7 +1118,6 @@ def _evaluate_baseline_on_fold(
         "test_row_count": len(test_rows),
         "target_field": "is_hallucination",
         "target_fallback": "not is_correct",
-        "uses_archived_label_as_target": False,
         "train_only": True,
     }
 
@@ -1544,7 +1538,7 @@ def _write_markdown(path: Path, summary: dict[str, Any]) -> None:
         "# Fusion baseline evaluation",
         "",
         "Primary split: deterministic leave-one-dataset-out with annotation-backed `is_hallucination` target.",
-        "Archived `TypeLabel` / `label` remain diagnostic metadata only.",
+        "Primary analysis axis: corpus_axis_bin (3-bin) with corpus_axis_bin_5 / corpus_axis_bin_10 sensitivity.",
         "",
         "## Aggregate baseline table",
         "",
@@ -1678,7 +1672,6 @@ def run_fusion(features_path: Path, config_path: Path, out_dir: Path) -> dict[st
             **(config.get("binary_target", {}) if isinstance(config.get("binary_target"), dict) else {}),
             "field": "is_hallucination",
             "fallback": "not is_correct",
-            "archived_label_not_primary": True,
         },
         "formula_manifest_ref": FORMULA_MANIFEST_REF,
         "dataset_manifest_ref": DATASET_MANIFEST_REF,

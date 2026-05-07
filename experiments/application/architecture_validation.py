@@ -47,13 +47,6 @@ REQUIRED_PORTS = {
     "ArtifactStorePort",
 }
 
-EXPECTED_TYPE_LABELS = [
-    "NORMAL",
-    "HIGH_DIVERSITY",
-    "LOW_DIVERSITY",
-    "AMBIGUOUS_INCORRECT",
-]
-
 SCRIPT_LOGIC_NAME_HINTS = {
     "train_model",
     "fit_model",
@@ -159,19 +152,6 @@ def validate_domain_and_ports(package_root: Path) -> list[str]:
             problems.append(f"domain dataclass must be frozen: {class_name}")
         if not class_fields_are_annotated(class_def):
             problems.append(f"domain dataclass has untyped field assignment: {class_name}")
-
-    type_label = classes.get("TypeLabel")
-    if type_label is None:
-        problems.append("missing TypeLabel enum")
-    else:
-        values: list[str] = []
-        for statement in type_label.body:
-            if isinstance(statement, ast.Assign) and len(statement.targets) == 1:
-                target = statement.targets[0]
-                if isinstance(target, ast.Name) and isinstance(statement.value, ast.Constant):
-                    values.append(str(statement.value.value))
-        if values != EXPECTED_TYPE_LABELS:
-            problems.append(f"TypeLabel values mismatch: expected {EXPECTED_TYPE_LABELS}, got {values}")
 
     feature_vector = classes.get("FeatureVector")
     if feature_vector is None:

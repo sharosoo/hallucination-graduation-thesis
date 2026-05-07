@@ -32,6 +32,18 @@ FIVE_BIN_RULES = (
     ("high_support", 0.8),
     ("very_high_support", None),
 )
+TEN_BIN_RULES = (
+    ("decile_00_10", 0.1),
+    ("decile_10_20", 0.2),
+    ("decile_20_30", 0.3),
+    ("decile_30_40", 0.4),
+    ("decile_40_50", 0.5),
+    ("decile_50_60", 0.6),
+    ("decile_60_70", 0.7),
+    ("decile_70_80", 0.8),
+    ("decile_80_90", 0.9),
+    ("decile_90_100", None),
+)
 STOPWORDS = {
     "a",
     "an",
@@ -513,6 +525,7 @@ class CorpusFeatureAdapter:
         )
         corpus_axis_bin = assign_axis_bin(coverage_score, THREE_BIN_RULES)
         corpus_axis_bin_5 = assign_axis_bin(coverage_score, FIVE_BIN_RULES)
+        corpus_axis_bin_10 = assign_axis_bin(coverage_score, TEN_BIN_RULES)
         corpus_risk_only = (
             compute_corpus_risk_only(
                 entity_frequency_axis=entity_frequency_axis,
@@ -548,6 +561,7 @@ class CorpusFeatureAdapter:
             "corpus_axis_score": coverage_score,
             "corpus_axis_bin": corpus_axis_bin,
             "corpus_axis_bin_5": corpus_axis_bin_5,
+            "corpus_axis_bin_10": corpus_axis_bin_10,
             "excluded_reason": None if counts_complete else row_status,
             "missing_entity_counts": missing_entity_counts,
             "missing_pair_counts": missing_pair_counts,
@@ -579,6 +593,7 @@ class CorpusFeatureAdapter:
             "corpus_status": row_status,
             "corpus_axis_bin": corpus_axis_bin,
             "corpus_axis_bin_5": corpus_axis_bin_5,
+            "corpus_axis_bin_10": corpus_axis_bin_10,
             "se_bin": None
             if analysis_bin is None
             else {

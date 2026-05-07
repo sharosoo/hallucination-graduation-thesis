@@ -19,10 +19,9 @@ from experiments.adapters.corpus_features import (
     write_feature_artifact,
     write_json,
 )
-from experiments.domain import AnalysisBin, FeatureRole, TypeLabel
+from experiments.domain import AnalysisBin, FeatureRole
 from experiments.scripts.stage_control import FEATURE_TABLE_SCHEMA_VERSION, add_schema_version
 
-EXPECTED_TYPE_LABELS = tuple(label.value for label in TypeLabel)
 CORPUS_FEATURES_PATH = Path("corpus_features.parquet")
 ENERGY_FEATURES_PATH = Path("energy_features.parquet")
 SEMANTIC_ENTROPY_FEATURES_PATH = Path("semantic_entropy_features.parquet")
@@ -94,9 +93,9 @@ EXTERNAL_CORPUS_FEATURES = (
     "zero_cooccurrence_flag",
     "corpus_axis_bin",
     "corpus_axis_bin_5",
+    "corpus_axis_bin_10",
 )
 ANALYSIS_ONLY_FIELDS = (
-    "archived_type_label",
     "is_correct",
     "is_hallucination",
     "candidate_label",
@@ -218,16 +217,6 @@ def _coerce_float(value: Any) -> float | None:
     return numeric
 
 
-def assign_operational_label(is_correct: bool, semantic_entropy: float) -> TypeLabel:
-    if is_correct:
-        return TypeLabel.NORMAL
-    if semantic_entropy <= 0.1:
-        return TypeLabel.LOW_DIVERSITY
-    if semantic_entropy <= 0.5:
-        return TypeLabel.AMBIGUOUS_INCORRECT
-    return TypeLabel.HIGH_DIVERSITY
-
-
 def serialize_analysis_bin(bin_spec: AnalysisBin | None) -> dict[str, Any] | None:
     if bin_spec is None:
         return None
@@ -242,25 +231,7 @@ def serialize_analysis_bin(bin_spec: AnalysisBin | None) -> dict[str, Any] | Non
 
 
 def build_boundary_self_check() -> dict[str, Any]:
-    cases = []
-    for semantic_entropy, expected in (
-        (0.1, TypeLabel.LOW_DIVERSITY),
-        (0.5, TypeLabel.AMBIGUOUS_INCORRECT),
-        (0.5001, TypeLabel.HIGH_DIVERSITY),
-    ):
-        actual = assign_operational_label(False, semantic_entropy)
-        cases.append(
-            {
-                "semantic_entropy": semantic_entropy,
-                "expected_label": expected.value,
-                "actual_label": actual.value,
-                "passes": actual is expected,
-            }
-        )
-    return {
-        "cases": cases,
-        "all_pass": all(case["passes"] for case in cases),
-    }
+    return {"cases": [], "all_pass": True, "note": "operational TypeLabel removed; corpus axis bins are validated separately."}
 
 
 def _resolve_artifact_path(requested_path: Path) -> Path:
@@ -552,24 +523,16 @@ def _build_trainable_features(
 def _build_analysis_metadata(
     *,
     semantic_entropy: float,
-    archived_type_label: TypeLabel,
     analysis_bin: AnalysisBin | None,
     energy_metadata: dict[str, Any],
 ) -> dict[str, Any]:
     return {
-        "archived_type_label": archived_type_label.value,
         "se_bin": serialize_analysis_bin(analysis_bin),
         "energy_status": energy_metadata["status"],
         "energy_granularity": energy_metadata.get("energy_granularity"),
-        "semantic_entropy_threshold_source": "fixed_operational_thresholds_for_archived_diagnostics_only",
         "semantic_entropy": semantic_entropy,
         "thesis_target": "is_hallucination",
     }
-
-
-def _archived_type_label_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
-    counts = Counter(str(row.get("label", "")) for row in rows)
-    return {label: counts.get(label, 0) for label in EXPECTED_TYPE_LABELS}
 
 
 def _dataset_target_counts(rows: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
@@ -579,29 +542,6 @@ def _dataset_target_counts(rows: list[dict[str, Any]]) -> dict[str, dict[str, in
         counts[dataset]["hallucinated"] += 1 if bool(row.get("is_hallucination", False)) else 0
         counts[dataset]["right"] += 0 if bool(row.get("is_hallucination", False)) else 1
     return {dataset: dict(sorted(counter.items())) for dataset, counter in sorted(counts.items())}
-
-
-def _dataset_archived_type_counts(rows: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
-    counts: dict[str, Counter[str]] = defaultdict(Counter)
-    for row in rows:
-        counts[str(row.get("dataset", "unknown"))][str(row.get("label", ""))] += 1
-    return {
-        dataset: {label: counter.get(label, 0) for label in EXPECTED_TYPE_LABELS}
-        for dataset, counter in sorted(counts.items())
-    }
-
-
-def _label_presence_explanations(label_counts: Counter[str]) -> dict[str, str]:
-    explanations: dict[str, str] = {}
-    if label_counts.get(TypeLabel.AMBIGUOUS_INCORRECT.value, 0) == 0:
-        explanations[TypeLabel.AMBIGUOUS_INCORRECT.value] = (
-            "No incorrect candidate in the current feature table fell inside 0.1 < SE <= 0.5, "
-            "so the archived gray-zone TypeLabel is absent instead of being force-filled."
-        )
-    for label_value in EXPECTED_TYPE_LABELS:
-        if label_counts.get(label_value, 0) == 0 and label_value not in explanations:
-            explanations[label_value] = "Archived operational label absent in current source rows after fixed threshold assignment."
-    return explanations
 
 
 def _prompt_balance_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -625,7 +565,6 @@ def _prompt_balance_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "prompt_id": prompt_id,
                 "candidate_ids": [row.get("candidate_id") for row in prompt_rows],
                 "candidate_labels": candidate_labels,
-                "archived_type_labels": [row.get("label") for row in prompt_rows],
                 "prompt_feature_values": prompt_feature_values,
             }
         )
@@ -752,7 +691,6 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
     feature_alignment = build_feature_alignment()
 
     rows: list[dict[str, Any]] = []
-    archived_type_label_counts: Counter[str] = Counter()
     seen_candidate_ids: set[str] = set()
 
     for source_row in corpus_rows:
@@ -797,7 +735,6 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
             context=f"prompt_id={prompt_id}",
         )
         analysis_bin = select_analysis_bin(semantic_entropy, analysis_bins, raw_bin_specs)
-        archived_type_label = assign_operational_label(label_record.is_correct, semantic_entropy)
         candidate_label = _required_candidate_label(label_record, candidate_id=candidate_id)
         energy_metadata = _build_energy_metadata(energy_row)
         if not energy_metadata["paper_faithful_energy_available"]:
@@ -825,13 +762,9 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
         row["is_correct"] = label_record.is_correct
         row["is_hallucination"] = label_record.is_hallucination
         row["label_source"] = label_record.label_source
-        row["label"] = archived_type_label.value
-        row["archived_type_label"] = archived_type_label.value
-        row["label_status"] = "archived_operational_type_label_for_diagnostics_only"
         row["features"] = trainable_features
         row["analysis_features"] = _build_analysis_metadata(
             semantic_entropy=semantic_entropy,
-            archived_type_label=archived_type_label,
             analysis_bin=analysis_bin,
             energy_metadata=energy_metadata,
         )
@@ -841,7 +774,7 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
             "positive_class": True,
             "source": "annotation-backed correctness",
             "trainable": False,
-            "note": "Use top-level is_hallucination as the supervised target. Archived TypeLabel values remain analysis-only metadata.",
+            "note": "Use top-level is_hallucination as the supervised target.",
         }
         row["correctness_label_source"] = {
             "prompt_id": label_record.prompt_id,
@@ -861,7 +794,6 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
             results_dir=results_dir,
         )
         rows.append(row)
-        archived_type_label_counts[archived_type_label.value] += 1
 
     prompt_balance = _prompt_balance_summary(rows)
     if prompt_balance["violations"]:
@@ -910,9 +842,6 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
             },
         },
         "target_counts_by_dataset": _dataset_target_counts(rows),
-        "archived_type_label_counts": {label: archived_type_label_counts.get(label, 0) for label in EXPECTED_TYPE_LABELS},
-        "archived_type_label_counts_by_dataset": _dataset_archived_type_counts(rows),
-        "label_presence_explanations": _label_presence_explanations(archived_type_label_counts),
         "prompt_balance": prompt_balance,
         "boundary_self_check": boundary_self_check,
         "energy_status_counts": dict(Counter(row["energy_availability"]["status"] for row in rows)),
@@ -922,7 +851,6 @@ def build_feature_table(results_dir: Path, out_path: Path, dataset_config_path: 
         "notes": [
             "Rows are keyed by candidate_id. Prompt-level Semantic Entropy and paper-faithful Semantic Energy are broadcast to both paired candidates by prompt_id.",
             "The supervised thesis target is top-level is_hallucination / annotation-backed correctness.",
-            "Archived TypeLabel values remain diagnostic metadata only and must never become the primary thesis-valid target.",
             "The trainable features object excludes correctness labels, gold/reference answers, and dataset annotation leakage fields.",
         ],
     }
@@ -947,7 +875,7 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
     analysis_bins, raw_bin_specs = read_analysis_bin_config(dataset_config_path)
     valid_bin_ids = {bin_spec.bin_id for bin_spec in analysis_bins}
     problems: list[str] = []
-    archived_type_label_counts: Counter[str] = Counter()
+    corpus_axis_bin_counts: Counter[str] = Counter()
     candidate_ids: set[str] = set()
 
     for index, row in enumerate(rows):
@@ -996,14 +924,6 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
                 problems.append(f"row {index}: candidate_label=right requires is_correct=true")
             if candidate_label == "hallucinated" and is_correct:
                 problems.append(f"row {index}: candidate_label=hallucinated requires is_correct=false")
-
-        label_value = str(row.get("label", ""))
-        archived_type_label = str(row.get("archived_type_label", ""))
-        if label_value not in EXPECTED_TYPE_LABELS:
-            problems.append(f"row {index}: label must be one of {list(EXPECTED_TYPE_LABELS)}, got {label_value!r}")
-            continue
-        if archived_type_label != label_value:
-            problems.append(f"row {index}: archived_type_label must mirror legacy label field")
 
         features = row.get("features")
         if not isinstance(features, dict):
@@ -1061,18 +981,10 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
         if features.get("semantic_energy_boltzmann") != features.get("semantic_energy_cluster_uncertainty"):
             problems.append(f"row {index}: semantic_energy_boltzmann must alias semantic_energy_cluster_uncertainty")
 
-        expected_label = assign_operational_label(bool(is_correct), semantic_entropy)
-        if label_value != expected_label.value:
-            problems.append(
-                f"row {index}: archived TypeLabel mismatch, expected {expected_label.value} for is_correct={bool(is_correct)} and SE={semantic_entropy}, got {label_value}"
-            )
-
         analysis_features = row.get("analysis_features")
         if not isinstance(analysis_features, dict):
             problems.append(f"row {index}: analysis_features must be an object")
         else:
-            if analysis_features.get("archived_type_label") != label_value:
-                problems.append(f"row {index}: analysis_features.archived_type_label must mirror label")
             se_bin = analysis_features.get("se_bin")
             if not isinstance(se_bin, dict):
                 problems.append(f"row {index}: analysis_features.se_bin must be an object")
@@ -1131,7 +1043,9 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
             if correctness_source.get("trainable") is not False:
                 problems.append(f"row {index}: correctness_label_source.trainable must be false")
 
-        archived_type_label_counts[label_value] += 1
+        corpus_axis_bin_id = (features.get("corpus_axis_bin") if isinstance(features, dict) else None)
+        if isinstance(corpus_axis_bin_id, str) and corpus_axis_bin_id:
+            corpus_axis_bin_counts[corpus_axis_bin_id] += 1
 
     prompt_balance = _prompt_balance_summary(rows)
     for violation in prompt_balance["violations"]:
@@ -1142,12 +1056,8 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
         )
 
     boundary_self_check = build_boundary_self_check()
-    explanations = _label_presence_explanations(archived_type_label_counts)
-    missing_without_explanation = [
-        label for label in EXPECTED_TYPE_LABELS if archived_type_label_counts.get(label, 0) == 0 and not explanations.get(label)
-    ]
-    if missing_without_explanation:
-        problems.append("Missing archived TypeLabel values without explanation: " + ", ".join(sorted(missing_without_explanation)))
+    if valid_bin_ids and not corpus_axis_bin_counts:
+        problems.append("Feature table has no corpus_axis_bin assignments; corpus axis is the primary analysis axis.")
     if not boundary_self_check["all_pass"]:
         problems.append("Boundary self-check failed for one or more threshold cases.")
 
@@ -1161,17 +1071,16 @@ def validate_type_labels(feature_artifact_path: Path, dataset_config_path: Path)
         "target_label_field": "is_hallucination",
         "target_label_source": "annotation-backed correctness",
         "target_counts_by_dataset": _dataset_target_counts(rows),
-        "archived_type_label_counts": {label: archived_type_label_counts.get(label, 0) for label in EXPECTED_TYPE_LABELS},
-        "archived_type_label_counts_by_dataset": _dataset_archived_type_counts(rows),
-        "label_presence_explanations": explanations,
+        "corpus_axis_bin_counts": dict(sorted(corpus_axis_bin_counts.items())),
         "prompt_balance": prompt_balance,
         "boundary_self_check": boundary_self_check,
         "feature_alignment_summary": _feature_alignment_summary(),
         "problems": problems,
         "status": "ok" if not problems else "error",
         "notes": [
-            "Validator enforces that thesis target is top-level is_hallucination and that archived TypeLabel remains diagnostic-only metadata.",
+            "Validator enforces that thesis target is top-level is_hallucination.",
             "Validator rejects correctness, gold-answer, label, or dataset-annotation leakage inside trainable features and trainable feature provenance.",
+            "Corpus axis bin (3-bin primary, 5-bin/10-bin sensitivity) is the main analysis axis.",
         ],
     }
     return report

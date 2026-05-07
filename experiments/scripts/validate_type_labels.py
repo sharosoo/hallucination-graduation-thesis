@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate thesis-valid feature-table schema, archived TypeLabel metadata, and leakage guardrails."""
+"""Validate thesis-valid feature-table schema, corpus-axis bin coverage, and leakage guardrails."""
 
 from __future__ import annotations
 
@@ -27,8 +27,6 @@ REQUIRED_TOP_LEVEL_FIELDS = (
     "candidate_label",
     "is_correct",
     "is_hallucination",
-    "label",
-    "archived_type_label",
     "label_source",
     "features",
     "analysis_features",
@@ -63,6 +61,7 @@ REQUIRED_FEATURE_FIELDS = (
     "corpus_risk_only",
     "corpus_axis_bin",
     "corpus_axis_bin_5",
+    "corpus_axis_bin_10",
 )
 
 
@@ -85,8 +84,6 @@ def _validate_schema(artifact: Path) -> list[str]:
             "sample_id",
             "candidate_text",
             "candidate_label",
-            "label",
-            "archived_type_label",
             "label_source",
         ):
             value = row.get(field_name)

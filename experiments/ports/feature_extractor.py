@@ -13,7 +13,6 @@ from experiments.domain import (
     ModelResponse,
     QuestionExample,
     SemanticEntropyResult,
-    TypeLabel,
 )
 
 
@@ -31,7 +30,7 @@ class FeatureExtractorPort(ABC):
         semantic_entropy: SemanticEntropyResult,
         energy: EnergyResult,
         corpus_stats: CorpusStats,
-        label: TypeLabel,
+        is_hallucination: bool,
         analysis_bin: AnalysisBin | None = None,
     ) -> FeatureVector:
         """Build a typed feature vector for one sample."""

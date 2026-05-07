@@ -12,28 +12,11 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from experiments.domain import TypeLabel
-
-
 ACTIVE_DATASETS = ("TruthfulQA", "HaluEval-QA")
 EXCLUDED_ACTIVE_DATASETS = ("TriviaQA", "Natural Questions", "HotpotQA", "FEVER", "BioASQ")
-EXPECTED_LABELS = [label.value for label in TypeLabel]
-EXPECTED_THRESHOLD_RULES = {
-    "NORMAL": {"rule": "archived diagnostic: correct -> NORMAL"},
-    "HIGH_DIVERSITY": {
-        "rule": "archived diagnostic: incorrect and SE > 0.5 -> HIGH_DIVERSITY",
-        "min_exclusive": 0.5,
-    },
-    "LOW_DIVERSITY": {
-        "rule": "archived diagnostic: incorrect and SE <= 0.1 -> LOW_DIVERSITY",
-        "max_inclusive": 0.1,
-    },
-    "AMBIGUOUS_INCORRECT": {
-        "rule": "archived diagnostic: incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
-        "min_exclusive": 0.1,
-        "max_inclusive": 0.5,
-    },
-}
+SUPERVISED_TARGET_FIELD = "is_hallucination"
+PRIMARY_ANALYSIS_AXIS = "corpus_axis_bin"
+SENSITIVITY_AXES = ("corpus_axis_bin_5", "corpus_axis_bin_10")
 AMBIGUOUS_POLICY_MARKERS = ("same as", "tbd", "todo", "implicit")
 FORBIDDEN_ACTIVE_POLICY_TOKENS = (
     "llm_as_judge",
@@ -89,28 +72,30 @@ def validate_operational_labels(config: dict[str, Any], problems: list[str]) -> 
         problems.append("missing top-level label_policy object")
         return
 
-    labels = label_policy.get("operational_labels")
-    if labels != EXPECTED_LABELS:
-        problems.append(f"label_policy.operational_labels must equal {EXPECTED_LABELS}; got {labels!r}")
-    if label_policy.get("operational_label_status") != "archived_diagnostic_only":
-        problems.append("label_policy.operational_label_status must be archived_diagnostic_only")
+    target = label_policy.get("supervised_target")
+    if not isinstance(target, dict):
+        problems.append("label_policy.supervised_target must be an object")
+    else:
+        if target.get("field") != SUPERVISED_TARGET_FIELD:
+            problems.append(f"label_policy.supervised_target.field must be {SUPERVISED_TARGET_FIELD!r}")
+        if target.get("binary") is not True:
+            problems.append("label_policy.supervised_target.binary must be true")
+
+    if label_policy.get("primary_analysis_axis") != PRIMARY_ANALYSIS_AXIS:
+        problems.append(f"label_policy.primary_analysis_axis must equal {PRIMARY_ANALYSIS_AXIS!r}")
+    sensitivity = label_policy.get("sensitivity_analysis_axes") or []
+    missing_sensitivity = [axis for axis in SENSITIVITY_AXES if axis not in sensitivity]
+    if missing_sensitivity:
+        problems.append(f"label_policy.sensitivity_analysis_axes must include {list(SENSITIVITY_AXES)}; missing {missing_sensitivity}")
 
     row_level_output = label_policy.get("row_level_output")
     if not isinstance(row_level_output, dict):
         problems.append("label_policy.row_level_output must be an object")
     else:
-        if row_level_output.get("required_label_field") != "label":
-            problems.append("label_policy.row_level_output.required_label_field must be 'label'")
-        if row_level_output.get("require_explicit_operational_label_marker") is not True:
-            problems.append("label_policy.row_level_output.require_explicit_operational_label_marker must be true")
-        if row_level_output.get("required_for_every_sample") is not True:
-            problems.append("label_policy.row_level_output.required_for_every_sample must be true")
-        if row_level_output.get("allowed_values") != EXPECTED_LABELS:
-            problems.append("label_policy.row_level_output.allowed_values must match the four operational labels")
-
-    thresholds = label_policy.get("fixed_operational_thresholds")
-    if thresholds != EXPECTED_THRESHOLD_RULES:
-        problems.append("label_policy.fixed_operational_thresholds must exactly match the paired experiment threshold rules")
+        required_fields = row_level_output.get("required_fields") or []
+        for needed in ("is_hallucination", "is_correct", "candidate_label"):
+            if needed not in required_fields:
+                problems.append(f"label_policy.row_level_output.required_fields must include {needed!r}")
 
 
 def validate_analysis_bins(config: dict[str, Any], problems: list[str]) -> None:
@@ -329,8 +314,8 @@ def validate_dataset_entry(dataset: dict[str, Any], problems: list[str]) -> None
         return
     for field_name in (
         "correctness_judgment",
-        "operational_label_assignment",
-        "se_threshold_reference",
+        "supervised_target",
+        "primary_analysis_axis",
         "row_level_output",
     ):
         value = label_policy.get(field_name)
@@ -338,9 +323,6 @@ def validate_dataset_entry(dataset: dict[str, Any], problems: list[str]) -> None
             problems.append(f"{path_prefix}.label_policy.{field_name} must be a non-empty string")
             continue
         _validate_policy_text(str(value), f"{path_prefix}.label_policy.{field_name}", problems)
-
-    if label_policy.get("se_threshold_reference") != "label_policy.fixed_operational_thresholds":
-        problems.append(f"{path_prefix}.label_policy.se_threshold_reference must equal 'label_policy.fixed_operational_thresholds'")
 
     if name == "TruthfulQA":
         if dataset.get("hf_id") != "truthful_qa":

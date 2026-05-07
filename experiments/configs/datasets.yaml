@@ -23,42 +23,16 @@
     "HaluEval-QA"
   ],
   "label_policy": {
-    "operational_label_status": "archived_diagnostic_only",
-    "operational_labels": [
-      "NORMAL",
-      "HIGH_DIVERSITY",
-      "LOW_DIVERSITY",
-      "AMBIGUOUS_INCORRECT"
-    ],
-    "fixed_operational_thresholds": {
-      "NORMAL": {
-        "rule": "archived diagnostic: correct -> NORMAL"
-      },
-      "HIGH_DIVERSITY": {
-        "rule": "archived diagnostic: incorrect and SE > 0.5 -> HIGH_DIVERSITY",
-        "min_exclusive": 0.5
-      },
-      "LOW_DIVERSITY": {
-        "rule": "archived diagnostic: incorrect and SE <= 0.1 -> LOW_DIVERSITY",
-        "max_inclusive": 0.1
-      },
-      "AMBIGUOUS_INCORRECT": {
-        "rule": "archived diagnostic: incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
-        "min_exclusive": 0.1,
-        "max_inclusive": 0.5
-      }
+    "supervised_target": {
+      "field": "is_hallucination",
+      "source": "dataset annotation",
+      "binary": true
     },
+    "primary_analysis_axis": "corpus_axis_bin",
+    "sensitivity_analysis_axes": ["corpus_axis_bin_5", "corpus_axis_bin_10"],
     "row_level_output": {
-      "required_label_field": "label",
-      "require_explicit_operational_label_marker": true,
-      "required_for_every_sample": true,
-      "allowed_values": [
-        "NORMAL",
-        "HIGH_DIVERSITY",
-        "LOW_DIVERSITY",
-        "AMBIGUOUS_INCORRECT"
-      ],
-      "notes": "This label field is preserved for archived diagnostic artifacts only. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins; fine-grained Semantic Entropy bins never replace correctness labels."
+      "required_fields": ["is_hallucination", "is_correct", "candidate_label"],
+      "notes": "Thesis-valid supervised target is annotation-backed is_hallucination. Operational TypeLabel ontology has been removed; corpus axis bins drive condition-aware analysis."
     },
     "analysis_se_bins": {
       "scheme_name": "semantic_entropy_threshold_focus_bins",
@@ -85,7 +59,7 @@
           "upper_bound": 0.05,
           "upper_inclusive": true,
           "includes_upper_bound": true,
-          "note": "Low-range analysis bin below the LOW_DIVERSITY threshold, excluding exact zero."
+          "note": "Low-range analysis bin below the SE=0.1 threshold, excluding exact zero."
         },
         {
           "bin_id": "se_0_05_to_0_10",
@@ -94,7 +68,7 @@
           "upper_bound": 0.1,
           "upper_inclusive": true,
           "includes_upper_bound": true,
-          "note": "Threshold-focused analysis bin ending at the LOW_DIVERSITY cutoff."
+          "note": "Threshold-focused analysis bin ending at the SE=0.1 cutoff."
         },
         {
           "bin_id": "se_0_10_to_0_20",
@@ -130,7 +104,7 @@
           "upper_bound": 0.5,
           "upper_inclusive": true,
           "includes_upper_bound": true,
-          "note": "Threshold-focused analysis bin ending at the HIGH_DIVERSITY cutoff."
+          "note": "Threshold-focused analysis bin ending at the SE=0.5 cutoff."
         },
         {
           "bin_id": "se_0_50_to_0_60",
@@ -178,7 +152,7 @@
           "note": "Open-ended tail bin covering the rest of [0, +inf)."
         }
       ],
-      "notes": "These bins support crossover and threshold sensitivity analysis only. They do not replace the fixed operational TypeLabel thresholds."
+      "notes": "These SE bins support analysis-only crossover and threshold sensitivity reporting. They are not the supervised target."
     }
   },
   "datasets": [
@@ -212,9 +186,9 @@
       },
       "label_policy": {
         "correctness_judgment": "Dataset-provided candidate role decides correctness: selected correct_answers[] candidate is correct; selected incorrect_answers[] candidate is incorrect/hallucinated.",
-        "operational_label_assignment": "Archived diagnostic artifacts only: correct -> NORMAL; incorrect/hallucinated candidates apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Archived diagnostic feature rows include a label field with one explicit operational TypeLabel value; thesis-valid rows must keep annotation-backed correctness as the primary label."
+        "supervised_target": "annotation-backed is_hallucination",
+        "primary_analysis_axis": "corpus_axis_bin (3-bin) with corpus_axis_bin_5 / corpus_axis_bin_10 sensitivity",
+        "row_level_output": "Each row carries is_hallucination, is_correct, candidate_label, plus corpus axis bin metadata; operational TypeLabel ontology is removed."
       },
       "notes": "Mandatory active paired dataset. Loader must build fixed candidate rows from dataset-provided correct_answers[] and incorrect_answers[] without generated-answer correctness labeling."
     },
@@ -248,9 +222,9 @@
       },
       "label_policy": {
         "correctness_judgment": "Dataset-provided candidate role decides correctness: right_answer is correct; hallucinated_answer is incorrect/hallucinated.",
-        "operational_label_assignment": "Archived diagnostic artifacts only: correct -> NORMAL; incorrect/hallucinated candidates apply the fixed registry Semantic Entropy thresholds for HIGH_DIVERSITY, LOW_DIVERSITY, or AMBIGUOUS_INCORRECT. Thesis-valid analyses use annotation-backed correctness plus corpus-axis bins.",
-        "se_threshold_reference": "label_policy.fixed_operational_thresholds",
-        "row_level_output": "Archived diagnostic feature rows include a label field with one explicit operational TypeLabel value; thesis-valid rows must keep annotation-backed correctness as the primary label."
+        "supervised_target": "annotation-backed is_hallucination",
+        "primary_analysis_axis": "corpus_axis_bin (3-bin) with corpus_axis_bin_5 / corpus_axis_bin_10 sensitivity",
+        "row_level_output": "Each row carries is_hallucination, is_correct, candidate_label, plus corpus axis bin metadata; operational TypeLabel ontology is removed."
       },
       "notes": "Mandatory active paired dataset. Loader must use right_answer and hallucinated_answer directly without generated-answer correctness labeling."
     }

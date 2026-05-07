@@ -163,8 +163,8 @@
     ]
   },
   "notes": [
-    "All supervised baselines use annotation-backed is_hallucination or the direct fallback not is_correct, never archived TypeLabel.",
+    "All supervised baselines use annotation-backed is_hallucination as the binary target (fallback: not is_correct).",
     "Corpus-bin feature selection and weighted fusion fit bin-specific choices on training folds only before applying to held-out rows.",
-    "Per-bin reporting is required for both corpus_axis_bin and corpus_axis_bin_5, with explicit NA reasons instead of silent bin dropping."
+    "Per-bin reporting is required for corpus_axis_bin (3-bin primary), corpus_axis_bin_5, and corpus_axis_bin_10 sensitivity, with explicit NA reasons instead of silent bin dropping."
   ]
 }
