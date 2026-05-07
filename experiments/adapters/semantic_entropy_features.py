@@ -403,6 +403,13 @@ class _EntailmentModel:
     def entails(self, premise: FreeSample, hypothesis: FreeSample) -> EntailmentDecision:
         raise NotImplementedError
 
+    def batch_entails(
+        self, pairs: list[tuple[FreeSample, FreeSample]]
+    ) -> list[EntailmentDecision]:
+        # Default fallback: serial. Concrete models override to do a single
+        # batched forward across all pairs.
+        return [self.entails(premise, hypothesis) for premise, hypothesis in pairs]
+
 
 class _FixtureEntailmentModel(_EntailmentModel):
     def model_ref(self) -> str:
@@ -427,6 +434,8 @@ class _FixtureEntailmentModel(_EntailmentModel):
 
 
 class _TransformersEntailmentModel(_EntailmentModel):
+    DEFAULT_BATCH_SIZE = 64
+
     def __init__(self, model_name: str) -> None:
         try:
             import torch  # type: ignore
@@ -450,6 +459,13 @@ class _TransformersEntailmentModel(_EntailmentModel):
                 f"Unable to load NLI model {model_name!r}. Download the model locally or provide a fixture-mode artifact for offline verification."
             ) from exc
         self._torch = torch
+        # Move to GPU when available so batched forwards saturate the device.
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._use_fp16 = self._device.type == "cuda"
+        if self._use_fp16:
+            self._model = self._model.to(self._device).half()
+        else:
+            self._model = self._model.to(self._device)
         self._model.eval()
         self._model_name = model_name
         self._entailment_labels = self._resolve_entailment_labels()
@@ -475,26 +491,50 @@ class _TransformersEntailmentModel(_EntailmentModel):
         return "transformers_mnli_argmax"
 
     def entails(self, premise: FreeSample, hypothesis: FreeSample) -> EntailmentDecision:
-        inputs = self._tokenizer(
-            premise.response_text,
-            hypothesis.response_text,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-        )
-        with self._torch.no_grad():
-            logits = self._model(**inputs).logits
-        label_index = int(logits.argmax(dim=-1).item())
-        label = str(self._model.config.id2label[label_index]).strip().lower()
-        return EntailmentDecision(
-            premise_sample_index=premise.sample_index,
-            hypothesis_sample_index=hypothesis.sample_index,
-            premise_text=premise.response_text,
-            hypothesis_text=hypothesis.response_text,
-            label=label,
-            entails=label in self._entailment_labels,
-            mode=self.mode(),
-        )
+        # Delegate to batched path so single-pair callers also get the GPU forward
+        # benefit. The batched implementation handles both n=1 and n>1.
+        return self.batch_entails([(premise, hypothesis)])[0]
+
+    def batch_entails(
+        self, pairs: list[tuple[FreeSample, FreeSample]]
+    ) -> list[EntailmentDecision]:
+        if not pairs:
+            return []
+        decisions: list[EntailmentDecision] = []
+        id2label = self._model.config.id2label
+        for chunk_start in range(0, len(pairs), self.DEFAULT_BATCH_SIZE):
+            chunk = pairs[chunk_start : chunk_start + self.DEFAULT_BATCH_SIZE]
+            premises = [premise.response_text for premise, _ in chunk]
+            hypotheses = [hypothesis.response_text for _, hypothesis in chunk]
+            inputs = self._tokenizer(
+                premises,
+                hypotheses,
+                return_tensors="pt",
+                truncation=True,
+                padding=True,
+            )
+            inputs = {key: value.to(self._device) for key, value in inputs.items()}
+            with self._torch.no_grad():
+                if self._use_fp16:
+                    with self._torch.autocast(device_type=self._device.type, dtype=self._torch.float16):
+                        logits = self._model(**inputs).logits
+                else:
+                    logits = self._model(**inputs).logits
+            label_indexes = logits.argmax(dim=-1).tolist()
+            for (premise, hypothesis), label_index in zip(chunk, label_indexes, strict=True):
+                label = str(id2label[int(label_index)]).strip().lower()
+                decisions.append(
+                    EntailmentDecision(
+                        premise_sample_index=premise.sample_index,
+                        hypothesis_sample_index=hypothesis.sample_index,
+                        premise_text=premise.response_text,
+                        hypothesis_text=hypothesis.response_text,
+                        label=label,
+                        entails=label in self._entailment_labels,
+                        mode=self.mode(),
+                    )
+                )
+        return decisions
 
 
 def _build_entailment_model(
@@ -541,6 +581,23 @@ class SemanticClusterResult:
         cluster_samples: list[list[FreeSample]] = []
         decisions_by_key: dict[tuple[int, int], EntailmentDecision] = {}
         decision_order: list[tuple[int, int]] = []
+
+        # Pre-compute every directed pairwise NLI decision in a single batched
+        # forward so the greedy clustering loop becomes pure cache lookups. For
+        # N=10 free samples this is 90 directed pairs per prompt.
+        sample_pairs: list[tuple[FreeSample, FreeSample]] = [
+            (premise, hypothesis)
+            for premise in ordered_samples
+            for hypothesis in ordered_samples
+            if premise.sample_index != hypothesis.sample_index
+        ]
+        if sample_pairs:
+            batched_decisions = entailment_model.batch_entails(sample_pairs)
+            for (premise, hypothesis), decision in zip(sample_pairs, batched_decisions, strict=True):
+                key = (premise.sample_index, hypothesis.sample_index)
+                if key not in decisions_by_key:
+                    decisions_by_key[key] = decision
+                    decision_order.append(key)
 
         def get_decision(premise: FreeSample, hypothesis: FreeSample) -> EntailmentDecision:
             key = (premise.sample_index, hypothesis.sample_index)

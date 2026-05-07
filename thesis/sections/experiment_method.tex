@@ -96,7 +96,7 @@ Corpus 특징은 candidate 답변 텍스트에서 entity를 추출한 뒤, Infin
 
 \subsection{평가 지표와 해석 원칙}
 
-공통 baseline table에는 AUROC, AUPRC와 F1 등 표준 분류 지표를 보고한다. 학습 target은 데이터셋 annotation에서 직접 온 \texttt{is\_hallucination}이며, archived TypeLabel (NORMAL, HIGH\_DIVERSITY, LOW\_DIVERSITY, AMBIGUOUS\_INCORRECT) 은 학습 target이 아니라 진단용 메타데이터로만 보고한다. 다만 이 candidate-row aggregate metric은 모든 특징군에 대해 같은 의미를 갖지 않는다. Semantic Entropy는 prompt-level 특징이기 때문에, 같은 prompt의 정답 후보와 환각 후보가 동일한 SE 값을 가진다. 따라서 SE-only candidate-row AUROC가 0.5에 가까운 것은 SE가 무의미하다는 뜻이 아니라, prompt-level 특징을 candidate-level paired row ranking으로 평가한 구조적 결과이다.
+공통 baseline table에는 AUROC, AUPRC와 F1 등 표준 분류 지표를 보고한다. 학습 target은 데이터셋 annotation에서 직접 온 \texttt{is\_hallucination} (이진) 이다. 본 논문의 main 분석 축은 corpus-axis bin (3-bin primary, 5-bin / 10-bin sensitivity) 이며, 각 bin 안에서 SE/Energy/logit 진단의 AUROC와 paired matched-pair win rate를 보고한다. 다만 이 candidate-row aggregate metric은 모든 특징군에 대해 같은 의미를 갖지 않는다. Semantic Entropy는 prompt-level 특징이기 때문에, 같은 prompt의 정답 후보와 환각 후보가 동일한 SE 값을 가진다. 따라서 SE-only candidate-row AUROC가 0.5에 가까운 것은 SE가 무의미하다는 뜻이 아니라, prompt-level 특징을 candidate-level paired row ranking으로 평가한 구조적 결과이다.
 
 Semantic Energy와 logit diagnostics는 candidate-level 또는 cluster-level 신호이지만, 그 신뢰도는 corpus support 조건에 따라 달라질 수 있다. 따라서 핵심 평가는 각 corpus-axis bin에서 환각 후보가 paired correct 후보보다 더 높은 risk를 받는지 확인하는 matched-pair metric이다. 이를 위해 hallucinated-minus-normal paired delta, pairwise win rate, prompt-grouped bootstrap confidence interval, leave-one-dataset-out, threshold/calibration sensitivity, 3-bin vs 5-bin corpus axis sensitivity를 모두 보고한다. Train/test split은 prompt 단위로 묶어 같은 prompt의 두 candidate row가 fold를 가로지르지 않도록 강제한다.
 
