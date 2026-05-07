@@ -82,6 +82,69 @@
         "entity_frequency_axis",
         "entity_pair_cooccurrence_axis"
       ]
+    },
+    {
+      "name": "sklearn LR (with corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_with_corpus",
+      "learner": "sklearn_logistic",
+      "C": 1.0,
+      "penalty": "l2",
+      "solver": "lbfgs",
+      "max_iter": 2000,
+      "standardize": true
+    },
+    {
+      "name": "sklearn random forest (with corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_with_corpus",
+      "learner": "sklearn_random_forest",
+      "n_estimators": 300,
+      "max_depth": null,
+      "min_samples_leaf": 5,
+      "n_jobs": -1,
+      "standardize": false
+    },
+    {
+      "name": "sklearn random forest (no corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_without_corpus",
+      "learner": "sklearn_random_forest",
+      "n_estimators": 300,
+      "max_depth": null,
+      "min_samples_leaf": 5,
+      "n_jobs": -1,
+      "standardize": false
+    },
+    {
+      "name": "sklearn gradient boosting (with corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_with_corpus",
+      "learner": "sklearn_gradient_boosting",
+      "n_estimators": 200,
+      "learning_rate": 0.05,
+      "max_depth": 3,
+      "standardize": false
+    },
+    {
+      "name": "sklearn gradient boosting (no corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_without_corpus",
+      "learner": "sklearn_gradient_boosting",
+      "n_estimators": 200,
+      "learning_rate": 0.05,
+      "max_depth": 3,
+      "standardize": false
+    },
+    {
+      "name": "sklearn SVM rbf (with corpus)",
+      "kind": "sklearn_feature_set",
+      "feature_set": "global_with_corpus",
+      "learner": "sklearn_svm",
+      "C": 1.0,
+      "kernel": "rbf",
+      "gamma": "scale",
+      "standardize": true
     }
   ],
   "learned_fusion": {

@@ -649,6 +649,147 @@ def _fit_feature_set_model(
     return train_scores, test_scores, threshold, model
 
 
+@dataclass(frozen=True)
+class SklearnLearnerModel:
+    """Wraps a fitted sklearn estimator so it matches the LogisticRegressionModel shape.
+
+    Provides ``predict_scores`` (probability of class 1) and a flat
+    ``feature_importance`` payload so the rest of the fusion pipeline can treat
+    it interchangeably with the in-house LogisticRegressionModel.
+    """
+
+    estimator: Any
+    scaler: Any  # sklearn.preprocessing.StandardScaler instance or None
+    feature_names: tuple[str, ...]
+    learner_kind: str  # e.g. "sklearn_logistic", "sklearn_random_forest"
+
+    def predict_scores(self, rows: list[list[float]]) -> list[float]:
+        if not rows:
+            return []
+        import numpy as _np  # type: ignore
+
+        matrix = _np.asarray(rows, dtype=float)
+        if self.scaler is not None:
+            matrix = self.scaler.transform(matrix)
+        proba = self.estimator.predict_proba(matrix)
+        # Class-1 column. sklearn classifiers expose .classes_ in fitted order.
+        classes = list(getattr(self.estimator, "classes_", [0, 1]))
+        if 1 in classes:
+            class_index = classes.index(1)
+        else:
+            class_index = proba.shape[1] - 1
+        return [float(value) for value in proba[:, class_index]]
+
+
+def _build_sklearn_estimator(learner_kind: str, params: dict[str, Any]) -> Any:
+    """Resolve a learner_kind string to a fitted-ready sklearn estimator."""
+    seed = int(params.get("random_state", 20260507))
+    if learner_kind == "sklearn_logistic":
+        from sklearn.linear_model import LogisticRegression  # type: ignore
+
+        return LogisticRegression(
+            C=float(params.get("C", 1.0)),
+            penalty=str(params.get("penalty", "l2")),
+            solver=str(params.get("solver", "lbfgs")),
+            max_iter=int(params.get("max_iter", 2000)),
+            random_state=seed,
+        )
+    if learner_kind == "sklearn_random_forest":
+        from sklearn.ensemble import RandomForestClassifier  # type: ignore
+
+        return RandomForestClassifier(
+            n_estimators=int(params.get("n_estimators", 300)),
+            max_depth=params.get("max_depth"),
+            min_samples_leaf=int(params.get("min_samples_leaf", 5)),
+            n_jobs=int(params.get("n_jobs", -1)),
+            random_state=seed,
+        )
+    if learner_kind == "sklearn_gradient_boosting":
+        from sklearn.ensemble import GradientBoostingClassifier  # type: ignore
+
+        return GradientBoostingClassifier(
+            n_estimators=int(params.get("n_estimators", 200)),
+            learning_rate=float(params.get("learning_rate", 0.05)),
+            max_depth=int(params.get("max_depth", 3)),
+            random_state=seed,
+        )
+    if learner_kind == "sklearn_svm":
+        from sklearn.svm import SVC  # type: ignore
+
+        return SVC(
+            C=float(params.get("C", 1.0)),
+            kernel=str(params.get("kernel", "rbf")),
+            gamma=params.get("gamma", "scale"),
+            probability=True,
+            random_state=seed,
+        )
+    raise ValueError(f"Unsupported sklearn learner kind: {learner_kind}")
+
+
+def _fit_sklearn_feature_set_model(
+    train_rows: list[dict[str, Any]],
+    test_rows: list[dict[str, Any]],
+    *,
+    feature_names: tuple[str, ...],
+    learner_kind: str,
+    params: dict[str, Any],
+) -> tuple[list[float], list[float], float, SklearnLearnerModel]:
+    """sklearn parallel of _fit_feature_set_model.
+
+    Standardizes features (mean/var), fits the requested sklearn estimator on
+    is_hallucination (binary), returns train/test class-1 probabilities, a
+    threshold selected on train scores, and a SklearnLearnerModel wrapper.
+    """
+    import numpy as _np  # type: ignore
+    from sklearn.preprocessing import StandardScaler  # type: ignore
+
+    train_matrix_raw = _np.asarray(_extract_matrix(train_rows, feature_names), dtype=float)
+    test_matrix_raw = _np.asarray(_extract_matrix(test_rows, feature_names), dtype=float)
+    train_labels = [_target_value(row) for row in train_rows]
+    standardize = bool(params.get("standardize", True))
+    scaler: Any = None
+    if standardize and train_matrix_raw.shape[0] > 0:
+        scaler = StandardScaler()
+        train_matrix = scaler.fit_transform(train_matrix_raw)
+        test_matrix = scaler.transform(test_matrix_raw) if test_matrix_raw.shape[0] > 0 else test_matrix_raw
+    else:
+        train_matrix = train_matrix_raw
+        test_matrix = test_matrix_raw
+    estimator = _build_sklearn_estimator(learner_kind, params)
+    estimator.fit(train_matrix, train_labels)
+    model = SklearnLearnerModel(
+        estimator=estimator,
+        scaler=scaler,
+        feature_names=feature_names,
+        learner_kind=learner_kind,
+    )
+    train_scores = model.predict_scores(train_matrix_raw.tolist())
+    test_scores = model.predict_scores(test_matrix_raw.tolist()) if test_matrix_raw.shape[0] > 0 else []
+    threshold, _ = _select_threshold(train_labels, train_scores)
+    return train_scores, test_scores, threshold, model
+
+
+def _sklearn_importance_payload(model: SklearnLearnerModel) -> dict[str, Any]:
+    """Best-effort flat importance payload across sklearn learner kinds."""
+    estimator = model.estimator
+    importances: dict[str, float] = {}
+    if hasattr(estimator, "feature_importances_"):
+        values = list(estimator.feature_importances_)
+        for name, value in zip(model.feature_names, values, strict=True):
+            importances[name] = float(value)
+    elif hasattr(estimator, "coef_"):
+        coef = estimator.coef_
+        flat = list(coef[0]) if hasattr(coef, "shape") and len(coef.shape) > 1 else list(coef)
+        for name, value in zip(model.feature_names, flat, strict=True):
+            importances[name] = float(value)
+    return {
+        "kind": model.learner_kind,
+        "coefficients": importances,
+        "flat_importance": dict(importances),
+        "fold_name": None,
+    }
+
+
 def _coefficient_payload(model: LogisticRegressionModel, fold_name: str, *, context: str | None = None) -> dict[str, Any]:
     coefficients = {name: weight for name, weight in zip(model.feature_names, model.weights, strict=True)}
     scaler = None
@@ -1165,6 +1306,30 @@ def _evaluate_baseline_on_fold(
             payload["flat_importance"] = dict(payload["coefficients"])
             feature_importance = payload
             fold_safety["feature_set"] = list(feature_names)
+        elif baseline.kind == "sklearn_feature_set":
+            feature_set_name = str(baseline.params.get("feature_set"))
+            feature_names = _feature_set(config, feature_set_name)
+            learner_kind = str(baseline.params.get("learner", "sklearn_logistic"))
+            if not feature_names or not all(_feature_available(train_rows + test_rows, feature_name) for feature_name in feature_names):
+                return _baseline_unavailable_fold(
+                    dataset_name,
+                    split_id,
+                    row_count,
+                    positive_count,
+                    train_datasets,
+                    reason=MISSING_SIGNAL_REASON,
+                    fold_safety=fold_safety,
+                )
+            _train_scores, test_scores, threshold, sklearn_model = _fit_sklearn_feature_set_model(
+                train_rows,
+                test_rows,
+                feature_names=feature_names,
+                learner_kind=learner_kind,
+                params=baseline.params,
+            )
+            feature_importance = _sklearn_importance_payload(sklearn_model)
+            fold_safety["feature_set"] = list(feature_names)
+            fold_safety["learner"] = learner_kind
         elif baseline.kind == "corpus_bin_feature_selection":
             bin_field = str(baseline.params.get("bin_field", PRIMARY_BIN_FIELD))
             feature_pool = _feature_pool(config, str(baseline.params.get("feature_pool")))
