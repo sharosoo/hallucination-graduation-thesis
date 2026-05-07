@@ -167,8 +167,6 @@ SelfCheckGPT는 외부 지식 베이스 없이 여러 응답을 샘플링하고 
 방법 & 핵심 아이디어 & 장점 & 한계 \\
 \midrule
 SE & NLI 클러스터링 + Shannon Entropy & 의미적 불확실성 측정 & Zero-SE 문제 \\
-KLE & von Neumann Entropy + Kernel & SE를 일반화하는 방법 맥락 & O(N³) 복잡도 \\
-SNNE & Nearest Neighbor LogSumExp & 클러스터링 불필요 & 유사도 함수 의존 \\
 Cleanse & Hidden Embedding 비율 & 클러스터 간 유사도 활용 & White-box only \\
 Energy & Raw Logit 기반 에너지 & Zero-SE 보조 신호 & 다양성 정보 부족 \\
 \bottomrule
@@ -206,11 +204,6 @@ SE의 주요 한계점은 다음과 같다:
     \item \textbf{Zero-SE 문제}: 모든 응답이 하나의 클러스터에 속하면 SE=0이 되어 판별력이 사라진다.
     \item \textbf{응답 길이와 클러스터링 의존성}: 긴 응답이나 복잡한 답변에서는 NLI 기반 클러스터링 품질에 따라 결과가 달라질 수 있다.
 \end{itemize}
-
-
-\section{SE 계열 확장 방법: KLE와 SNNE}
-
-KLE와 SNNE는 SE의 한계를 완화하려는 후속 방법들이다. Nikitin 등(2024)의 KLE는 hard clustering 대신 의미 커널과 von Neumann Entropy를 사용해 SE를 더 일반적인 불확실성 프레임워크로 확장한다\cite{nikitin2024}. Nguyen 등(2025)의 SNNE는 명시적 클러스터링 없이 응답 간 pairwise semantic similarity를 사용해 긴 응답에서 클러스터 수가 불필요하게 증가하는 문제를 줄이려 한다\cite{nguyen2025}. 두 방법은 SE 계열 연구의 확장 방향을 보여주지만, 본 연구의 초점인 Zero-SE 구간에서 SE와 Energy를 어떻게 선택적으로 결합할지는 직접 다루지 않는다.
 
 
 \section{Semantic Energy}
@@ -494,16 +487,6 @@ A. Ravichander, S. Ghela, D. Wadden, and Y. Choi,
 Z. Ma et al.,
 ``Semantic Energy: A novel approach for detecting confabulation in language models,''
 \textit{arXiv preprint arXiv:2412.07965}, 2025.
-
-\bibitem{nikitin2024}
-A. Nikitin, J. Kossen, Y. Gal, and P. Marttinen,
-``Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities,''
-\textit{arXiv preprint arXiv:2405.20003}, 2024.
-
-\bibitem{nguyen2025}
-D. Nguyen, A. Payani, and B. Mirzasoleiman,
-``Beyond Semantic Entropy: Boosting LLM Uncertainty Quantification with Pairwise Semantic Similarity,''
-\textit{arXiv preprint arXiv:2506.00245}, 2025.
 
 \bibitem{truthfulqa}
 S. Lin, J. Hilton, and O. Evans,
