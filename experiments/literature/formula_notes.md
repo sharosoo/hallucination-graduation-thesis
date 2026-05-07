@@ -5,44 +5,53 @@ These notes are source-traceability scaffolding for the experiment contract. Any
 ## Formula: semantic_entropy
 Source ID: farquhar_semantic_entropy_2024
 Paper: Detecting hallucinations in large language models using semantic entropy
-Feature Family: semantic_entropy, cluster_count
+Feature Family: semantic_entropy_nli_likelihood, semantic_entropy_cluster_count, semantic_entropy_discrete_cluster_entropy
 Page Reference: Nature 2024 PDF pages 7-8 (Methods, “Semantic entropy” and “Computing the semantic entropy”).
 Section Reference: Methods → “Principles of semantic uncertainty”; Methods → “Computing the semantic entropy”.
 Equation Reference: Eq. (2) defines cluster probability mass P(c|x); Eq. (3) defines semantic entropy SE(x); Eq. (5) gives the sampled estimator used in practice.
-Notes: The paper explicitly defines semantic clustering by bidirectional entailment on page 8 and uses sampled generations plus cluster probability mass to compute semantic entropy. `cluster_count` is a derived implementation artifact from the semantic clustering stage and should be traced to the same Methods section rather than treated as an independent paper formula.
+Notes: The thesis-valid implementation must use N=10 answer-only samples, strict bidirectional NLI entailment equivalence clustering in deterministic sample-index order, and likelihood-based cluster probability from mean token log-likelihoods. Exact normalized-string clustering and N=5 count entropy are archived diagnostics, not paper-faithful final evidence.
 
-## Formula: semantic_energy_boltzmann_or_proxy
+## Formula: semantic_energy_cluster_uncertainty
 Source ID: ma_semantic_energy_2025
 Paper: Semantic Energy
-Feature Family: semantic_energy_boltzmann or semantic_energy_proxy, logit_variance, confidence_margin
+Feature Family: semantic_energy_cluster_uncertainty, semantic_energy_sample_energy
 Page Reference: arXiv PDF pages 4-6 (Sections 2.2, 3.2.1, and 3.2.2).
 Section Reference: Section 2.2 “Semantic Entropy and Response Clustering”; Section 3.2.1 “Boltzmann Distribution”; Section 3.2.2 “Specific Implementation in LLMs”.
 Equation Reference: Eq. (9) defines Semantic Entropy over semantic clusters; Eq. (10) gives the Boltzmann distribution; Eq. (12) defines total cluster energy; Eq. (13) maps token energy to negative logits; Eq. (14) defines the final uncertainty U(x(i)).
-Notes: This paper is a preprint and should stay citation-caveated. It directly supports a Boltzmann/logit-based semantic energy formulation. `logit_variance` and `confidence_margin` are not explicitly introduced here as standalone features, so if they are implemented later they must be labeled as downstream proxies rather than quoted as named Ma et al. formulas.
+Notes: This paper is a preprint and should stay citation-caveated. The thesis-valid implementation uses the same N=10 sampled responses and Task 4 semantic clusters as Semantic Entropy; clusters are joined by `(prompt_id, sample_index)` and are not recomputed in the Energy stage. Token energy is declared as `-selected_token_logit`, response/sample energy is `sample_energy = mean(-selected_token_logits)`, cluster energy is the arithmetic mean of member sample energies, and `semantic_energy_cluster_uncertainty = sum(cluster_probability * cluster_energy)` using the Task 4 likelihood cluster probabilities. `semantic_energy_sample_energy` is the prompt-level arithmetic mean over the ten response energies. Lower raw Energy means more reliable; higher raw Energy is treated as higher uncertainty. Candidate-level full-logit `-logsumexp` means remain `semantic_energy_boltzmann_diagnostic` only unless this sampled-response cluster path is present.
+
+## Formula: candidate_logit_diagnostics
+Source ID: local_diagnostic_features
+Paper: Local experiment diagnostic specification
+Feature Family: mean_negative_log_probability, logit_variance, confidence_margin, semantic_energy_boltzmann_diagnostic
+Page Reference: Local implementation note, not an external source-paper formula.
+Section Reference: experiments/PIPELINE.md §5 Paper-derived feature alignment.
+Equation Reference: Candidate token mean NLL, token-logit variance, confidence margin, and candidate-window mean `-logsumexp` are defined by the repo formula manifest rather than an external named method.
+Notes: These features are useful candidate-level diagnostics and may be compared against Semantic Entropy and Semantic Energy, but they must be labeled diagnostic/adapted instead of paper-faithful Semantic Energy.
 
 ## Formula: quco_entity_frequency
 Source ID: quco_rag_2025
 Paper: QuCo-RAG
-Feature Family: entity_frequency, low_frequency_entity_flag
+Feature Family: entity_frequency, entity_frequency_axis, low_frequency_entity_flag
 Page Reference: arXiv PDF page 3.
 Section Reference: Section 3.2 “Pre-Generation Knowledge Assessment”.
 Equation Reference: Eq. (2) triggers retrieval when the average entity frequency falls below a threshold; the surrounding text defines freq(e; P) over the pre-training corpus.
-Notes: QuCo-RAG uses low entity frequency as an input-uncertainty proxy, not as proof of model exposure. `low_frequency_entity_flag` in this repo should therefore be documented as a thresholded derivative of corpus entity frequency, with the same corpus-grounded caveat.
+Notes: QuCo-RAG uses low entity frequency as an input-uncertainty proxy. This thesis uses the same direct-count idea as a continuous corpus-support axis for metric reliability analysis, not as a direct hallucination label or as a RAG retrieval policy.
 
 ## Formula: quco_entity_pair_cooccurrence
 Source ID: quco_rag_2025
 Paper: QuCo-RAG
-Feature Family: entity_pair_cooccurrence
+Feature Family: entity_pair_cooccurrence, entity_pair_cooccurrence_axis, zero_cooccurrence_flag
 Page Reference: arXiv PDF pages 3-4.
 Section Reference: Section 3.3 “Runtime Claim Verification”.
 Equation Reference: Eq. (3) defines entity co-occurrence count cooc(h, t; P); Eq. (4) defines the retrieval trigger when the minimum co-occurrence in extracted triplets falls below the threshold.
-Notes: This is a corpus-grounded proxy over an indexed pre-training corpus. The paper explicitly states that zero co-occurrence strongly indicates hallucination risk but does not guarantee correctness when co-occurrence is non-zero, so downstream prose must not overstate what this signal proves.
+Notes: This is a corpus-grounded proxy over an indexed pre-training corpus. Zero co-occurrence is a risk/support-sparsity signal, while non-zero co-occurrence does not prove correctness. Corpus coverage and entity extraction errors must be reported as caveats.
 
-## Formula: selective_risk_metrics
-Source ID: phillips_pc_probe_2026
-Paper: Entropy Alone is Insufficient for Safe Selective Prediction in LLMs
-Feature Family: selective/risk framing only; not an implemented feature source
-Page Reference: arXiv PDF pages 1-2.
-Section Reference: Section 2.1 “Selective Prediction Setup”; Section 2.3 “Evaluation Metrics”; Section 3.2 “Model-Specific Failure Modes”.
-Equation Reference: Eq. (1) defines the abstention policy Aτ(x) = I{r(x) ≤ τ}; E-AURC and TCE are defined in Section 2.3 rather than as numbered equations.
-Notes: Phillips et al. is reference-only here. It supports the framing that entropy-only methods can fail in a confidently wrong regime and that selective prediction should be judged with deployment-facing risk/coverage metrics. It must not be used as a source for implementing hidden-state correctness probes in this repo.
+## Formula: condition_aware_fusion
+Source ID: local_reliability_analysis
+Paper: Local thesis reliability-analysis protocol
+Feature Family: corpus-bin feature selection, corpus-bin weighted fusion, axis-interaction logistic fusion
+Page Reference: Local implementation note, not an external source-paper formula.
+Section Reference: experiments/PIPELINE.md §S8 and §S9.
+Equation Reference: Global logistic fusion and corpus-bin-aware comparisons are defined in the experiment protocol; report AUROC, AUPRC, paired win rate, paired delta, and prompt-grouped bootstrap CI per bin.
+Notes: The claim is not that corpus-aware fusion universally improves hallucination detection. The claim to test is whether conditioning on corpus-support axes changes metric reliability or makes fusion more interpretable/stable than a single global fusion rule.
