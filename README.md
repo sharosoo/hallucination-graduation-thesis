@@ -1,24 +1,41 @@
 # 환각 탐지 졸업논문 아카이브
 
-이 repo는 환각(hallucination) 탐지 주제 졸업논문과, 논문 수치를 재생성하기 위한 `uv` 기반 실험 파이프라인을 함께 관리합니다.
+이 repo는 환각(hallucination) 탐지 주제 졸업논문과, 논문 수치를 재생성하기 위한
+`uv` 기반 실험 파이프라인을 함께 관리합니다.
 
-현재 실험 논지는 RAG 시스템 구축이 아니라 **corpus 조건 축에 따른 hallucination metric reliability 분석**입니다. QuCo-RAG에서 영감을 받은 entity frequency와 entity-pair co-occurrence를 continuous corpus-support axis로 만들고, 그 축의 bin마다 Semantic Entropy, Semantic Energy, likelihood/logit diagnostics, condition-aware fusion의 신뢰도가 어떻게 달라지는지 평가합니다.
+## 한 문장 요약
 
-포함 내용:
+> **LLM이 답을 지어낼 때(환각), 그 답이 "신뢰할 만한 답"인지 판별하는 신호가
+> *얼마나 잘 작동하는지*는 corpus 안에 그 답이 얼마나 자주 등장하는지에 따라
+> 달라진다 — 이것을 측정한다.**
 
-- 논문 LaTeX 원본 + 컴파일된 PDF
-- 논문에 반영하거나 반영 예정인 실험 결과 JSON/Parquet 요약
-- paper-faithful feature pipeline 계약 문서
+본 논문은 새 환각 탐지기를 제안하는 것이 아니라, Semantic Entropy / Semantic
+Energy / logit diagnostics 같은 기존 신호의 **조건부 신뢰도**를 corpus support
+축에서 정량화하는 평가 framework를 제안합니다.
 
-제외 내용:
+## 핵심 결정 (논지)
 
-- 대용량 원본 데이터셋 캐시
-- 대용량 full-logits 산출물
-- 로컬 Elasticsearch/Infini-gram 호환 인덱스 데이터
+- **평가 protocol**: paired discriminative — 데이터셋이 미리 제공한 `(정답 후보,
+  환각 후보)` 쌍을 모델이 *생성하지 않고* teacher-forced로 점수화만 한다. LLM-as-judge
+  와 휴리스틱 매칭을 모두 배제. 학습 target은 dataset annotation의 `is_hallucination`
+  (이진).
+- **데이터셋**: TruthfulQA (815 prompts × 2 후보) + HaluEval-QA (5,000 prompts × 2
+  후보) = 5,815 prompts / 11,630 candidate rows.
+- **모델**: Qwen2.5-3B (causal LM, vocab 151,936). full-vocabulary logits는 JSON에
+  inline하지 않고 같은 stem의 `.full_logits.parquet` sidecar로 저장.
+- **신호**: 8종 — Semantic Entropy (N=10 + DeBERTa-large NLI clustering + likelihood
+  cluster mass), paper-faithful Semantic Energy (Ma 2025 Eq.11–14: 토큰 energy =
+  −logit, sample energy = mean, cluster total = SUM, U = Σ p(C_k)·E_Bolt(C_k)),
+  cluster-prompt sample energy, candidate-level logit diagnostics 4종 (NLL, logit
+  variance, confidence margin, boltzmann diagnostic), corpus risk score.
+- **Corpus axis**: 답에 등장하는 entity의 corpus frequency + entity pair
+  co-occurrence를 Infini-gram-compatible count backend (현재 local
+  `v4_dolmasample_olmo`, 16B Dolma sample tokens) 로 query해 continuous axis로
+  변환. 3-bin primary + 5-bin sensitivity + 10-bin (decile) sensitivity 산출.
+- **분석 축**: corpus-axis bin이 main. 각 bin에서 모든 신호의 AUROC, AUPRC,
+  prompt-grouped paired delta, paired win rate, paired tie rate를 보고.
 
-## 실험 파이프라인
-
-실험 실행 순서와 thesis-valid gate는 `experiments/PIPELINE.md`에 고정되어 있습니다.
+## 빠른 시작
 
 ```bash
 uv sync --group generation
@@ -26,51 +43,74 @@ uv run python experiments/scripts/validate_architecture.py
 uv run python experiments/scripts/run_pipeline.py --dry-run --out experiments/results/runs
 ```
 
-실제 모델 실행은 `experiments/configs/generation.yaml`의 `model.model_name` / `model.tokenizer_name`에 고정된 Qwen2.5 계열 causal LM과 같은 계열 tokenizer를 사용합니다. CUDA GPU가 있는 환경에서는 `uv sync --group generation` 후 `uv run python experiments/scripts/run_pipeline.py --execute --out <large-nvme-run-root>`로 live run을 시작합니다. full-vocabulary logits는 JSON에 직접 저장하지 않고 같은 stem의 `.full_logits.parquet` sidecar에 저장합니다. full-logits 저장량은 모델 파라미터 수보다 tokenizer vocab size와 token position 수에 좌우됩니다.
+실제 모델 실행 (CUDA GPU 권장, full run은 큰 NVMe 필요):
 
-Semantic Entropy용 prompt free sampling은 answer-only protocol로 고정합니다. redesigned thesis-valid artifact는 prompt당 N=10 valid answer samples, DeBERTa-family NLI semantic clustering, likelihood-based cluster probability fields를 포함해야 합니다.
+```bash
+uv run python experiments/scripts/run_pipeline.py --execute --out <large-nvme-run-root>
+```
 
-Semantic Energy는 current candidate-level `-logsumexp` diagnostic만으로 paper-faithful하다고 쓰지 않습니다. 최종 구현은 multiple generated answers, semantic clusters, selected-token logit-derived energy, cluster-level aggregation을 포함해야 합니다.
+상세 단계별 명령은 `experiments/PIPELINE.md` 참조.
 
-Corpus feature는 hallucination label이 아니라 reliability conditioning axis입니다. Entity frequency와 entity-pair co-occurrence는 Infini-gram-compatible count backend 또는 고정 corpus snapshot provenance를 가져야 하며, Elasticsearch/BM25 retrieval score로 대체하지 않습니다.
+## 어디부터 읽어야 하나
 
-## 현재 결과 해석 상태
-
-현재 repo-local evidence는 full paired Qwen2.5-3B answer-only run의 S7 feature table, S8 fusion, S9 robustness까지 포함합니다. 이 결과는 baseline/preliminary evidence로 유지합니다. 다만 final thesis claim은 새 `experiments/PIPELINE.md` 계약에 따라 N=10 NLI likelihood SE, paper-faithful Semantic Energy, QuCo-style corpus continuous axis, corpus-bin reliability analysis, condition-aware fusion을 다시 산출한 뒤 작성해야 합니다.
-
-기존 분석에서 중요한 관찰은 다음입니다.
-
-- Semantic Entropy는 prompt-level 신호라 같은 prompt의 correct/hallucinated candidate row에 동일하게 broadcast된다.
-- Candidate-row aggregate SE-only AUROC는 구조적으로 0.5가 될 수 있으므로 SE 실패의 직접 증거가 아니다.
-- Candidate-level logit diagnostics는 corpus-axis bin slice 별로 paired win-rate와 paired delta를 보고하여 어떤 corpus support 조건에서 신호가 가장 안정적인지 본다.
-- Corpus-only direct classifier 성능이 약하더라도 corpus axis가 metric reliability를 나누는 조건 축인지 여부는 별도 검증 대상이다.
+| 무엇을 알고 싶을 때 | 어느 문서 |
+|---|---|
+| 30분 안에 코드 구조 파악 | [`CODE_GUIDE.md`](./CODE_GUIDE.md) |
+| 논지 + feature 표 | [`experiments/OVERVIEW.md`](./experiments/OVERVIEW.md) |
+| 단계별 실행 contract (필수) | [`experiments/PIPELINE.md`](./experiments/PIPELINE.md) |
+| 식 ↔ 코드 매핑 (Ma 2025 Eq.11–14, Farquhar Eq.8 등) | [`experiments/literature/formula_notes.md`](./experiments/literature/formula_notes.md) |
+| 운영 / uv / build 가이드 | [`experiments/README.md`](./experiments/README.md) |
+| 연구 동기 + 차별점 | [`experiments/RESEARCH_PLAN.md`](./experiments/RESEARCH_PLAN.md) |
 
 ## repo 구조
 
 ```text
 hallucination-graduation-thesis/
+├── README.md                ← 본 문서 (entry point)
+├── CODE_GUIDE.md            ← 모듈별 코드 가이드 (헥사고날 layer 책임)
 ├── experiments/
-│   ├── PIPELINE.md
-│   ├── README.md
-│   ├── OVERVIEW.md
-│   ├── RESEARCH_PLAN.md
-│   ├── configs/
-│   ├── domain/
-│   ├── ports/
-│   ├── adapters/
-│   ├── application/
-│   ├── scripts/
-│   ├── literature/
-│   ├── manifests/
-│   └── results/
+│   ├── PIPELINE.md          ← 실행 contract source of truth
+│   ├── OVERVIEW.md          ← 논지 + feature 표
+│   ├── README.md            ← 운영 가이드
+│   ├── RESEARCH_PLAN.md     ← 연구 동기
+│   ├── configs/             ← YAML (datasets, generation, fusion, formulas)
+│   ├── domain/              ← frozen dataclass / Enum
+│   ├── ports/               ← 추상 인터페이스 (ABC)
+│   ├── adapters/            ← 외부 system 구현체 (Infini-gram, HF, NLI 등)
+│   ├── application/         ← 비즈니스 로직 (fusion, robustness, type_analysis)
+│   ├── scripts/             ← CLI 진입점
+│   ├── literature/          ← 참고 논문 PDF + formula_notes.md
+│   ├── manifests/           ← upstream artifact 매니페스트
+│   └── results/             ← 산출물 (parquet + JSON 요약 + report)
 └── thesis/
-    ├── main.tex
-    ├── main.pdf
+    ├── main.tex             ← 논문 본문
+    ├── main.pdf             ← 컴파일된 PDF
+    ├── results_macros.tex   ← headline 수치를 매크로로 분리 (결과 swap 즉시 가능)
+    ├── thesis_evidence_table.tex  ← 자동 export된 결과 표
     ├── figures_tikz.tex
+    ├── sections/experiment_method.tex
     ├── snuthesis.cls
-    ├── snutocstyle.tex
-    └── sections/experiment_method.tex
+    └── snutocstyle.tex
 ```
+
+## 산출물 정책 (`.gitignore`)
+
+- **commit**: 작은 텍스트 산출물 — `summary.json`, `report.md`, manifest,
+  `thesis_evidence_table.tex`, baseline metrics CSV. 재현 검증을 빠르게 할 수 있도록.
+- **ignore**: 큰 raw data — `*.parquet`, `predictions.jsonl` (~270 MB),
+  `prompt_groups.jsonl`, `candidate_rows.jsonl`, full-logits sidecar parquet,
+  `paired-datasets-qwen/`, `qwen-live-subset/`, `runs/`, `generation/`,
+  graphify 빌드 디렉터리, 로컬 에이전트 설정.
+- 정책: "텍스트 evidence는 commit, heavy raw data는 ignore + 재실행으로 복구 가능."
+
+## 참고 논문 4편
+
+| 논문 | 본 repo에서 어떻게 쓰는가 |
+|---|---|
+| Farquhar 2024, Nature — *Detecting hallucinations using semantic entropy* | S4 Semantic Entropy 토대. Eq.(8) likelihood-based cluster probability를 paper-faithful Semantic Energy에서도 그대로 상속. |
+| Ma 2025 (preprint) — *Semantic Energy* | S6 paper-faithful Semantic Energy 식 (Eq.11–14) 그대로 구현. cluster total energy = SUM (Eq.12), U = Σ p(C_k)·E_Bolt(C_k). |
+| QuCo-RAG 2025 — *Query-Corpus uncertainty for RAG* | entity frequency / pair co-occurrence를 *RAG 검색 trigger* 가 아니라 **신뢰도 conditioning 축**으로 재해석. |
+| Phillips 2026 — *PC Probe / selective prediction* | hidden-state probe 없이 외부 corpus + selected-token logit만 쓰는 본 논문 contract와 대비되는 framing reference. baseline에 포함하지 않음. |
 
 ## 논문 PDF 다시 빌드
 
@@ -79,3 +119,17 @@ cd thesis
 pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 ```
+
+새 실험 결과가 도착하면 `thesis/results_macros.tex` 9개 매크로만 swap한 뒤 위
+명령으로 빌드하면 본문 prose는 손대지 않고 모든 headline 수치가 갱신됩니다.
+
+## 현재 진행 상황 (요약)
+
+- 코드 구조 / 헥사고날 layer / contract: 안정 (`CODE_GUIDE.md` 참조)
+- corpus-axis bin 분석 main 전환 + 진단용 4-class TypeLabel ontology 제거: 완료
+- corpus axis 10-bin 추가 (3 / 5 / 10 모두): 완료
+- paper-faithful Semantic Energy (Ma 2025 Eq.11–14): 완료
+- NLI batched inference (GPU + FP16, batch=64) — S4 시간 1시간+ 절감: 완료
+- Qwen2.5-3B full pipeline 실행: 진행 중
+
+상세 작업 history는 `.sisyphus/notepads/` 와 git log 참조.
