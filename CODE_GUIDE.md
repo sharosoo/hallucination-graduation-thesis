@@ -13,11 +13,11 @@
   frequency)와 entity pair가 같이 등장한 횟수(pair co-occurrence)를 사용해 만든 연속
   변수. 본 논문에서는 정답성의 직접 라벨이 아니라 *환각 탐지 신호의 신뢰도가 어떤
   조건에서 달라지는지* 측정하는 conditioning 축이다.
-- **TypeLabel (= 진단용 4-class 라벨)** — 초기 실험에서 Semantic Entropy 값을 임계로
-  환각 후보를 `NORMAL` / `HIGH_DIVERSITY` / `LOW_DIVERSITY` / `AMBIGUOUS_INCORRECT`
-  네 등급으로 나누었던 라벨. 본 논문의 main 분석 축은 corpus axis이므로, 이 라벨은
-  학습 target이 아니라 *진단용 메타데이터* 로만 보존한다 ("archived" = 보존만 됨,
-  학습/평가 target 아님 — 코드/문서에서 자주 진단용 TypeLabel (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT, 학습 target 아님)로 표기).
+- **학습 target** — 본 논문의 supervised target은 데이터셋 annotation의
+  `is_hallucination` (이진) 으로 단순화되어 있다. 초기 진단용 4-class TypeLabel
+  ontology (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT) 는 본 실험에서
+  제거되었고, condition-aware 분석은 corpus-axis bin (3-bin primary, 5-bin / 10-bin
+  sensitivity) 에서 수행한다.
 - **N=10 free sampling** — 같은 prompt에 대해 모델에게 10개의 짧은 답을 sampling하게
   하는 절차. Semantic Entropy와 paper-faithful Semantic Energy의 입력으로 쓴다.
 - **teacher-forced scoring** — 모델에게 답을 *주고*, 그 답의 각 토큰 위치에서 logit /
@@ -49,7 +49,7 @@ thesis/            ← LaTeX 본문 + 매크로 분리된 결과 placeholder
 | 파일 | 핵심 타입 | 역할 |
 |---|---|---|
 | `records.py` | `QuestionExample`, `PromptGroup`, `CandidateRow`, `ModelResponse`, `SampleEnergyRecord` | paired discriminative dataset의 한 row, prompt group, 모델 응답 단위 |
-| `labels.py` | `TypeLabel` Enum, `FeatureRole` Enum | archived diagnostic 라벨 + feature 역할 (TRAINABLE / LABEL_ONLY / ANALYSIS_ONLY) |
+| `labels.py` | `FeatureRole` Enum, `EnergyComputationKind` Enum | feature 역할 (TRAINABLE / LABEL_ONLY / ANALYSIS_ONLY 등) + Semantic Energy 계산 모드 enum |
 | `features.py` | `FeatureVector`, `FeatureProvenance`, `AnalysisBin` | feature table 한 row + 출처 메타 + corpus axis bin 정의 |
 | `metrics.py` | `MetricResult`, `EvaluationSummary` | AUROC/AUPRC/F1 결과 컨테이너 |
 | `manifests.py` | `ExperimentManifest`, `ArtifactRef` | 실행 manifest 스키마 |
@@ -141,10 +141,10 @@ backend 선택은 우선순위: fixture sidecar > sidecar config (`corpus_backen
 | 파일 | 책임 |
 |---|---|
 | `architecture_validation.py` | hexagonal 구조 강제 (REQUIRED_DIRECTORIES, frozen dataclass 검사, scripts에 dataclass 정의 금지) |
-| `labeling.py` | feature table join. prompt-level Semantic Entropy를 두 candidate row에 broadcast, candidate-level Energy/corpus 결합. 진단용 TypeLabel (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT, 학습 target 아님) 부여 (학습 target 아님, 진단용) |
+| `labeling.py` | feature table join. prompt-level Semantic Entropy를 두 candidate row에 broadcast, candidate-level Energy/corpus를 candidate id 기준으로 결합. 학습 target은 annotation-backed `is_hallucination` 그대로 보존 |
 | `fusion.py` | 환각 탐지기 학습/평가. leave-one-dataset-out fold 관리. logistic regression + sklearn variants 다수 baseline |
 | `robustness.py` | prompt-grouped bootstrap (2,000 iter), leave-one-dataset-out, threshold sensitivity, 3-bin vs 5-bin corpus axis sensitivity, selective risk, calibration |
-| `type_analysis.py` | feature/signal 분포를 slice별로 분석 (corpus-axis bin이 main, 진단용 TypeLabel (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT, 학습 target 아님)은 보조 진단) |
+| `type_analysis.py` | feature/signal 분포를 corpus-axis bin (3-bin / 5-bin / 10-bin) 별로 분석. AUROC, AUPRC, prompt-grouped paired delta, win rate, tie rate를 모든 SE/Energy/logit/corpus 신호에 대해 보고 |
 | `thesis_evidence.py` | fusion + robustness + type_analysis → `thesis_evidence_summary.json` + `thesis_evidence_table.tex` 자동 생성 |
 
 ### 4.1 fusion.py 상세
@@ -165,11 +165,13 @@ Baseline 9종 + sklearn variants:
 각 신호(`semantic_entropy_score`, `semantic_energy_score`, `mean_negative_log_probability`
 등) 가 다음 slice에서 어떻게 분포되는지 보고:
 
-- **corpus-axis bin slice (main)**: low / mid / high corpus support 별로 AUROC, AUPRC,
-  paired delta, win rate. 본 논문의 핵심 분석축.
-- **진단용 TypeLabel (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT, 학습 target 아님) slice (보조)**: NORMAL vs HIGH_DIVERSITY vs LOW_DIVERSITY 분포 —
-  thesis-valid analysis의 main이 아니라 진단용.
-- **dataset slice**: TruthfulQA vs HaluEval-QA 별 분포.
+- **corpus-axis bin slice (main)**: 3-bin (`low_support` / `medium_support` /
+  `high_support`), 5-bin sensitivity, 10-bin (decile) sensitivity 모두에 대해 AUROC,
+  AUPRC, prompt-grouped paired delta, paired win rate, paired tie rate를 산출. 본
+  논문의 핵심 분석 축.
+- **overall sanity baseline**: 모든 row에 대한 baseline AUROC/AUPRC. corpus-bin
+  결과를 비교할 reference로만 사용.
+- **dataset slice**: TruthfulQA vs HaluEval-QA aggregate별 동일 분석.
 
 ---
 
@@ -189,7 +191,7 @@ Baseline 9종 + sklearn variants:
 ### 5.2 평가 / orchestration
 - `run_fusion.py` — fusion baseline 평가
 - `run_robustness.py` — robustness 보고서
-- `run_type_analysis.py` — corpus-axis bin과 진단용 TypeLabel별 신호 분포 분석
+- `run_type_analysis.py` — corpus-axis bin (3/5/10) 별 신호 분포 분석
 - `run_pipeline.py` — 전체 orchestrator (manifest + script_execution_log 기록)
 - `stage_control.py` — phase checkpoint 정합 helper
 
@@ -207,7 +209,7 @@ Baseline 9종 + sklearn variants:
 
 | 파일 | 내용 |
 |---|---|
-| `datasets.yaml` | TruthfulQA + HaluEval-QA HF id, prompt unit, label policy, 진단용 TypeLabel (NORMAL/HIGH_DIVERSITY/LOW_DIVERSITY/AMBIGUOUS_INCORRECT, 학습 target 아님) 정의 |
+| `datasets.yaml` | TruthfulQA + HaluEval-QA HF id, prompt unit, label policy (supervised target = `is_hallucination`), corpus-axis primary/sensitivity 축 선언 |
 | `generation.yaml` | 모델 ref, N=10 sampling, answer-only protocol caps, batch size, full-logits sidecar 정책 |
 | `formulas.yaml` | feature 식 등록. 각 feature에 source paper id, computed_features, formula 인용 명시 |
 | `fusion.yaml` | baseline 정의, feature_sets, hyperparameter, forbidden_features (gold/correctness 누수 차단) |

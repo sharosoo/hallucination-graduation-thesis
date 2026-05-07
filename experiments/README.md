@@ -26,7 +26,7 @@ Every candidate row keeps an annotation-backed binary correctness label:
 | `is_hallucination` | `not is_correct` | Hallucinated candidate. |
 | `candidate_label` | `right` or `hallucinated` | Paired candidate role from the dataset. |
 
-`NORMAL`, `HIGH_DIVERSITY`, `LOW_DIVERSITY`, and `AMBIGUOUS_INCORRECT` may appear only as archived operational labels from the earlier diagnostic run. They are not the thesis-defining class ontology for the redesigned experiment. New thesis-valid analyses use corpus-axis bins, optional SE bins, and annotation-backed hallucination labels.
+초기 4-class TypeLabel ontology (`NORMAL`/`HIGH_DIVERSITY`/`LOW_DIVERSITY`/`AMBIGUOUS_INCORRECT`)는 본 실험에서 제거되었다. 학습 target은 데이터셋 annotation의 `is_hallucination` (이진) 이며, main 분석 축은 corpus-axis bin (3-bin primary, 5-bin / 10-bin sensitivity) 이다.
 
 Correctness labels, gold answers, and dataset annotations are label-only metadata. They must not leak into trainable features.
 

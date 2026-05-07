@@ -42,7 +42,7 @@ Corpus feature는 hallucination label이 아니라 reliability conditioning axis
 
 - Semantic Entropy는 prompt-level 신호라 같은 prompt의 correct/hallucinated candidate row에 동일하게 broadcast된다.
 - Candidate-row aggregate SE-only AUROC는 구조적으로 0.5가 될 수 있으므로 SE 실패의 직접 증거가 아니다.
-- Candidate-level logit diagnostics는 LOW_DIVERSITY archived slice에서 강한 paired win-rate를 보였지만, redesigned thesis에서는 corpus-axis bin별 reliability로 다시 해석해야 한다.
+- Candidate-level logit diagnostics는 corpus-axis bin slice 별로 paired win-rate와 paired delta를 보고하여 어떤 corpus support 조건에서 신호가 가장 안정적인지 본다.
 - Corpus-only direct classifier 성능이 약하더라도 corpus axis가 metric reliability를 나누는 조건 축인지 여부는 별도 검증 대상이다.
 
 ## repo 구조

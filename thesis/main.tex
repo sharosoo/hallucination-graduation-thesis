@@ -403,7 +403,7 @@ Ma Semantic Energy는 low-diversity 또는 single-cluster 상황에서 logit 기
     \item learned fusion with corpus는 candidate-row aggregate AUROC에서 learned fusion without corpus 대비 절대값 \HeadlineCorpusFusionAurocDelta 만큼 낮고 95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 도 0을 가로지르지 않는다. 즉 corpus feature를 단순히 global fusion에 더하는 것은 손해이며, 이는 condition-aware fusion (corpus-axis bin-aware feature selection 또는 axis interaction term) 의 동기가 된다.
     \item AUPRC 차이도 동일 bootstrap에서 음수 (절대값 \HeadlineCorpusFusionAuprcDelta) 이며, corpus-grounded signal의 가치는 aggregate가 아니라 corpus-bin matched metric에서 평가해야 함을 보여준다.
     \item Paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic은 평가 단위가 다르므로 같은 column으로 합치지 않고 분리해 보고한다.
-    \item 본 실험은 archived TypeLabel을 학습 target이 아닌 진단용 메타데이터로 보존하며, 학습 target은 데이터셋 annotation에서 직접 온 \texttt{is\_hallucination}로 통일한다.
+    \item 학습 target은 데이터셋 annotation에서 직접 온 \texttt{is\_hallucination} (이진) 로 통일하고, main 분석 축은 corpus-axis bin (3-bin primary, 5-bin / 10-bin sensitivity) 으로 고정한다. 초기 진단용 4-class TypeLabel ontology는 본 실험에서 제거되었다.
 \end{enumerate}
 
 \section{학술적 기여}
@@ -422,7 +422,6 @@ Ma Semantic Energy는 low-diversity 또는 single-cluster 상황에서 logit 기
 \begin{enumerate}
     \item \textbf{단일 corpus snapshot 의존}: 본 실험의 corpus axis는 \texttt{v4\_dolmasample\_olmo} (16B Dolma sample) 단일 인덱스 위에서 산출되므로, corpus 규모/도메인이 다른 인덱스에서는 entity frequency 분포와 zero co-occurrence 빈도가 달라질 수 있다.
     \item \textbf{corpus signal 해석 한계}: corpus-grounded signal은 외부 근거 가능성을 나타내는 보조 신호일 뿐이며 모델 내부 지식을 직접 증명하지 않는다.
-    \item \textbf{회색지대 부재}: archived diagnostic TypeLabel 기준의 \texttt{AMBIGUOUS\_INCORRECT} 행이 현재 feature table에 0개이므로, 그 라벨 정의 기준의 gray-zone threshold sensitivity는 사례 기반으로 주장할 수 없다.
     \item \textbf{단일 모델 평가}: 본 실험은 Qwen2.5-3B 단일 causal LM 위에서 수행되었으며, 모델 규모/계열에 따른 일반화는 본 논문의 범위를 넘는다.
     \item \textbf{모델 내부 상태 해석 불가}: SE, Semantic Energy, corpus feature는 관측 지표이며, 모델의 의도나 내부 원인을 직접 추론하지 않는다.
 \end{enumerate}
