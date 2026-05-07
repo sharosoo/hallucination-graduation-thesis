@@ -358,7 +358,7 @@ LLM의 logit은 다음 토큰에 대한 상대적 선호를 반영하며, Energy
 
 \section{Energy/logit diagnostic baseline의 평가 단위}
 
-본 실험은 paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic을 분리해 보고한다. 전자는 N=10 sampled response의 semantic cluster와 selected-token logit-derived energy로 cluster level uncertainty를 산출하고, 후자는 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$ 평균/평균 negative log probability/logit variance/confidence margin을 candidate level로 묶는다. Energy-only, fixed linear SE/Energy blend, hard cascade는 baseline table에서 같은 column으로 보고하지만 평가 시 각 신호의 의미 단위 (prompt, cluster, candidate) 를 명시한다.
+본 실험은 paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic을 분리해 보고한다. 전자는 Ma 2025의 Eq.~(11)--(14)를 따라 token energy $\tilde{E}(x_t)=-z_\theta(x_t)$, sample energy $E(x^{(i)})=\frac{1}{T_i}\sum_t \tilde{E}(x_t^{(i)})$, cluster total energy $E_{\text{Bolt}}(\mathbb{C}_k)=\sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)})$ (SUM), 최종 uncertainty $U(\mathbf{x})=\sum_k p(\mathbb{C}_k) E_{\text{Bolt}}(\mathbb{C}_k)$ 로 계산한다. 여기서 $p(\mathbb{C}_k)$ 는 S4 Semantic Entropy 단계의 Eq.~(8) likelihood-based cluster probability를 그대로 상속한다. 후자는 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$ 평균, 평균 negative log probability, logit variance, confidence margin을 candidate level로 묶는 diagnostic이며 paper-faithful Semantic Energy와 같은 column으로 섞지 않는다. Energy-only, fixed linear SE/Energy blend, hard cascade는 baseline table에서 같은 column으로 보고하지만 평가 시 각 신호의 의미 단위 (prompt, cluster, candidate) 를 명시한다.
 
 \section{재현 가능한 실험 결과 요약}
 
@@ -376,9 +376,15 @@ LLM의 logit은 다음 토큰에 대한 상대적 선호를 반영하며, Energy
 
 \input{thesis_evidence_table.tex}
 
-본 실험의 candidate-row aggregate AUROC는 SE-only \HeadlineSEAuroc, Energy-only \HeadlineEnergyAuroc, corpus-risk-only \HeadlineCorpusOnlyAuroc, learned fusion without corpus \HeadlineLearnedFusionNoCorpusAuroc, learned fusion with corpus \HeadlineLearnedFusionWithCorpusAuroc이다. 이 표는 공통 baseline table로는 유용하지만 corpus-axis reliability thesis claim의 최종 headline은 아니다. SE는 prompt-level이라 paired row에서 같은 값을 공유하고, paper-faithful Semantic Energy와 candidate-level logit diagnostics는 matched-pair 및 corpus-bin slice에서 해석해야 한다. 다만 candidate-row table 기준으로는 corpus feature를 추가한 learned fusion이 learned fusion without corpus보다 AUROC가 \HeadlineCorpusFusionAurocDelta 낮으며 (95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper]), 0을 가로지르지 않는다.
+본 실험의 candidate-row aggregate AUROC는 SE-only \HeadlineSEAuroc, Energy-only \HeadlineEnergyAuroc, corpus-risk-only \HeadlineCorpusOnlyAuroc, learned fusion without corpus \HeadlineLearnedFusionNoCorpusAuroc, learned fusion with corpus \HeadlineLearnedFusionWithCorpusAuroc이다. 이 표는 공통 baseline table로는 유용하지만 corpus-axis reliability thesis claim의 최종 headline은 아니다. SE는 prompt-level이라 paired row에서 같은 값을 공유하고, paper-faithful Semantic Energy와 candidate-level logit diagnostics는 matched-pair 및 corpus-bin slice에서 해석해야 한다.
+% RESULT_SIGN_CHECK: 다음 두 단락은 paired Qwen2.5-3B baseline에서 corpus 추가가 손해였음을 전제로 작성됨.
+% Task 10 thesis-valid run 결과(thesis_evidence_summary.json의 robustness.bootstrap)에서
+% learned-fusion-with-corpus vs without-corpus AUROC observed_delta 부호를 확인할 것.
+% 음수면 현재 prose 그대로 유지, 양수/CI가 0을 가로지르면 "낮으며"→"높으며"/"차이"로,
+% "0을 가로지르지 않는다"→"0을 가로지른다"로 수동 swap 필요.
+candidate-row table 기준으로 corpus feature를 추가한 learned fusion이 learned fusion without corpus 대비 AUROC delta (절대값 \HeadlineCorpusFusionAurocDelta) 만큼 낮으며, 95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 도 0을 가로지르지 않는다.
 
-AUPRC 차이도 동일 bootstrap 구간에서 음수 (delta \HeadlineCorpusFusionAuprcDelta)에 있다. 이 결과는 corpus-grounded signal이 유효하지 않다는 일반 결론이 아니라, all-row learned fusion headline에 corpus feature를 단순히 추가하면 오히려 손해라는 제한된 결론이다. 본 논문은 이 관찰을 condition-aware fusion (corpus-axis bin-aware feature selection 또는 axis interaction term) 의 동기로 사용하며, SE/Energy complementarity 최종 주장은 paired 및 corpus-bin slice metric으로 분리해 평가한다.
+AUPRC 차이도 동일 bootstrap 구간에서 음수 (절대값 \HeadlineCorpusFusionAuprcDelta) 에 있다. 이 결과는 corpus-grounded signal이 유효하지 않다는 일반 결론이 아니라, all-row learned fusion headline에 corpus feature를 단순히 추가하면 오히려 손해라는 제한된 결론이다. 본 논문은 이 관찰을 condition-aware fusion (corpus-axis bin-aware feature selection 또는 axis interaction term) 의 동기로 사용하며, SE/Energy complementarity 최종 주장은 paired 및 corpus-bin slice metric으로 분리해 평가한다.
 
 \section{Energy 평가 단위와 corpus-bin reliability}
 
@@ -400,8 +406,9 @@ Ma Semantic Energy는 low-diversity 또는 single-cluster 상황에서 logit 기
 
 \begin{enumerate}
     \item candidate-row aggregate AUROC만으로는 SE/Energy의 intended claim을 직접 검정할 수 없다. SE는 prompt-level 신호이므로 paired row에서 동일 값을 broadcast하고, paper-faithful Semantic Energy는 cluster level에서 정의되기 때문에, 평가 단위를 섞으면 신호가 가려진다.
-    \item learned fusion with corpus는 candidate-row aggregate AUROC에서 learned fusion without corpus 대비 \HeadlineCorpusFusionAurocDelta 낮으며 (95\% prompt-grouped bootstrap [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper]), 0을 가로지르지 않는다. 즉 corpus feature를 단순히 global fusion에 더하는 것은 손해이며, 이는 condition-aware fusion (corpus-axis bin-aware feature selection 또는 axis interaction term) 의 동기가 된다.
-    \item AUPRC 차이도 동일 bootstrap에서 음수 (delta \HeadlineCorpusFusionAuprcDelta) 이며, corpus-grounded signal의 가치는 aggregate가 아니라 corpus-bin matched metric에서 평가해야 함을 보여준다.
+    % RESULT_SIGN_CHECK: 두 항목은 paired Qwen2.5-3B baseline의 부호(corpus 추가 시 손해)를 전제. 새 결과의 delta 부호 확인 필요.
+    \item learned fusion with corpus는 candidate-row aggregate AUROC에서 learned fusion without corpus 대비 절대값 \HeadlineCorpusFusionAurocDelta 만큼 낮고 95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 도 0을 가로지르지 않는다. 즉 corpus feature를 단순히 global fusion에 더하는 것은 손해이며, 이는 condition-aware fusion (corpus-axis bin-aware feature selection 또는 axis interaction term) 의 동기가 된다.
+    \item AUPRC 차이도 동일 bootstrap에서 음수 (절대값 \HeadlineCorpusFusionAuprcDelta) 이며, corpus-grounded signal의 가치는 aggregate가 아니라 corpus-bin matched metric에서 평가해야 함을 보여준다.
     \item Paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic은 평가 단위가 다르므로 같은 column으로 합치지 않고 분리해 보고한다.
     \item 본 실험은 archived TypeLabel을 학습 target이 아닌 진단용 메타데이터로 보존하며, 학습 target은 데이터셋 annotation에서 직접 온 \texttt{is\_hallucination}로 통일한다.
 \end{enumerate}

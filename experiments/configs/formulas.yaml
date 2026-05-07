@@ -15,9 +15,9 @@
         "semantic_energy_cluster_uncertainty",
         "semantic_energy_sample_energy"
       ],
-      "sample_energy_formula": "sample_energy = mean(-selected_token_logits)",
-      "cluster_energy_aggregation": "cluster_energy = mean(member sample_energy); semantic_energy_cluster_uncertainty = sum(cluster_probability * cluster_energy)",
-      "sign_convention": "lower raw Energy means more reliable; higher raw Energy is treated as higher uncertainty",
+      "sample_energy_formula": "sample_energy = (1/T_i) * sum_t (-z_theta(x_t))  # Ma 2025 Eq.(11) sequence-level mean of token energies, with token energy = -selected_token_logit per Eq.(13)",
+      "cluster_energy_aggregation": "cluster_energy = sum_{x in C_k} sample_energy(x)  # Ma 2025 Eq.(12) E_Bolt(C_k) total cluster energy (SUM, NOT mean); semantic_energy_cluster_uncertainty = sum_k cluster_probability(C_k) * cluster_energy(C_k) where cluster_probability is the Eq.(8) likelihood-based cluster mass inherited from Task 4 Semantic Entropy clusters",
+      "sign_convention": "token energy = -z_theta(x_t) per Eq.(13); lower raw Energy means more reliable; higher raw Energy is treated as higher uncertainty",
       "computed_feature": true,
       "allowed_caveat": true
     },

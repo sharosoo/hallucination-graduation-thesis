@@ -182,11 +182,14 @@ uv run python experiments/scripts/validate_energy_features.py experiments/result
 - 입력: `candidate_scores.json`, `free_sample_rows.json`, `semantic_entropy_features.parquet`의 semantic cluster metadata
 - 모듈: `experiments/scripts/compute_energy_features.py`, Semantic Energy adapter
 - 출력: `experiments/results/energy_features.parquet`
-- 계산:
-  - paper-faithful path: sampled responses의 selected-token logits에서 sample energy를 계산하고, S4 semantic clusters로 cluster-level uncertainty를 집계한다.
-  - diagnostic path: teacher-forced candidate token window에서 `mean_negative_log_probability`, `logit_variance`, `confidence_margin`, `semantic_energy_boltzmann_diagnostic`을 계산한다.
-
-`semantic_energy_boltzmann_diagnostic`은 token-level `-logZ`를 후보 답 길이로 평균낸 기존 diagnostic이다. multi-generation semantic clustering과 cluster-level energy aggregation이 없으면 이를 paper-faithful Semantic Energy라고 부르지 않는다.
+- 계산 (paper-faithful path, Ma 2025 Eq. (11)–(14) 정확히 따름):
+  1. **token energy** (Eq. 13): $\tilde E(x_t^{(i)}) = -z_\theta(x_t^{(i)})$ — selected token logit의 부호 반전.
+  2. **sample energy** (Eq. 11): $E(x^{(i)}) = \frac{1}{T_i}\sum_t \tilde E(x_t^{(i)}) = \mathrm{mean}(-\text{selected\_token\_logits})$.
+  3. **cluster total energy** (Eq. 12): $E_{\text{Bolt}}(C_k) = \sum_{x \in C_k} E(x)$ — cluster member sample energy의 **합 (SUM)**. cluster size가 클수록 더 큰 기여.
+  4. **cluster probability** (Eq. 8): S4의 likelihood-based cluster mass $p(C_k) = \sum_{x \in C_k} \bar p(x | q)$를 그대로 상속.
+  5. **final uncertainty** (paper-faithful aggregation): `semantic_energy_cluster_uncertainty = sum_k p(C_k) * E_Bolt(C_k)`. 부호 규약은 lower=more reliable.
+  6. **prompt-level supplementary**: `semantic_energy_sample_energy = mean over N=10 sample energies` — Eq. (14)의 가장 단순한 collapsed reading.
+- 계산 (diagnostic path, Ma paper와 별개): teacher-forced candidate token window에서 `mean_negative_log_probability`, `logit_variance`, `confidence_margin`, `semantic_energy_boltzmann_diagnostic`(token-level `-logZ` 평균) 을 candidate-level로 계산한다. 이 네 값은 paper-faithful Semantic Energy와 같은 column으로 합치지 않는다.
 
 ### S7. feature table 결합 및 axis/bin metadata 확정
 
@@ -256,6 +259,20 @@ uv run python experiments/scripts/run_robustness.py --features experiments/resul
 | `entity_frequency_axis`, `entity_frequency_min` | QuCo-RAG | Infini-gram-compatible count backend의 entity frequency semantics를 따르며 continuous corpus-support axis로 저장한다. |
 | `entity_pair_cooccurrence_axis` | QuCo-RAG | `head AND tail` pair co-occurrence semantics를 따르며 relation-level corpus-support axis로 저장한다. |
 | condition-aware fusion | reliability analysis framing | corpus-axis bin 또는 axis interaction term을 사용해 global fusion과 비교한다. |
+
+## 5b. Backend, model, and protocol pins (2026-05-07)
+
+이 섹션은 thesis-valid run에 실제로 사용된 외부 자원과 protocol 캡을 명시한다. 변경 시 본 문서와 `experiments/configs/generation.yaml`을 함께 갱신한다.
+
+| Resource | Pinned value | Notes |
+| --- | --- | --- |
+| Causal LM | `Qwen/Qwen2.5-3B` (configured in `experiments/configs/generation.yaml::model`) | full-vocabulary logits sidecar dtype `float16`, vocab=151936 |
+| NLI model | `microsoft/deberta-large-mnli` (default in `experiments/adapters/semantic_entropy_features.py`) | bidirectional entailment, label resolved via `config.id2label`. `--nli-model` may override per run; provenance recorded in `nli_model_ref` |
+| Corpus index | Local Infini-gram `v4_dolmasample_olmo` (16B tokens) under `/mnt/data/hallucination-graduation-thesis-runs/infini-gram-indexes/v4_dolmasample_olmo/` | Free public download from `s3://infini-gram-lite/index/v4_dolmasample_olmo/` (no AWS egress). Tokenizer: `allenai/OLMo-7B-hf` (vocab=50280, eos=50279). Pair counts use `count_cnf` AND queries; the engine `approx` flag is captured in `metadata.infinigram_approx` while `provenance.approximate` is False so the upper-bound count drives the binning axis |
+| Corpus backend selection | sidecar `<candidates>.corpus_backend.json` written by `experiments/scripts/setup_local_corpus_backend.py`; env var fallbacks `THESIS_CORPUS_BACKEND`, `INFINIGRAM_LOCAL_INDEX_DIR`, `INFINIGRAM_LOCAL_TOKENIZER`, `INFINIGRAM_INDEX`, `INFINIGRAM_ENDPOINT` | Live REST API (`https://api.infini-gram.io/`) is kept as fallback in `InfinigramApiBackend` but is rate-bound at ~2.85 q/s; not used as primary for full-dataset runs |
+| Cache | `<candidates>.infinigram_cache.json` (schema_version `infinigram_api_cache_v1`) | Shared by API and local backends; pre-warmed via `experiments/scripts/prefetch_infinigram_counts.py` |
+| Answer-only generation caps | `generation.max_new_tokens=96`, `generation.answer_only.max_answer_tokens=64`, `generation.answer_only.max_invalid_attempts=32`, `fail_on_max_new_tokens=true` | Earlier cap of 32/64/8 caused bounded resampling exhaustion on long-context HaluEval-QA prompts. New cap retains "shortest answer span" framing but accommodates compound answers; document in §method tail-prompt note. Pre-existing shards generated under the older cap remain valid (their spans ≤ 32 tokens) |
+| Disk budget | `runtime.max_full_logits_parquet_gib=1200`, `runtime.min_full_logits_disk_reserve_gib=100` | `/mnt/data` budget headroom; preflight worst-case projection scales with `max_new_tokens` |
 
 ## 6. Guardrails
 

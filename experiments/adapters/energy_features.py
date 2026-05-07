@@ -17,7 +17,7 @@ from experiments.scripts.stage_control import SEMANTIC_ENTROPY_SCHEMA_VERSION
 FORMULA_MANIFEST_REF = "experiments/literature/formula_notes.md"
 SAMPLED_RESPONSE_ENERGY_KIND = "sampled_response_cluster"
 SAMPLE_ENERGY_FORMULA = "sample_energy = mean(-selected_token_logits)"
-CLUSTER_ENERGY_AGGREGATION = "cluster_energy = mean(member sample_energy); uncertainty = sum(cluster_probability * cluster_energy)"
+CLUSTER_ENERGY_AGGREGATION = "cluster_energy = sum(member sample_energy)  # Eq.(12) E_Bolt(C); uncertainty = sum(cluster_probability * cluster_energy)  # Eq.(8) likelihood-weighted aggregation"
 
 
 class EnergyFeatureUnavailableError(RuntimeError):
@@ -171,7 +171,7 @@ class SemanticEnergyClusterRecord:
             member_sample_indexes=tuple(member_sample_indexes),
             cluster_probability=cluster_probability,
             member_sample_energies=member_sample_energies,
-            cluster_energy=float(sum(member_sample_energies) / len(member_sample_energies)),
+            cluster_energy=float(sum(member_sample_energies)),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -182,7 +182,7 @@ class SemanticEnergyClusterRecord:
             "cluster_probability": self.cluster_probability,
             "member_sample_energies": list(self.member_sample_energies),
             "cluster_energy": self.cluster_energy,
-            "aggregation": "arithmetic_mean_member_sample_energy",
+            "aggregation": "sum_member_sample_energy_eq12",
         }
 
 

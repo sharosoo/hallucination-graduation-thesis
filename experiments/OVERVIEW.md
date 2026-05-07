@@ -79,7 +79,7 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 | --- | --- | --- | --- |
 | `semantic_entropy_nli_likelihood` | prompt | 공유(broadcast) | prompt에서 N=10 answer-only sample → DeBERTa-family NLI clustering → likelihood-based cluster entropy |
 | `semantic_entropy_discrete_cluster_entropy`, `semantic_entropy_cluster_count` | prompt | 공유 | 같은 NLI cluster에서 count-based 보조 통계 |
-| `semantic_energy_cluster_uncertainty` | prompt/cluster | 공유 또는 cluster-linked | 여러 generated answers의 semantic clusters와 selected-token logit-derived energy를 cluster level로 집계 |
+| `semantic_energy_cluster_uncertainty` | prompt/cluster | 공유 또는 cluster-linked | Ma 2025 Eq. (11)–(14) paper-faithful: token_energy = `-selected_token_logit`, sample_energy = `mean(-selected_token_logits)`, cluster_energy = **`sum`**(member sample_energies) per Eq. (12), `cluster_uncertainty = sum_k p(C_k) * cluster_energy(C_k)` with Eq. (8) likelihood-based `p(C_k)` from S4 |
 | `mean_negative_log_probability` | candidate | 다름 | 후보 토큰의 −log p 평균 |
 | `logit_variance`, `confidence_margin` | candidate | 다름 | 후보 토큰 위치 logits에서 계산하는 diagnostic |
 | `semantic_energy_boltzmann_diagnostic` | candidate | 다름 | 기존 candidate-level `-logsumexp` 평균. paper-faithful Semantic Energy가 아니라 energy-inspired diagnostic으로 표기 |
