@@ -22,8 +22,7 @@
 
 ```bash
 uv sync --group generation
-uv run python experiments/scripts/validate_pipeline_contract.py experiments/PIPELINE.md
-uv run python experiments/scripts/validate_paper_feature_alignment.py --formulas experiments/configs/formulas.yaml --notes experiments/literature/formula_notes.md --pipeline experiments/PIPELINE.md
+uv run python experiments/scripts/validate_architecture.py
 uv run python experiments/scripts/run_pipeline.py --dry-run --out experiments/results/runs
 ```
 

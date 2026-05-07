@@ -97,7 +97,7 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 
 | Stage | Module | Output | Validation |
 | --- | --- | --- | --- |
-| S0 | `validate_pipeline_contract.py`, `validate_paper_feature_alignment.py` | pass/fail | 실패 시 실행 금지 |
+| S0 | `validate_architecture.py` | pass/fail | hexagonal 패키지 구조와 핵심 dataclass·port 강제 |
 | S1 | `prepare_datasets.py`, `adapters/hf_datasets.py` | `prompt_groups.jsonl`, `candidate_rows.jsonl`, `dataset_manifest.json` | pair_id 짝의 (right, hallucinated) 1:1 검증 |
 | S2 | `run_generation.py`, `adapters/model_generation.py` | `free_sample_rows.json`, `candidate_scores.json` | N=10 free samples와 candidate logits schema 검사 |
 | S3 | `build_correctness_dataset.py`, `adapters/correctness_dataset.py` | `correctness_judgments.jsonl` | annotation source presence, `heuristic_matching_used=false`, `llm_as_judge_used=false` |

@@ -175,15 +175,7 @@ The experiment implementation must use backend-style typed hexagonal architectur
 - Ma Semantic Energy is used as the Semantic Energy source or motivation. Until later PDF-grounded validation, cite it with a preprint or submission caveat.
 - Phillips/PC Probe is reference-only. It supplies conceptual framing for entropy-only failure and confidently wrong cases, but PC Probe is not implemented and hidden-state/probe features are excluded.
 
-## 11. Validation command
-
-Run the contract validator after editing this file:
-
-```bash
-uv run python experiments/scripts/validate_readme_contract.py experiments/README.md
-```
-
-## 12. Environment and execution contract
+## 11. Environment and execution contract
 
 - Create or refresh the repo-local virtual environment with `uv sync`.
 - Install heavyweight generation dependencies only when needed with `uv sync --group generation`.

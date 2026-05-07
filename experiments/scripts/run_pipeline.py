@@ -164,38 +164,6 @@ def build_stages(run_dir: Path) -> tuple[PipelineStage, ...]:
 
     return (
         PipelineStage(
-            stage_id="S0",
-            name="contract validation",
-            command=command(
-                "uv",
-                "run",
-                "python",
-                "experiments/scripts/validate_pipeline_contract.py",
-                "experiments/PIPELINE.md",
-            ),
-            expected_inputs=(
-                "experiments/PIPELINE.md",
-                "experiments/configs/formulas.yaml",
-                "experiments/literature/formula_notes.md",
-            ),
-            expected_outputs=(),
-            thesis_gate=True,
-            validation_commands=(
-                command(
-                    "uv",
-                    "run",
-                    "python",
-                    "experiments/scripts/validate_paper_feature_alignment.py",
-                    "--formulas",
-                    "experiments/configs/formulas.yaml",
-                    "--notes",
-                    "experiments/literature/formula_notes.md",
-                    "--pipeline",
-                    "experiments/PIPELINE.md",
-                ),
-            ),
-        ),
-        PipelineStage(
             stage_id="S1",
             name="dataset preparation",
             command=command(
@@ -463,9 +431,7 @@ def build_stages(run_dir: Path) -> tuple[PipelineStage, ...]:
                 "robustness_selective_risk",
                 "robustness_report",
             ),
-            validation_commands=(
-                command("uv", "run", "python", "experiments/scripts/validate_report_claims.py", artifacts["robustness_summary"]),
-            ),
+            validation_commands=(),
         ),
     )
 

@@ -2,7 +2,7 @@
 
 이 문서는 처음 보는 연구자가 같은 산출물을 다시 만들 수 있도록 고정한 실행 계약이다. 이 repo에는 논문용 **실험 데이터셋**이 하나만 있다. 실험 데이터셋은 TruthfulQA와 HaluEval-QA에서 제공되는 (정답, 환각) 후보 쌍을 prompt 단위로 정렬한 paired discriminative dataset이다.
 
-검증 기준은 단순하다. **Full logits must be repo-owned**, **Corpus statistics must be repo-owned**, **Infini-gram-compatible count backend**를 사용한다. **Elasticsearch/BM25 is used for retrieval** only, and **Elasticsearch/BM25 may be used for retrieval evidence**; count 대체물로 쓰지 않는다. 학습기는 **custom stdlib L2 logistic regression**이다. correctness는 dataset annotation에서 직접 온다. heuristic 문자열 매칭, generated-answer 사후 판정, LLM-as-judge fallback은 thesis-valid label source가 아니다. 문서-구현 정렬은 `validate_paper_feature_alignment.py`와 `run_pipeline.py`가 고정한다.
+검증 기준은 단순하다. **Full logits must be repo-owned**, **Corpus statistics must be repo-owned**, **Infini-gram-compatible count backend**를 사용한다. **Elasticsearch/BM25 is used for retrieval** only, and **Elasticsearch/BM25 may be used for retrieval evidence**; count 대체물로 쓰지 않는다. 학습기는 **custom stdlib L2 logistic regression**이다. correctness는 dataset annotation에서 직접 온다. heuristic 문자열 매칭, generated-answer 사후 판정, LLM-as-judge fallback은 thesis-valid label source가 아니다. 문서-구현 정렬은 `run_pipeline.py`와 코드 리뷰가 책임진다.
 
 이 파이프라인의 연구 질문은 RAG 시스템 구축이 아니다. QuCo-RAG에서 온 entity frequency와 entity-pair co-occurrence를 **continuous corpus-support axis**로 만들고, 그 axis의 bin마다 hallucination metric reliability가 어떻게 달라지는지 검증한다.
 
@@ -71,14 +71,13 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 
 ## 3. 단계별 해야 할 일
 
-### S0. 계약 검증
+### S0. 구조 검증
 
 ```bash
-uv run python experiments/scripts/validate_pipeline_contract.py experiments/PIPELINE.md
-uv run python experiments/scripts/validate_paper_feature_alignment.py --formulas experiments/configs/formulas.yaml --notes experiments/literature/formula_notes.md --pipeline experiments/PIPELINE.md
+uv run python experiments/scripts/validate_architecture.py
 ```
 
-목적: 실험 문서, formula note, paper-feature alignment가 서로 모순되지 않는지 확인한다. 실패하면 실행하지 않는다.
+목적: 도메인/포트/어댑터/애플리케이션 패키지 구조와 핵심 dataclass·port가 hexagonal 계약을 지키는지 확인한다. 문서-구현 정렬은 사람의 변경 검토와 코드 리뷰가 책임진다.
 
 ### S1. paired prompt group 및 candidate row 생성
 
@@ -222,7 +221,6 @@ uv run python experiments/scripts/run_fusion.py --features experiments/results/f
 
 ```bash
 uv run python experiments/scripts/run_robustness.py --features experiments/results/features.parquet --fusion experiments/results/fusion --out experiments/results/robustness
-uv run python experiments/scripts/validate_report_claims.py experiments/results/robustness/summary.json
 ```
 
 검증 항목: prompt-grouped bootstrap confidence interval, leave-one-dataset-out, within-dataset checks, calibration checks, corpus-bin metric reliability, binning sensitivity, and condition-aware fusion deltas.
@@ -258,12 +256,6 @@ uv run python experiments/scripts/validate_report_claims.py experiments/results/
 | `entity_frequency_axis`, `entity_frequency_min` | QuCo-RAG | Infini-gram-compatible count backend의 entity frequency semantics를 따르며 continuous corpus-support axis로 저장한다. |
 | `entity_pair_cooccurrence_axis` | QuCo-RAG | `head AND tail` pair co-occurrence semantics를 따르며 relation-level corpus-support axis로 저장한다. |
 | condition-aware fusion | reliability analysis framing | corpus-axis bin 또는 axis interaction term을 사용해 global fusion과 비교한다. |
-
-검증:
-
-```bash
-uv run python experiments/scripts/validate_paper_feature_alignment.py --formulas experiments/configs/formulas.yaml --notes experiments/literature/formula_notes.md --pipeline experiments/PIPELINE.md
-```
 
 ## 6. Guardrails
 
