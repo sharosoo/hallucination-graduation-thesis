@@ -4,39 +4,58 @@
   "dataset_manifest_ref": "experiments/configs/datasets.yaml",
   "logits_schema_version": "generation_logits_v1",
   "runtime": {
-    "device": "cpu",
-    "local_files_only": true,
-    "trust_remote_code": false
+    "device": "cuda",
+    "local_files_only": false,
+    "trust_remote_code": false,
+    "full_logits_dtype": "float16",
+    "max_full_logits_parquet_gib": 600,
+    "min_full_logits_disk_reserve_gib": 100,
+    "free_sample_batch_size": 4,
+    "candidate_score_batch_size": 8
   },
   "model": {
-    "model_name": "sshleifer/tiny-gpt2",
-    "tokenizer_name": "sshleifer/tiny-gpt2",
+    "model_name": "Qwen/Qwen2.5-0.5B",
+    "tokenizer_name": "Qwen/Qwen2.5-0.5B",
     "revision": null
   },
   "generation": {
     "seed": 13,
-    "max_new_tokens": 4,
-    "do_sample": false,
+    "max_new_tokens": 64,
+    "do_sample": true,
     "temperature": 1.0,
     "top_k": 0,
-    "stop_on_eos": true
+    "stop_on_eos": true,
+    "answer_only": {
+      "enabled": true,
+      "prompt_suffix": "Return only the shortest final answer span. Do not explain or write a full sentence.\nAnswer:",
+      "stop_on_newline": true,
+      "stop_on_punctuation": true,
+      "fail_on_max_new_tokens": true,
+      "max_answer_tokens": 32,
+      "max_invalid_attempts": 8,
+      "forbidden_patterns": [
+        "\\b(?:steam|stream)\\s+of\\s+consciousness\\b",
+        "\\bstep\\s*1\\b",
+        "\\bstep[- ]by[- ]step\\b",
+        "\\blet['’]?s\\s+(?:think|do|give|answer|work)\\b",
+        "\\bto answer (?:the|this)\\b",
+        "\\bavailable choices\\b",
+        "\\bsingle-select problem\\b",
+        "\\bwhich one of the following\\b"
+      ]
+    },
+    "free_sample_count": 10
   },
-  "prompt_rows": [
-    {
-      "dataset": "fixture_dataset",
-      "split_id": "fixture_split",
-      "sample_id": "fixture_sample_001",
-      "question": "Complete the phrase 'Alpha' with one short deterministic continuation.",
-      "prompt": "Question: Complete the phrase 'Alpha' with one short deterministic continuation.\nAnswer:",
-      "metadata": {
-        "purpose": "deterministic_fixture_and_smoke_test"
-      }
-    }
-  ],
   "notes": [
     "This config is JSON-compatible YAML on purpose so it can be parsed with Python stdlib only.",
-    "Default runtime.local_files_only=true keeps the repo-owned path explicit about missing local model weights.",
-    "Run fixture validation with uv run python experiments/scripts/run_generation.py --config experiments/configs/generation.yaml --out experiments/results/generation/full_logits_fixture.json --write-fixture --fixture-variant full_logits.",
+    "The thesis live run uses the configured Qwen2.5 causal LM and matching Qwen tokenizer on CUDA when available.",
+    "runtime.local_files_only=false allows the repo-managed uv environment to fetch the configured Qwen model/tokenizer if the local Hugging Face cache is empty; set it back to true only after the artifacts are cached.",
+    "Prompt-level thesis-valid Semantic Entropy uses exactly ten answer-only free samples per prompt; candidate scoring remains teacher-forced over fixed dataset-provided answers.",
+    "Free samples are thesis-valid only under generation.answer_only: prompts end with the literal instruction, response_text is the first answer span before newline/EOS/terminal punctuation, max_answer_tokens bounds answer-span length, max_new_tokens finish is invalid, and predeclared reasoning/boilerplate patterns fail validation instead of being silently filtered.",
+    "Full-vocabulary logits are preserved for candidate-level Energy/logit diagnostics. Candidate-level Boltzmann-style values are diagnostics, not paper-faithful Semantic Energy without multi-generation semantic clustering and cluster-level aggregation.",
+    "runtime.full_logits_dtype fixes the repo-owned full-vocabulary sidecar precision; thesis-valid storage may use float16 sidecars as long as dtype provenance is recorded and validators still enforce key coverage and exact vector length.",
+    "runtime.max_full_logits_parquet_gib is an explicit safety cap for full-vocabulary logits parquet shards; JSON manifests keep metadata and references only.",
+    "runtime.free_sample_batch_size and runtime.candidate_score_batch_size batch live Qwen forward passes while preserving one checkpoint shard per prompt/sample or candidate.",
     "Use uv sync --group generation before live local generation so torch/transformers-backed execution stays inside the repo-managed .venv."
   ]
 }
