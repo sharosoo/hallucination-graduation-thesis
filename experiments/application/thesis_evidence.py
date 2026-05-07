@@ -45,10 +45,9 @@ FORBIDDEN_TEXT = [
 ]
 
 REQUIRED_TEXT = [
-    "Corpus-Grounded Selective Fusion Detector",
-    "full logits",
-    "semantic_energy_proxy",
-    "uv run",
+    "corpus 조건 축",
+    "candidate-level Boltzmann-style energy diagnostic",
+    "N=10 NLI likelihood SE",
     "thesis_evidence_table.tex",
     "thesis_evidence_summary.json",
     "learned fusion with corpus",
@@ -132,6 +131,8 @@ def collect_energy_status(type_summary: dict[str, Any]) -> dict[str, Any]:
         "full_logits_required": source_energy.get("full_logits_required"),
         "rerun_required": source_energy.get("rerun_required"),
         "true_boltzmann_available": source_energy.get("true_boltzmann_available"),
+        "candidate_boltzmann_diagnostic_available": source_energy.get("candidate_boltzmann_diagnostic_available"),
+        "not_for_thesis_claims": source_energy.get("not_for_thesis_claims"),
         "message": source_energy.get("message"),
         "rerun_instructions": source_energy.get("rerun_instructions"),
         "formula_manifest_ref": source_energy.get("formula_manifest_ref"),
@@ -189,8 +190,8 @@ def write_latex_table(path: Path, baselines: list[dict[str, Any]], energy_status
         lines.append(line + row_suffix)
     lines.append(r"\midrule")
     energy_line = "{} & {} & {} & {} & {} & {} ".format(
-        latex_escape("true Boltzmann Energy availability"),
-        display_status("unavailable" if not energy_status.get("true_boltzmann_available") else "available"),
+        latex_escape("candidate energy/logit diagnostic availability"),
+        display_status("available" if energy_status.get("candidate_boltzmann_diagnostic_available") else "unavailable"),
         "--",
         "--",
         "--",
@@ -295,8 +296,9 @@ def validate_thesis_evidence_links(thesis_path: Path, notes_dir: Path, summary_p
         if required not in all_tex:
             problems.append(f"required evidence wording missing from thesis sources: {required}")
 
-    if "Energy-only & unavailable" not in summary_path.with_name("thesis_evidence_table.tex").read_text(encoding="utf-8"):
-        problems.append("exported thesis table must keep Energy-only unavailable")
+    table_text = summary_path.with_name("thesis_evidence_table.tex").read_text(encoding="utf-8")
+    if "candidate energy/logit diagnostic availability" not in table_text:
+        problems.append("exported thesis table must label current Energy rows as candidate diagnostics")
 
     for note in summary.get("evidence_notes", []):
         note_path = Path(note)
@@ -307,9 +309,11 @@ def validate_thesis_evidence_links(thesis_path: Path, notes_dir: Path, summary_p
 
     energy_status = summary.get("energy_status", {})
     if energy_status.get("true_boltzmann_available") is not False:
-        problems.append("summary must keep true_boltzmann_available=false for current evidence")
-    if energy_status.get("status") != "full_logits_required":
-        problems.append("summary must record Energy status as full_logits_required")
+        problems.append("summary must keep true_boltzmann_available=false for current candidate-diagnostic evidence")
+    if energy_status.get("status") != "candidate_boltzmann_diagnostic_only":
+        problems.append("summary must record Energy status as candidate_boltzmann_diagnostic_only")
+    if energy_status.get("not_for_thesis_claims") is not True:
+        problems.append("summary must mark candidate-level Energy diagnostics not_for_thesis_claims")
 
     headline = summary.get("headline_metrics", {})
     with_corpus = headline.get("learned_fusion_with_corpus_auroc")
@@ -319,7 +323,7 @@ def validate_thesis_evidence_links(thesis_path: Path, notes_dir: Path, summary_p
     elif with_corpus >= without_corpus:
         problems.append("current summary no longer supports the underperformance caveat")
 
-    if "semantic_energy_single_cluster.md" not in thesis or "quco_vs_probe.md" not in thesis:
-        problems.append("thesis must name both evidence note files used for citation guardrails")
+    if "paper-faithful Semantic Energy" not in all_tex or "corpus-support" not in all_tex:
+        problems.append("thesis must keep paper-faithful Energy and corpus-support caveats visible")
 
     return problems

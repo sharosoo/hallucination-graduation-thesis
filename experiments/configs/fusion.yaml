@@ -1,9 +1,10 @@
 {
-  "version": 1,
-  "method_name": "Corpus-Grounded Selective Fusion Detector",
+  "version": 2,
+  "method_name": "Corpus-Conditioned Hallucination Metric Reliability Study",
   "binary_target": {
-    "positive_rule": "label != NORMAL",
-    "negative_label": "NORMAL"
+    "field": "is_hallucination",
+    "fallback": "not is_correct",
+    "archived_label_not_primary": true
   },
   "evaluation": {
     "primary_split": "leave_one_dataset_out",
@@ -11,61 +12,76 @@
     "headline_scope": "aggregate_across_dataset_holdouts",
     "dataset_order": [
       "HaluEval-QA",
-      "HaluEval-dialogue",
-      "Natural Questions",
-      "TriviaQA",
       "TruthfulQA"
-    ]
+    ],
+    "bin_schemes": {
+      "corpus_axis_bin": [
+        "low_support",
+        "medium_support",
+        "high_support"
+      ],
+      "corpus_axis_bin_5": [
+        "very_low_support",
+        "low_support",
+        "mid_support",
+        "high_support",
+        "very_high_support"
+      ]
+    }
   },
   "baselines": [
     {
       "name": "SE-only",
       "kind": "single_signal",
-      "signal": "semantic_entropy"
+      "signal": "semantic_entropy_score"
     },
     {
       "name": "Energy-only",
-      "kind": "energy_only",
-      "signal": "semantic_energy_boltzmann"
-    },
-    {
-      "name": "corpus-risk-only",
       "kind": "single_signal",
-      "signal": "corpus_risk_only"
+      "signal": "semantic_energy_score",
+      "requires_energy": true
     },
     {
-      "name": "fixed linear 0.1/0.9",
-      "kind": "fixed_linear",
-      "semantic_entropy_weight": 0.1,
-      "semantic_energy_weight": 0.9
+      "name": "logit-diagnostic-only",
+      "kind": "logistic_feature_set",
+      "feature_set": "logit_diagnostic_only"
     },
     {
-      "name": "fixed linear 0.5/0.5",
-      "kind": "fixed_linear",
-      "semantic_entropy_weight": 0.5,
-      "semantic_energy_weight": 0.5
+      "name": "corpus-axis-only",
+      "kind": "single_signal",
+      "signal": "corpus_risk_score"
     },
     {
-      "name": "fixed linear 0.9/0.1",
-      "kind": "fixed_linear",
-      "semantic_entropy_weight": 0.9,
-      "semantic_energy_weight": 0.1
+      "name": "global learned fusion without corpus axis",
+      "kind": "logistic_feature_set",
+      "feature_set": "global_without_corpus"
     },
     {
-      "name": "hard cascade",
-      "kind": "hard_cascade"
+      "name": "global learned fusion with corpus axis",
+      "kind": "logistic_feature_set",
+      "feature_set": "global_with_corpus"
     },
     {
-      "name": "old coverage-adaptive baseline",
-      "kind": "coverage_adaptive"
+      "name": "corpus-bin feature selection",
+      "kind": "corpus_bin_feature_selection",
+      "bin_field": "corpus_axis_bin",
+      "feature_pool": "bin_feature_pool"
     },
     {
-      "name": "learned fusion without corpus",
-      "kind": "learned_without_corpus"
+      "name": "corpus-bin weighted fusion",
+      "kind": "corpus_bin_weighted_fusion",
+      "bin_field": "corpus_axis_bin",
+      "feature_set": "bin_weighted_fusion"
     },
     {
-      "name": "learned fusion with corpus",
-      "kind": "learned_with_corpus"
+      "name": "axis-interaction logistic fusion",
+      "kind": "axis_interaction_logistic_fusion",
+      "feature_set": "interaction_base",
+      "axis_features": [
+        "coverage_score",
+        "entity_frequency_axis",
+        "entity_pair_cooccurrence_axis"
+      ]
     }
   ],
   "learned_fusion": {
@@ -76,38 +92,79 @@
     "max_iterations": 1500,
     "tolerance": 1e-06,
     "feature_sets": {
-      "without_corpus": [
-        "semantic_entropy",
-        "cluster_count"
+      "logit_diagnostic_only": [
+        "semantic_energy_diagnostic",
+        "mean_negative_log_probability",
+        "logit_variance",
+        "confidence_margin"
       ],
-      "with_corpus": [
-        "semantic_entropy",
-        "cluster_count",
-        "entity_frequency_mean",
-        "entity_frequency_min",
-        "entity_pair_cooccurrence",
+      "global_without_corpus": [
+        "semantic_entropy_score",
+        "semantic_entropy_cluster_count",
+        "semantic_energy_score",
+        "semantic_energy_sample",
+        "semantic_energy_diagnostic",
+        "mean_negative_log_probability",
+        "logit_variance",
+        "confidence_margin"
+      ],
+      "global_with_corpus": [
+        "semantic_entropy_score",
+        "semantic_entropy_cluster_count",
+        "semantic_energy_score",
+        "semantic_energy_sample",
+        "semantic_energy_diagnostic",
+        "mean_negative_log_probability",
+        "logit_variance",
+        "confidence_margin",
+        "entity_frequency_axis",
+        "entity_pair_cooccurrence_axis",
         "low_frequency_entity_flag",
         "zero_cooccurrence_flag",
         "coverage_score",
-        "corpus_risk_only"
+        "corpus_risk_score"
+      ],
+      "bin_weighted_fusion": [
+        "semantic_entropy_score",
+        "semantic_energy_score",
+        "mean_negative_log_probability",
+        "corpus_risk_score"
+      ],
+      "interaction_base": [
+        "semantic_entropy_score",
+        "semantic_energy_score",
+        "semantic_energy_diagnostic",
+        "mean_negative_log_probability",
+        "confidence_margin"
+      ]
+    },
+    "feature_pools": {
+      "bin_feature_pool": [
+        "semantic_entropy_score",
+        "semantic_energy_score",
+        "semantic_energy_diagnostic",
+        "mean_negative_log_probability",
+        "logit_variance",
+        "confidence_margin",
+        "corpus_risk_score"
       ]
     },
     "forbidden_features": [
       "label",
-      "p_correct",
-      "pc_probe",
-      "hidden_state",
-      "semantic_energy_proxy",
-      "correctness",
+      "is_hallucination",
+      "is_correct",
+      "candidate_label",
       "gold_answer",
       "gold_answers",
-      "is_correct",
-      "correctness_judgment"
+      "correctness_judgment",
+      "hidden_state",
+      "pc_probe",
+      "p_correct"
     ]
   },
   "notes": [
-    "The fixed linear names use Semantic Entropy / Semantic Energy weight order.",
-    "Energy-dependent baselines must stay explicit and null when true Boltzmann energy is unavailable.",
-    "Learned fusion remains leakage-safe by training on held-in datasets only and scoring a held-out dataset per fold."
+    "All supervised baselines use annotation-backed is_hallucination or the direct fallback not is_correct, never archived TypeLabel.",
+    "Corpus-bin feature selection and weighted fusion fit bin-specific choices on training folds only before applying to held-out rows.",
+    "Per-bin reporting is required for both corpus_axis_bin and corpus_axis_bin_5, with explicit NA reasons instead of silent bin dropping."
   ]
 }
