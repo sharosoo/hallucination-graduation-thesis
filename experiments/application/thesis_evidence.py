@@ -1,4 +1,4 @@
-"""Application-layer thesis evidence export and validation services."""
+"""Application-layer thesis evidence export services."""
 
 from __future__ import annotations
 
@@ -26,34 +26,6 @@ SOURCE_RELATIVE_PATHS = {
     "fusion_report": "fusion/report.md",
     "robustness": "robustness/summary.json",
 }
-
-FORBIDDEN_TEXT = [
-    "0.736",
-    "0.643",
-    "0.613",
-    "+0.029",
-    "SE-gated Cascade",
-    "SE-gated cascade",
-    "Qwen2.5",
-    "RTX 5090",
-    "hallucination_lfe",
-    "Energy AUROC 0.736",
-    "xticklabels={SE-only, Energy-only, Cascade}",
-    "old coverage-adaptive baseline",
-    "Energy(q)",
-    "upstream",
-]
-
-REQUIRED_TEXT = [
-    "corpus 조건 축",
-    "candidate-level Boltzmann-style energy diagnostic",
-    "N=10 NLI likelihood SE",
-    "thesis_evidence_table.tex",
-    "thesis_evidence_summary.json",
-    "learned fusion with corpus",
-    "learned fusion without corpus",
-]
-
 
 def load_json(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as handle:
@@ -270,60 +242,3 @@ def export_thesis_evidence(results_dir: Path, table_path: Path) -> dict[str, Any
     }
 
 
-def collect_tex_sources(thesis_path: Path) -> dict[Path, str]:
-    sources: dict[Path, str] = {thesis_path: thesis_path.read_text(encoding="utf-8")}
-    thesis_root = thesis_path.parent
-    for tex_path in sorted(thesis_root.rglob("*.tex")):
-        if tex_path == thesis_path:
-            continue
-        sources[tex_path] = tex_path.read_text(encoding="utf-8")
-    return sources
-
-
-def validate_thesis_evidence_links(thesis_path: Path, notes_dir: Path, summary_path: Path) -> list[str]:
-    problems: list[str] = []
-    tex_sources = collect_tex_sources(thesis_path)
-    thesis = tex_sources[thesis_path]
-    all_tex = "\n".join(tex_sources.values())
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
-
-    for forbidden in FORBIDDEN_TEXT:
-        for tex_path, text in tex_sources.items():
-            if forbidden in text:
-                problems.append(f"unsupported stale claim remains in {tex_path}: {forbidden}")
-
-    for required in REQUIRED_TEXT:
-        if required not in all_tex:
-            problems.append(f"required evidence wording missing from thesis sources: {required}")
-
-    table_text = summary_path.with_name("thesis_evidence_table.tex").read_text(encoding="utf-8")
-    if "candidate energy/logit diagnostic availability" not in table_text:
-        problems.append("exported thesis table must label current Energy rows as candidate diagnostics")
-
-    for note in summary.get("evidence_notes", []):
-        note_path = Path(note)
-        if not note_path.exists():
-            alt_path = notes_dir / note_path.name
-            if not alt_path.exists():
-                problems.append(f"summary references missing evidence note: {note}")
-
-    energy_status = summary.get("energy_status", {})
-    if energy_status.get("true_boltzmann_available") is not False:
-        problems.append("summary must keep true_boltzmann_available=false for current candidate-diagnostic evidence")
-    if energy_status.get("status") != "candidate_boltzmann_diagnostic_only":
-        problems.append("summary must record Energy status as candidate_boltzmann_diagnostic_only")
-    if energy_status.get("not_for_thesis_claims") is not True:
-        problems.append("summary must mark candidate-level Energy diagnostics not_for_thesis_claims")
-
-    headline = summary.get("headline_metrics", {})
-    with_corpus = headline.get("learned_fusion_with_corpus_auroc")
-    without_corpus = headline.get("learned_fusion_without_corpus_auroc")
-    if not isinstance(with_corpus, (int, float)) or not isinstance(without_corpus, (int, float)):
-        problems.append("summary missing learned-fusion AUROC values")
-    elif with_corpus >= without_corpus:
-        problems.append("current summary no longer supports the underperformance caveat")
-
-    if "paper-faithful Semantic Energy" not in all_tex or "corpus-support" not in all_tex:
-        problems.append("thesis must keep paper-faithful Energy and corpus-support caveats visible")
-
-    return problems

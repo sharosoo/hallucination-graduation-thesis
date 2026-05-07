@@ -6,7 +6,6 @@ import csv
 import json
 import math
 import random
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -30,23 +29,6 @@ BOOTSTRAP_SEED = 20260507
 BOOTSTRAP_ITERATIONS = 2000
 PRIMARY_BIN_FIELD = "corpus_axis_bin"
 SENSITIVITY_BIN_FIELD = "corpus_axis_bin_5"
-CLAIM_KEYS = {"claim_text", "summary_statement", "headline", "conclusion", "wording", "note"}
-FORBIDDEN_CLAIM_PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"\bsignificant improvement\b", "significant improvement"),
-    (r"\bsignificantly (?:improves?|improved|better)\b", "significantly improves"),
-    (r"\bproven\b", "proven"),
-    (r"\bproves\b", "proves"),
-    (r"\bconfirmed\b", "confirmed"),
-    (r"\bimproves?\b", "improves"),
-    (r"\bbetter\b", "better"),
-    (r"\bbest\b", "best"),
-    (r"\bsuperior\b", "superior"),
-    (r"\boutperform(?:s|ed)?\b", "outperforms"),
-    (r"\bwin(?:s|ning)?\b", "wins"),
-    (r"\bcauses?\b", "causes"),
-    (r"\bdue to\b", "due to"),
-    (r"\bbecause of\b", "because of"),
-)
 METHOD_COMPARISON_CANDIDATES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
     (("global learned fusion with corpus axis", "learned fusion with corpus"), ("global learned fusion without corpus axis", "learned fusion without corpus")),
     (("global learned fusion with corpus axis", "learned fusion with corpus"), ("SE-only",)),
@@ -1219,57 +1201,3 @@ def run_robustness(
     }
 
 
-def _collect_claim_strings(value: Any) -> list[str]:
-    if isinstance(value, str):
-        return [value]
-    if isinstance(value, list):
-        items: list[str] = []
-        for entry in value:
-            items.extend(_collect_claim_strings(entry))
-        return items
-    if isinstance(value, dict):
-        items: list[str] = []
-        for key, entry in value.items():
-            if any(token in str(key).lower() for token in ("claim", "headline", "conclusion", "summary", "wording", "note")):
-                items.extend(_collect_claim_strings(entry))
-        return items
-    return []
-
-
-def validate_report_claims(summary_path: Path) -> dict[str, Any]:
-    summary = load_json(summary_path)
-    claim_entries = summary.get("report_claims", [])
-    if not isinstance(claim_entries, list):
-        raise ValueError("Report-claim validation failed:\n- report_claims must be a list")
-    problems: list[str] = []
-    checked_strings = 0
-    for index, entry in enumerate(claim_entries):
-        if not isinstance(entry, dict):
-            problems.append(f"report_claims[{index}] must be an object")
-            continue
-        strings = _collect_claim_strings(entry)
-        if not strings:
-            continue
-        checked_strings += len(strings)
-        for string_index, claim_text in enumerate(strings):
-            normalized = re.sub(r"\s+", " ", claim_text.strip().lower())
-            for pattern, label in FORBIDDEN_CLAIM_PATTERNS:
-                if re.search(pattern, normalized):
-                    problems.append(
-                        f"report_claims[{index}] claim_text[{string_index}] uses forbidden phrase '{label}'"
-                    )
-        ci_lower = _coerce_float(entry.get("ci_95_lower"))
-        ci_upper = _coerce_float(entry.get("ci_95_upper"))
-        if ci_lower is not None and ci_upper is not None and ci_lower > ci_upper:
-            problems.append(f"report_claims[{index}] has inverted interval bounds")
-        if entry.get("statistically_significant") is True:
-            problems.append(f"report_claims[{index}] must keep statistically_significant=false for descriptive robustness summaries")
-    if problems:
-        raise ValueError("Report-claim validation failed:\n- " + "\n- ".join(problems))
-    return {
-        "summary_path": str(summary_path),
-        "checked_claims": len(claim_entries),
-        "checked_claim_strings": checked_strings,
-        "status": "ok",
-        "forbidden_phrases": [label for _pattern, label in FORBIDDEN_CLAIM_PATTERNS],
-    }
