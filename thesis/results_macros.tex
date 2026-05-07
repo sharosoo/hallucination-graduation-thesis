@@ -1,0 +1,33 @@
+% Headline metric macros for thesis prose.
+%
+% 이 파일은 main.tex 본문에 사용되는 모든 수치 placeholder를 한 곳에 모은다.
+% Task 10 thesis-valid run이 끝난 뒤 experiments/results/thesis_evidence_summary.json의
+% 값들로 한 번에 swap한다. 본문 prose 자체는 매크로만 참조하므로, 수치 갱신 시
+% main.tex 본문은 손대지 않는다.
+%
+% 필드 매핑 (FILL_FROM 주석 = thesis_evidence_summary.json 안 경로):
+%   - HeadlineSEAuroc                  = baselines["SE-only"].auroc
+%   - HeadlineEnergyAuroc              = baselines["Energy-only"].auroc
+%   - HeadlineCorpusOnlyAuroc          = baselines["corpus-risk-only"].auroc
+%   - HeadlineLearnedFusionNoCorpusAuroc = baselines["learned fusion without corpus"].auroc
+%   - HeadlineLearnedFusionWithCorpusAuroc = baselines["learned fusion with corpus"].auroc
+%   - HeadlineCorpusFusionAurocDelta   = robustness.bootstrap.comparisons[
+%       candidate="learned fusion with corpus" vs reference="learned fusion without corpus"
+%     ].metrics["auroc"].observed_delta (절대값)
+%   - HeadlineCorpusFusionAurocCILower = same.ci_95_lower
+%   - HeadlineCorpusFusionAurocCIUpper = same.ci_95_upper
+%   - HeadlineCorpusFusionAuprcDelta   = same metric="auprc" .observed_delta (절대값)
+%
+% 초기값은 paired Qwen2.5-3B preliminary baseline run (2026-05-07) 산출물이다.
+% Task 10 thesis-valid full rerun (N=10 NLI likelihood SE + paper-faithful Semantic
+% Energy + InfinigramLocalEngineBackend on v4_dolmasample_olmo) 결과로 갱신한다.
+
+\providecommand{\HeadlineSEAuroc}{0.500}
+\providecommand{\HeadlineEnergyAuroc}{0.495}
+\providecommand{\HeadlineCorpusOnlyAuroc}{0.518}
+\providecommand{\HeadlineLearnedFusionNoCorpusAuroc}{0.373}
+\providecommand{\HeadlineLearnedFusionWithCorpusAuroc}{0.344}
+\providecommand{\HeadlineCorpusFusionAurocDelta}{0.030}
+\providecommand{\HeadlineCorpusFusionAurocCILower}{-0.035}
+\providecommand{\HeadlineCorpusFusionAurocCIUpper}{-0.024}
+\providecommand{\HeadlineCorpusFusionAuprcDelta}{0.013}
