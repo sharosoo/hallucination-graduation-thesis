@@ -54,12 +54,16 @@ hallucination-graduation-thesis/
 │   ├── PIPELINE.md
 │   ├── README.md
 │   ├── OVERVIEW.md
+│   ├── RESEARCH_PLAN.md
 │   ├── configs/
+│   ├── domain/
+│   ├── ports/
+│   ├── adapters/
+│   ├── application/
 │   ├── scripts/
+│   ├── literature/
+│   ├── manifests/
 │   └── results/
-├── results/
-│   ├── analysis.json
-│   └── results.json
 └── thesis/
     ├── main.tex
     ├── main.pdf
