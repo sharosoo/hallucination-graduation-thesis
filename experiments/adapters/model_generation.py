@@ -7,6 +7,7 @@ import math
 import random
 import re
 import shutil
+import sys
 from dataclasses import asdict
 from datetime import datetime, timezone
 from hashlib import sha1
@@ -652,6 +653,36 @@ def _checkpoint_metadata(
 def _metadata_matches(payload: dict[str, Any], metadata: dict[str, Any]) -> bool:
     for key, expected_value in metadata.items():
         if payload.get(key) != expected_value:
+            return False
+    return True
+
+
+# Fields that materially determine the SEMANTICS of stored samples (which model,
+# which tokenizer, which schema, which input set). Mismatches here mean the
+# checkpoint shard was produced under a different data contract and must not be
+# reused as-is. Other generation-config knobs (batch sizes via runtime, length
+# caps, retry budgets) only constrain how NEW samples can look; existing valid
+# shards stay valid even if those knobs changed.
+ESSENTIAL_METADATA_FIELDS: tuple[str, ...] = (
+    "checkpoint_schema_version",
+    "schema_version",
+    "artifact_type",
+    "model_name",
+    "tokenizer_name",
+    "logits_schema_version",
+    "input_fingerprint",
+)
+
+
+def _is_metadata_compatible(payload: dict[str, Any], metadata: dict[str, Any]) -> bool:
+    """Return True if the shard payload matches the run's essential metadata.
+
+    Lets callers preserve previously generated checkpoint shards across runtime/
+    generation-config tweaks (e.g. batch size or length cap changes) while still
+    rejecting shards produced under a different model, tokenizer, or schema.
+    """
+    for key in ESSENTIAL_METADATA_FIELDS:
+        if key in metadata and payload.get(key) != metadata[key]:
             return False
     return True
 
@@ -2353,8 +2384,8 @@ def validate_generation_artifact(path: Path) -> dict[str, Any]:
 def _validate_free_sample_checkpoint(payload: dict[str, Any], source_path: Path, metadata: dict[str, Any]) -> dict[str, Any]:
     if payload.get("checkpoint_artifact_type") != "free_sample_rows_checkpoint_shard":
         raise GenerationValidationError(f"unsupported free-sample checkpoint shard: {source_path}")
-    if not _metadata_matches(payload, metadata):
-        raise GenerationValidationError(f"free-sample checkpoint shard metadata mismatch: {source_path}")
+    if not _is_metadata_compatible(payload, metadata):
+        raise GenerationValidationError(f"free-sample checkpoint shard metadata mismatch on essential fields (model/tokenizer/schema/fingerprint): {source_path}")
     sample = payload.get("sample")
     if not isinstance(sample, dict):
         raise GenerationValidationError(f"free-sample checkpoint shard must contain one sample: {source_path}")
@@ -2387,8 +2418,8 @@ def _validate_candidate_checkpoint(
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if payload.get("checkpoint_artifact_type") != "teacher_forced_candidate_scores_checkpoint_shard":
         raise GenerationValidationError(f"unsupported candidate checkpoint shard: {source_path}")
-    if not _metadata_matches(payload, metadata):
-        raise GenerationValidationError(f"candidate checkpoint shard metadata mismatch: {source_path}")
+    if not _is_metadata_compatible(payload, metadata):
+        raise GenerationValidationError(f"candidate checkpoint shard metadata mismatch on essential fields (model/tokenizer/schema/fingerprint): {source_path}")
     candidate_score_row = payload.get("candidate_score_row")
     token_rows = payload.get("token_rows")
     if not isinstance(candidate_score_row, dict) or not isinstance(token_rows, list) or not token_rows:
@@ -2427,10 +2458,13 @@ def _load_free_sample_checkpoints(
     completed: dict[tuple[str, int], tuple[dict[str, Any], Path]] = {}
     if not checkpoint_root.exists():
         return completed
+    skipped: list[tuple[str, str]] = []
     for shard_dir in sorted(checkpoint_root.iterdir()):
         if not shard_dir.is_dir():
             continue
         if shard_dir.name.startswith(".tmp-"):
+            # Partial-write directories from interrupted runs have no shard.json yet;
+            # safe to remove since they cannot be reused.
             shutil.rmtree(shard_dir)
             continue
         shard_json = shard_dir / "shard.json"
@@ -2449,8 +2483,17 @@ def _load_free_sample_checkpoints(
             if sidecar_path is None:
                 raise GenerationValidationError(f"checkpoint shard sidecar path is invalid: {shard_json}")
             completed[key] = (sample, sidecar_path)
-        except (OSError, json.JSONDecodeError, GenerationValidationError):
-            shutil.rmtree(shard_dir)
+        except (OSError, json.JSONDecodeError, GenerationValidationError) as exc:
+            # Non-destructive policy: do NOT delete the shard. The orchestrator
+            # rebuilds the missing (prompt_id, sample_index) pair from scratch
+            # while preserving the on-disk shard for human inspection.
+            skipped.append((shard_dir.name, str(exc)))
+    if skipped:
+        head = ", ".join(name for name, _ in skipped[:3])
+        print(
+            f"[checkpoint] preserved {len(skipped)} unreadable free-sample shard(s); first: {head}",
+            file=sys.stderr,
+        )
     return completed
 
 
@@ -2460,6 +2503,7 @@ def _load_candidate_checkpoints(
     completed: dict[str, tuple[dict[str, Any], list[dict[str, Any]], Path]] = {}
     if not checkpoint_root.exists():
         return completed
+    skipped: list[tuple[str, str]] = []
     for shard_dir in sorted(checkpoint_root.iterdir()):
         if not shard_dir.is_dir():
             continue
@@ -2482,8 +2526,14 @@ def _load_candidate_checkpoints(
             if sidecar_path is None:
                 raise GenerationValidationError(f"checkpoint shard sidecar path is invalid: {shard_json}")
             completed[candidate_id] = (candidate_score_row, token_rows, sidecar_path)
-        except (OSError, json.JSONDecodeError, GenerationValidationError):
-            shutil.rmtree(shard_dir)
+        except (OSError, json.JSONDecodeError, GenerationValidationError) as exc:
+            skipped.append((shard_dir.name, str(exc)))
+    if skipped:
+        head = ", ".join(name for name, _ in skipped[:3])
+        print(
+            f"[checkpoint] preserved {len(skipped)} unreadable candidate shard(s); first: {head}",
+            file=sys.stderr,
+        )
     return completed
 
 
