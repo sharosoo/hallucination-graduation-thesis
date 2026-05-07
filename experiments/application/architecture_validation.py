@@ -21,8 +21,8 @@ REQUIRED_MODULES = {
         "evaluator.py",
         "artifact_store.py",
     ),
-    "adapters": ("__init__.py", "placeholders.py"),
-    "application": ("__init__.py", "pipeline.py", "architecture_validation.py"),
+    "adapters": ("__init__.py",),
+    "application": ("__init__.py", "architecture_validation.py"),
     "scripts": ("__init__.py", "validate_architecture.py"),
 }
 
