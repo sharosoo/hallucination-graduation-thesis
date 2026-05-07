@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate robustness summary wording against CI-crossing overclaims."""
+"""Validate robustness summary wording against forbidden overclaims."""
 
 from __future__ import annotations
 

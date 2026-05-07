@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from experiments.adapters import read_feature_rows
+from experiments.scripts.stage_control import CORPUS_AXIS_SCHEMA_VERSION
 
 REQUIRED_FEATURES = {
     "semantic_entropy",
@@ -22,12 +23,16 @@ REQUIRED_FEATURES = {
     "entity_frequency_mean",
     "entity_frequency_min",
     "entity_pair_cooccurrence",
+    "entity_frequency_axis",
+    "entity_pair_cooccurrence_axis",
     "low_frequency_entity_flag",
     "zero_cooccurrence_flag",
     "coverage_score",
     "corpus_source",
     "corpus_risk_only",
     "corpus_status",
+    "corpus_axis_bin",
+    "corpus_axis_bin_5",
 }
 LEAKAGE_HINTS = (
     "gold",
@@ -39,6 +44,8 @@ LEAKAGE_HINTS = (
     "label",
 )
 PROHIBITED_TRAINABLE_ROLES = {"label_only", "correctness_derived"}
+ALLOWED_BACKEND_IDS = {"infini_gram_api_count", "infini_gram_local_count", "quco_cache_infini_gram"}
+FINAL_OK_STATUSES = {"resolved", "fallback_resolved"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -49,9 +56,33 @@ def parse_args() -> argparse.Namespace:
 
 def validate_row(row: dict[str, Any], row_index: int) -> list[str]:
     problems: list[str] = []
-    for field_name in ("run_id", "dataset", "split_id", "sample_id", "label", "features", "feature_provenance"):
+    for field_name in (
+        "run_id",
+        "dataset",
+        "split_id",
+        "candidate_id",
+        "prompt_id",
+        "pair_id",
+        "sample_id",
+        "candidate_role",
+        "features",
+        "corpus_axis",
+        "feature_provenance",
+        "schema_version",
+    ):
         if field_name not in row:
             problems.append(f"row {row_index}: missing top-level field {field_name}")
+    if row.get("schema_version") != CORPUS_AXIS_SCHEMA_VERSION:
+        problems.append(
+            f"row {row_index}: schema_version must be {CORPUS_AXIS_SCHEMA_VERSION!r}; got {row.get('schema_version')!r}"
+        )
+    for field_name in ("dataset", "candidate_id", "prompt_id", "pair_id", "sample_id", "candidate_role"):
+        value = row.get(field_name)
+        if not isinstance(value, str) or not value.strip():
+            problems.append(f"row {row_index}: {field_name} must be a non-empty string")
+    candidate_id = str(row.get("candidate_id", "")).strip()
+    if candidate_id and str(row.get("sample_id", "")).strip() != candidate_id:
+        problems.append(f"row {row_index}: sample_id must mirror candidate_id for stable joins")
     features = row.get("features")
     if not isinstance(features, dict):
         return problems + [f"row {row_index}: features must be an object"]
@@ -65,12 +96,50 @@ def validate_row(row: dict[str, Any], row_index: int) -> list[str]:
         problems.append(f"row {row_index}: corpus_source must be an explicit non-empty string")
     if not isinstance(features.get("corpus_status"), str) or not features.get("corpus_status"):
         problems.append(f"row {row_index}: corpus_status must be an explicit non-empty string")
+    corpus_axis = row.get("corpus_axis")
+    if not isinstance(corpus_axis, dict):
+        problems.append(f"row {row_index}: corpus_axis must be an object")
+        corpus_axis = None
+    if isinstance(corpus_axis, dict):
+        backend_id = corpus_axis.get("backend_id")
+        if backend_id not in ALLOWED_BACKEND_IDS:
+            problems.append(f"row {row_index}: corpus_axis.backend_id must be one of {sorted(ALLOWED_BACKEND_IDS)}")
+        if corpus_axis.get("counts_complete") is not True:
+            problems.append(f"row {row_index}: corpus_axis.counts_complete must be true for thesis-valid rows")
+        row_status = corpus_axis.get("row_status")
+        if row_status not in FINAL_OK_STATUSES:
+            problems.append(f"row {row_index}: corpus_axis.row_status must be one of {sorted(FINAL_OK_STATUSES)}")
+        for field_name in ("entity_frequency_axis", "entity_pair_cooccurrence_axis", "corpus_axis_score", "corpus_axis_bin", "corpus_axis_bin_5"):
+            if corpus_axis.get(field_name) is None:
+                problems.append(f"row {row_index}: corpus_axis missing required field {field_name}")
+        for collection_name, key_name in (("entities", "term"), ("pairs", "pair")):
+            entries = corpus_axis.get(collection_name)
+            if not isinstance(entries, list) or not entries:
+                problems.append(f"row {row_index}: corpus_axis.{collection_name} must be a non-empty list")
+                continue
+            for entry_index, entry in enumerate(entries):
+                if not isinstance(entry, dict):
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] must be an object")
+                    continue
+                if not isinstance(entry.get(key_name), str) or not entry.get(key_name):
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing {key_name}")
+                if entry.get("backend_id") not in ALLOWED_BACKEND_IDS:
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] uses disallowed backend_id")
+                if entry.get("status") not in FINAL_OK_STATUSES:
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] status must be resolved/fallback_resolved")
+                if entry.get("raw_count") is None:
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing raw_count")
+                if bool(entry.get("approximate", False)):
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] must not be approximate")
+                query = entry.get("query")
+                if not isinstance(query, str) or not query.strip():
+                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing query provenance")
 
     provenance = row.get("feature_provenance")
     if not isinstance(provenance, list):
         return problems + [f"row {row_index}: feature_provenance must be a list"]
     provenance_names = {entry.get("feature_name") for entry in provenance if isinstance(entry, dict)}
-    for required in ("label", "entity_frequency_mean", "entity_pair_cooccurrence", "coverage_score"):
+    for required in ("entity_frequency", "entity_frequency_mean", "entity_pair_cooccurrence", "coverage_score"):
         if required not in provenance_names:
             problems.append(f"row {row_index}: missing provenance entry for {required}")
 
@@ -92,6 +161,8 @@ def validate_row(row: dict[str, Any], row_index: int) -> list[str]:
             problems.append(
                 f"row {row_index}: trainable feature {feature_name} has correctness/gold-derived source hint {source!r}"
             )
+        if "candidate_text" in lowered_source:
+            problems.append(f"row {row_index}: provenance for {feature_name} must not rely on candidate_text-only corpus counting")
     return problems
 
 

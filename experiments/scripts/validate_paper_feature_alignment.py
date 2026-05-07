@@ -8,31 +8,68 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
 
 
 FORMULA_MARKER = re.compile(r"^## Formula: (?P<id>[a-z0-9_]+)\s*$", re.MULTILINE)
 REFERENCE_FIELDS = ("Page Reference:", "Section Reference:", "Equation Reference:")
 
 PIPELINE_FEATURE_REQUIREMENTS: dict[str, tuple[str, ...]] = {
-    "semantic_entropy": ("semantic_entropy", "cluster_count", "Farquhar"),
-    "semantic_energy_boltzmann_or_proxy": ("semantic_energy_boltzmann", "full_logits", "logsumexp", "Ma Semantic Energy"),
-    "quco_entity_frequency": ("entity_frequency_mean", "entity_frequency_min", "Infini-gram-compatible"),
-    "quco_entity_pair_cooccurrence": ("entity_pair_cooccurrence", "head AND tail", "QuCo-RAG"),
-    "selective_risk_metrics": ("learned fusion with corpus", "logistic coefficients", "non-probe"),
+    "semantic_entropy": (
+        "semantic_entropy_nli_likelihood",
+        "N=10 free samples",
+        "NLI semantic clustering",
+        "likelihood-based cluster probability",
+        "Farquhar Semantic Entropy",
+    ),
+    "semantic_energy_cluster_uncertainty": (
+        "semantic_energy_cluster_uncertainty",
+        "multiple generated answers",
+        "selected-token logit-derived energy",
+        "cluster-level aggregation",
+        "Ma Semantic Energy",
+    ),
+    "candidate_logit_diagnostics": (
+        "semantic_energy_boltzmann_diagnostic",
+        "mean_negative_log_probability",
+        "logit_variance",
+        "confidence_margin",
+        "candidate-level diagnostic",
+    ),
+    "quco_entity_frequency": (
+        "entity_frequency_axis",
+        "Infini-gram-compatible",
+        "continuous corpus-support axis",
+        "QuCo-RAG",
+    ),
+    "quco_entity_pair_cooccurrence": (
+        "entity_pair_cooccurrence_axis",
+        "head AND tail",
+        "relation-level corpus-support axis",
+        "QuCo-RAG",
+    ),
+    "condition_aware_fusion": (
+        "condition-aware fusion",
+        "corpus-axis bin",
+        "global fusion",
+        "axis interaction",
+    ),
 }
 
-IMPLEMENTATION_FEATURE_REQUIREMENTS: dict[str, tuple[str, ...]] = {
-    "semantic_entropy": ("experiments/adapters/corpus_features.py", "semantic_entropy"),
-    "semantic_energy_boltzmann_or_proxy": ("experiments/adapters/energy_features.py", "semantic_energy_boltzmann"),
-    "quco_entity_frequency": ("experiments/adapters/corpus_features.py", "entity_frequency_mean"),
-    "quco_entity_pair_cooccurrence": ("experiments/adapters/corpus_features.py", "entity_pair_cooccurrence"),
-    "selective_risk_metrics": ("experiments/application/fusion.py", "LogisticRegressionModel"),
+IMPLEMENTATION_FEATURE_REQUIREMENTS: dict[str, tuple[str, str]] = {
+    "semantic_entropy": ("experiments/scripts/compute_semantic_entropy.py", "semantic_entropy"),
+    "semantic_energy_cluster_uncertainty": ("experiments/scripts/compute_energy_features.py", "energy"),
+    "candidate_logit_diagnostics": ("experiments/adapters/energy_features.py", "confidence_margin"),
+    "quco_entity_frequency": ("experiments/adapters/corpus_features.py", "entity_frequency"),
+    "quco_entity_pair_cooccurrence": ("experiments/adapters/corpus_features.py", "cooccurrence"),
+    "condition_aware_fusion": ("experiments/application/fusion.py", "LogisticRegressionModel"),
 }
 
 
-def load_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+def load_json(path: Path) -> dict[str, object]:
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(loaded, dict):
+        raise ValueError(f"formula config must contain a JSON object: {path}")
+    return loaded
 
 
 def split_formula_sections(text: str) -> dict[str, str]:
@@ -43,6 +80,18 @@ def split_formula_sections(text: str) -> dict[str, str]:
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
         sections[match.group("id")] = text[start:end]
     return sections
+
+
+def required_formula_entries(formulas: dict[str, object]) -> list[dict[str, object]]:
+    entries = formulas.get("required_formulas")
+    if not isinstance(entries, list):
+        raise ValueError("formula config missing list field required_formulas")
+    checked: list[dict[str, object]] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("each required_formulas entry must be an object")
+        checked.append(entry)
+    return checked
 
 
 def validate(args: argparse.Namespace) -> list[str]:
@@ -56,14 +105,15 @@ def validate(args: argparse.Namespace) -> list[str]:
     pipeline_text = pipeline_path.read_text(encoding="utf-8")
     problems: list[str] = []
 
-    for entry in formulas.get("required_formulas", []):
+    for entry in required_formula_entries(formulas):
         formula_id = str(entry.get("id"))
+        source_id = str(entry.get("source_id"))
         section = sections.get(formula_id)
         if section is None:
             problems.append(f"missing formula notes section for {formula_id}")
             continue
-        if f"Source ID: {entry.get('source_id')}" not in section:
-            problems.append(f"formula {formula_id} missing source id {entry.get('source_id')}")
+        if f"Source ID: {source_id}" not in section:
+            problems.append(f"formula {formula_id} missing source id {source_id}")
         for field in REFERENCE_FIELDS:
             if field not in section and "UNVERIFIED_DO_NOT_CITE" not in section:
                 problems.append(f"formula {formula_id} missing {field}")
@@ -79,10 +129,15 @@ def validate(args: argparse.Namespace) -> list[str]:
             elif token not in implementation_path.read_text(encoding="utf-8"):
                 problems.append(f"implementation file {relative_path} missing token for {formula_id}: {token}")
 
-    if "proxy selected-logit scalars are not thesis-valid" not in pipeline_text:
-        problems.append("pipeline must explicitly reject proxy selected-logit Energy as thesis-valid")
-    if "Elasticsearch/BM25 may be used for retrieval evidence" not in pipeline_text:
-        problems.append("pipeline must separate Elasticsearch retrieval from QuCo count semantics")
+    required_pipeline_caveats = (
+        "multi-generation semantic clustering and cluster-level energy aggregation",
+        "not direct correctness labels",
+        "Elasticsearch/BM25 may be used for retrieval evidence",
+        "not a RAG system",
+    )
+    for caveat in required_pipeline_caveats:
+        if caveat not in pipeline_text:
+            problems.append(f"pipeline missing required caveat: {caveat}")
     return problems
 
 

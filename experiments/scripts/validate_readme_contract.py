@@ -21,113 +21,83 @@ REQUIRED_SECTIONS = [
 ]
 
 REQUIRED_ITEMS = [
-    ("method name", "Corpus-Grounded Selective Fusion Detector"),
+    ("method name", "Corpus-Conditioned Hallucination Metric Reliability Study"),
     (
-        "high-diversity Semantic Entropy thesis claim",
-        "High-diversity hallucinations are targeted by Semantic Entropy.",
+        "corpus axis reliability thesis claim",
+        "Corpus entity frequency and entity-pair co-occurrence define continuous conditioning axes for hallucination metric reliability.",
     ),
     (
-        "low-diversity Semantic Energy thesis claim",
-        "Low-diversity hallucinations are targeted by Semantic Energy.",
+        "paper faithful metric reliability thesis claim",
+        "Paper-faithful Semantic Entropy and Semantic Energy must be evaluated as metric families whose reliability can change across corpus-axis bins",
     ),
     (
-        "QuCo-RAG selective fusion thesis claim",
-        "QuCo-RAG-style corpus statistics support selective fusion",
+        "condition-aware fusion thesis claim",
+        "Condition-aware fusion is evaluated by comparing global fusion against corpus-bin-aware or axis-interaction fusion",
     ),
-    ("NORMAL label", "NORMAL"),
-    ("HIGH_DIVERSITY label", "HIGH_DIVERSITY"),
-    ("LOW_DIVERSITY label", "LOW_DIVERSITY"),
-    ("AMBIGUOUS_INCORRECT label", "AMBIGUOUS_INCORRECT"),
-    ("NORMAL label rule", "correct -> NORMAL"),
-    ("HIGH_DIVERSITY label rule", "incorrect and SE > 0.5 -> HIGH_DIVERSITY"),
-    ("LOW_DIVERSITY label rule", "incorrect and SE <= 0.1 -> LOW_DIVERSITY"),
+    ("not RAG system caveat", "The proposed contribution is not a RAG system"),
+    ("low frequency not label caveat", "Low entity frequency or zero entity-pair co-occurrence is not itself a hallucination label."),
+    ("is_correct label", "is_correct"),
+    ("is_hallucination label", "is_hallucination"),
+    ("candidate_label field", "candidate_label"),
     (
-        "AMBIGUOUS_INCORRECT label rule",
-        "incorrect and 0.1 < SE <= 0.5 -> AMBIGUOUS_INCORRECT",
-    ),
-    ("ambiguous incorrect guardrail", "Ambiguous incorrect samples are never treated as normal."),
-    (
-        "fixed operational labels guardrail",
-        "The four operational labels above keep their fixed thresholds.",
+        "archived operational label caveat",
+        "may appear only as archived operational labels from the earlier diagnostic run",
     ),
     (
-        "row-level operational type label marking",
-        "Every row-level output must include an explicit operational type label marker for every sample",
+        "paired active dataset contract",
+        "The active thesis dataset is exactly one paired discriminative experiment dataset built from:",
     ),
-    ("TruthfulQA dataset", "TruthfulQA"),
-    ("TriviaQA dataset", "TriviaQA"),
-    ("HaluEval-QA dataset", "HaluEval-QA"),
-    ("Natural Questions future dataset", "Natural Questions"),
-    ("HotpotQA future dataset", "HotpotQA"),
-    ("FEVER future dataset", "FEVER"),
-    ("BioASQ future dataset", "BioASQ"),
+    ("TruthfulQA active paired dataset", "- TruthfulQA"),
+    ("HaluEval-QA active paired dataset", "- HaluEval-QA"),
+    ("exactly two candidate rows contract", "Each prompt contributes exactly two candidate rows"),
+    ("teacher-forced fixed candidate scoring contract", "The model scores those fixed candidates with teacher forcing."),
+    ("no generated-answer relabeling contract", "It does not generate an answer for later correctness labeling."),
+    ("excluded datasets heading", "Excluded datasets:"),
+    ("TriviaQA excluded dataset", "- TriviaQA"),
+    ("Natural Questions excluded dataset", "- Natural Questions"),
+    ("HotpotQA excluded dataset", "- HotpotQA"),
+    ("FEVER excluded dataset", "- FEVER"),
+    ("BioASQ excluded dataset", "- BioASQ"),
     (
-        "dataset expansion policy",
-        "Dataset expansion is allowed when clearly configured and reported",
+        "excluded datasets clean-pair rationale",
+        "do not provide clean dataset-level `(right_answer, hallucinated_answer)` candidate pairs",
     ),
-    (
-        "mandatory core datasets policy",
-        "TruthfulQA, TriviaQA, and HaluEval-QA remain mandatory core datasets",
-    ),
-    (
-        "stretch datasets promotion policy",
-        "remain future or stretch datasets unless a later checked-in config explicitly promotes them",
-    ),
-    ("semantic_entropy feature", "semantic_entropy"),
-    ("cluster_count feature", "cluster_count"),
-    ("semantic energy feature option", "semantic_energy_boltzmann"),
-    ("semantic energy proxy feature option", "semantic_energy_proxy"),
-    ("logit_variance feature", "logit_variance"),
-    ("confidence_margin feature", "confidence_margin"),
-    ("entity_frequency feature", "entity_frequency"),
-    ("entity_pair_cooccurrence feature", "entity_pair_cooccurrence"),
-    ("low_frequency_entity_flag feature", "low_frequency_entity_flag"),
+    ("semantic entropy likelihood feature", "semantic_entropy_nli_likelihood"),
+    ("semantic entropy cluster feature", "semantic_entropy_cluster_count"),
+    ("semantic entropy discrete feature", "semantic_entropy_discrete_cluster_entropy"),
+    ("semantic energy cluster feature", "semantic_energy_cluster_uncertainty"),
+    ("semantic energy sample feature", "semantic_energy_sample_energy"),
+    ("mean nll diagnostic", "mean_negative_log_probability"),
+    ("logit variance diagnostic", "logit_variance"),
+    ("confidence margin diagnostic", "confidence_margin"),
+    ("boltzmann diagnostic", "semantic_energy_boltzmann_diagnostic"),
+    ("entity frequency feature", "entity_frequency"),
+    ("entity frequency axis", "entity_frequency_axis"),
+    ("entity pair cooccurrence feature", "entity_pair_cooccurrence"),
+    ("entity pair cooccurrence axis", "entity_pair_cooccurrence_axis"),
+    ("corpus bin", "corpus_axis_bin"),
+    ("N=10 SE requirement", "N=10 answer-only samples"),
+    ("NLI SE requirement", "NLI-based semantic clustering"),
+    ("likelihood SE requirement", "likelihood-based cluster probabilities"),
+    ("Semantic Energy cluster requirement", "cluster-level aggregation"),
+    ("corpus condition not label", "not direct correctness labels"),
     ("SE-only baseline", "SE-only"),
     ("Energy-only baseline", "Energy-only"),
-    ("corpus-risk-only baseline", "corpus-risk-only"),
-    ("fixed linear 0.1/0.9 baseline", "fixed linear 0.1/0.9"),
-    ("fixed linear 0.5/0.5 baseline", "fixed linear 0.5/0.5"),
-    ("fixed linear 0.9/0.1 baseline", "fixed linear 0.9/0.1"),
-    ("hard cascade baseline", "hard cascade"),
-    ("learned fusion without corpus baseline", "learned fusion without corpus"),
-    ("learned fusion with corpus baseline", "learned fusion with corpus"),
-    (
-        "PC Probe reference-only guardrail",
-        "PC Probe is reference-only and not implemented. Hidden-state/probe features are excluded.",
-    ),
-    (
-        "corpus direct learned-fusion guardrail",
-        "corpus features as direct learned-fusion features, not a scalar coverage-only proposed method",
-    ),
+    ("logit diagnostic baseline", "logit-diagnostic-only"),
+    ("corpus-axis-only baseline", "corpus-axis-only"),
+    ("global fusion without corpus", "global learned fusion without corpus axis"),
+    ("global fusion with corpus", "global learned fusion with corpus axis"),
+    ("corpus-bin feature selection", "corpus-bin feature selection"),
+    ("corpus-bin weighted fusion", "corpus-bin weighted fusion"),
+    ("axis interaction logistic fusion", "axis-interaction logistic fusion"),
+    ("PC Probe reference-only guardrail", "PC Probe is reference-only and not implemented. Hidden-state/probe features are excluded."),
     ("AUROC metric", "AUROC"),
     ("AUPRC metric", "AUPRC"),
-    ("accuracy metric", "accuracy"),
-    ("precision metric", "precision"),
-    ("recall metric", "recall"),
-    ("F1 metric", "F1"),
-    (
-        "fine-grained SE bin analysis",
-        "Fine-grained SE bin analysis for crossover and threshold sensitivity",
-    ),
-    (
-        "SE bin coverage",
-        "deciles or config-defined bins spanning `[0, +inf)`",
-    ),
-    (
-        "SE bins are analysis only",
-        "Fine-grained SE bins are for analysis, crossover checks, and threshold sensitivity only.",
-    ),
-    ("run_id output element", "run_id"),
-    ("method_name output element", "method_name"),
-    ("dataset output element", "dataset"),
-    ("split_id output element", "split_id"),
-    ("sample_id output element", "sample_id"),
-    ("label output element", "label"),
-    ("features output element", "features"),
-    ("prediction_score output element", "prediction_score"),
-    ("prediction_label output element", "prediction_label"),
-    ("metrics output element", "metrics"),
-    ("feature_importance output element", "feature_importance"),
+    ("paired win rate metric", "paired win rate"),
+    ("prompt bootstrap metric", "Prompt-grouped bootstrap confidence intervals"),
+    ("corpus bin metrics", "per corpus-axis bin"),
+    ("feature alignment output", "feature_alignment"),
+    ("corpus_axis output element", "corpus_axis"),
     ("formula_manifest_ref output element", "formula_manifest_ref"),
     ("dataset_manifest_ref output element", "dataset_manifest_ref"),
     ("domain architecture element", "domain"),
@@ -142,6 +112,15 @@ REQUIRED_ITEMS = [
     ("QuCo-RAG caveat", "QuCo-RAG is used as corpus frequency and entity-pair co-occurrence inspiration."),
     ("Ma Semantic Energy caveat", "Ma Semantic Energy is used as the Semantic Energy source or motivation."),
     ("Phillips/PC Probe caveat", "Phillips/PC Probe is reference-only."),
+]
+
+FORBIDDEN_ITEMS = [
+    "The method name is exactly `Corpus-Grounded Selective Fusion Detector`.",
+    "High-diversity hallucinations are targeted by Semantic Entropy.",
+    "Low-diversity hallucinations are targeted by Semantic Energy.",
+    "The four operational labels above keep their fixed thresholds.",
+    "corpus features as direct learned-fusion features, not a scalar coverage-only proposed method",
+    "The main method comparison is learned fusion with corpus against learned fusion without corpus",
 ]
 
 
@@ -160,8 +139,53 @@ def validate(readme_path: Path) -> list[str]:
         if needle not in text:
             missing.append(f"{name}: {needle}")
 
-    if "PC Probe" in text and "implemented baseline" in text:
-        missing.append("PC Probe guardrail conflict: README suggests an implemented baseline")
+    for needle in FORBIDDEN_ITEMS:
+        if needle in text:
+            missing.append(f"stale README contract item: {needle}")
+
+    forbidden_conflicts = [
+        (
+            "TriviaQA active/core/mandatory conflict",
+            [
+                "TriviaQA active dataset",
+                "active TriviaQA",
+                "TriviaQA is active",
+                "TriviaQA core dataset",
+                "core TriviaQA",
+                "TriviaQA is core",
+                "TriviaQA mandatory",
+                "mandatory TriviaQA",
+                "TruthfulQA, TriviaQA, and HaluEval-QA remain mandatory core datasets",
+            ],
+        ),
+        (
+            "LLM-as-judge or heuristic label construction conflict",
+            [
+                "LLM-as-judge label construction",
+                "LLM as judge label construction",
+                "judge-based label construction is allowed",
+                "heuristic matching is allowed",
+                "heuristic matching label construction",
+                "synthetic hallucinated candidates are allowed",
+                "generates an answer for later correctness labeling",
+                "may generate an answer for later correctness labeling",
+                "can generate an answer for later correctness labeling",
+            ],
+        ),
+        (
+            "RAG thesis framing conflict",
+            [
+                "RAG system thesis",
+                "retrieval trigger thesis",
+                "retrieval trigger is the main contribution",
+            ],
+        ),
+    ]
+
+    for conflict_name, needles in forbidden_conflicts:
+        for needle in needles:
+            if needle in text:
+                missing.append(f"{conflict_name}: {needle}")
 
     return missing
 
@@ -180,7 +204,7 @@ def main(argv: list[str]) -> int:
             print(f"- {item}", file=sys.stderr)
         return 1
 
-    print(f"README contract validation passed: {readme_path}")
+    print(f"README contract validation passed for {readme_path}.")
     return 0
 
 
