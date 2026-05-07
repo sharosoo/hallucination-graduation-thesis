@@ -18,6 +18,25 @@ output/
 experiments/results/generation/
 experiments/results/runs/
 
+# large run artifacts: keep text summaries, drop heavy raw data
+*.parquet
+*.parquet.jsonl
+experiments/results/fusion/predictions.jsonl
+experiments/results/**/prompt_groups.jsonl
+experiments/results/**/candidate_rows.jsonl
+experiments/results/**/free_sample_rows.json
+experiments/results/**/candidate_scores.json
+experiments/results/correctness/data/
+experiments/results/paired-datasets-qwen/
+experiments/results/qwen-live-subset/
+
+# knowledge graph build output
+graphify-out/
+
+# local agent/editor settings
+.claude/
+.opencode/
+
 # local model/data caches
 .cache/
 .hf/
