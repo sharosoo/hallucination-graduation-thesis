@@ -82,9 +82,10 @@ run_stage S4 'compute semantic entropy (batched NLI)' \
     --progress "$LOGS/S4.semantic_entropy.progress.json" \
     --resume
 
-# ---------- S5: corpus features (already prebuilt; --resume should skip) ----------
-require_file 'corpus_features.parquet (pre-built)' "$CORPUS_OUT"
-run_stage S5 'compute corpus features (resume-skip expected)' \
+# ---------- S5: corpus features (rebuild if missing — needed for corpus_axis_bin_10) ----------
+# 기존 prebuild parquet은 corpus_axis_bin_10 컬럼이 없어 새 schema 검증 fail. 삭제됐으므로
+# 이 단계가 cache hit 기반으로 ~1-2분에 새로 산출 (S2 완료 후 host MEM 여유 있을 때 실행).
+run_stage S5 'compute corpus features (rebuild for 10-bin schema)' \
   uv run python experiments/scripts/compute_corpus_features.py \
     --candidates "$CANDIDATE_ROWS" \
     --out "$CORPUS_OUT" \
