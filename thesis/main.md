@@ -59,7 +59,7 @@ SelfCheckGPT는 외부 지식 베이스 없이 여러 응답을 샘플링하고 
 | Semantic Entropy | prompt-level | NLI cluster + Shannon entropy | 단일 cluster 사례 판별 약함 |
 | Semantic Energy | cluster-level | cluster 가중 token logit 합 | cluster 정의 의존, 다양성 가정 |
 | logit diagnostic | candidate-level | NLL, logit variance, margin | CHOKE 사례에서 방향 역전 |
-| corpus support | candidate-level | entity frequency / pair co-occurrence | 외부 corpus snapshot 의존, proxy 성격 |
+| corpus support | candidate (raw) $`\to`$ prompt aggregate | entity frequency / pair co-occurrence | 외부 corpus snapshot 의존, proxy 성격 |
 
 본 연구에서 비교하는 환각 탐지 신호.
 
