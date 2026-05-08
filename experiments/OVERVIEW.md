@@ -123,4 +123,4 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 - **QuCo-RAG 2025**: entity frequency / pair co-occurrence를 *retrieval trigger* 가 아닌 **신뢰도 conditioning 축**으로 재해석. 같은 통계, 다른 용도.
 - **Phillips 2026 PC Probe**: hidden-state probe는 채택하지 않음 (black-box compatibility 유지). framing reference만.
 - **Valentin et al. 2024 (Cost-Effective Detection)**: conditional calibration framework. 본 연구와 직교 — 그쪽은 *내부* score attribute 조건화, 본 연구는 *외부* corpus statistics 조건화. black-box compatibility 비교 시 인용.
-- **Simhi et al. 2025 (CHOKE)**: 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE의 low-diversity wrong answer 한계의 외부 evidence → 외부 corpus axis conditioning 동기 강화.
+- **Simhi et al. 2025 (CHOKE)**: 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE의 low-diversity wrong answer 한계의 외부 evidence → 외부 corpus axis conditioning 동기 강화. **본 실험 데이터에서 직접 재현됨**: candidate-level NLL/margin 역방향 (환각이 더 자신있게 생성됨) + corpus-level pair_cooccurrence 정방향 (환각이 더 흔한 entity pair 사용) — 두 evidence가 같은 그림 ("익숙한 entity의 잘못된 조합으로 환각이 만들어짐"). 자세한 분석은 `experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md` 참조.

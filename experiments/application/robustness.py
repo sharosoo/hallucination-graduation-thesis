@@ -12,6 +12,7 @@ from typing import Any
 
 from experiments.adapters.corpus_features import (
     FIVE_BIN_RULES,
+    TEN_BIN_RULES,
     THREE_BIN_RULES,
     load_json,
     read_feature_rows,
@@ -29,6 +30,7 @@ BOOTSTRAP_SEED = 20260507
 BOOTSTRAP_ITERATIONS = 2000
 PRIMARY_BIN_FIELD = "corpus_axis_bin"
 SENSITIVITY_BIN_FIELD = "corpus_axis_bin_5"
+EXTENDED_BIN_FIELD = "corpus_axis_bin_10"
 METHOD_COMPARISON_CANDIDATES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
     (("global learned fusion with corpus axis", "learned fusion with corpus"), ("global learned fusion without corpus axis", "learned fusion without corpus")),
     (("global learned fusion with corpus axis", "learned fusion with corpus"), ("SE-only",)),
@@ -122,7 +124,12 @@ def _bin_value(row: dict[str, Any], field_name: str) -> str | None:
 
 
 def _expected_bins(field_name: str) -> tuple[str, ...]:
-    rules = THREE_BIN_RULES if field_name == PRIMARY_BIN_FIELD else FIVE_BIN_RULES
+    if field_name == PRIMARY_BIN_FIELD:
+        rules = THREE_BIN_RULES
+    elif field_name == EXTENDED_BIN_FIELD:
+        rules = TEN_BIN_RULES
+    else:
+        rules = FIVE_BIN_RULES
     return tuple(str(name) for name, _cutoff in rules)
 
 
@@ -519,6 +526,7 @@ def _build_method_records(
                     "threshold": _coerce_float(prediction.get("threshold")),
                     PRIMARY_BIN_FIELD: _bin_value(truth_row, PRIMARY_BIN_FIELD),
                     SENSITIVITY_BIN_FIELD: _bin_value(truth_row, SENSITIVITY_BIN_FIELD),
+                    EXTENDED_BIN_FIELD: _bin_value(truth_row, EXTENDED_BIN_FIELD),
                 }
             )
         method_records[method_name] = records
@@ -831,17 +839,28 @@ def _build_corpus_bin_reliability(
             seed=seed + (method_index * 100) + 50,
             iterations=iterations,
         )
+        extended_scheme = _analyze_scheme(
+            field_name=EXTENDED_BIN_FIELD,
+            method_name=method_name,
+            records=records,
+            seed=seed + (method_index * 100) + 75,
+            iterations=iterations,
+        )
         methods[method_name] = {
             "row_count": len(records),
             "primary": {key: value for key, value in primary_scheme.items() if key != "claim_rows"},
             "sensitivity": {key: value for key, value in sensitivity_scheme.items() if key != "claim_rows"},
+            "extended": {key: value for key, value in extended_scheme.items() if key != "claim_rows"},
             "binning_sensitivity": _scheme_sensitivity(primary_scheme, sensitivity_scheme),
+            "binning_extended_sensitivity": _scheme_sensitivity(primary_scheme, extended_scheme),
         }
         claim_rows.extend(primary_scheme.get("claim_rows", []))
         claim_rows.extend(sensitivity_scheme.get("claim_rows", []))
+        claim_rows.extend(extended_scheme.get("claim_rows", []))
     return {
         "primary_field": PRIMARY_BIN_FIELD,
         "sensitivity_field": SENSITIVITY_BIN_FIELD,
+        "extended_field": EXTENDED_BIN_FIELD,
         "bootstrap_seed": seed,
         "bootstrap_iterations": iterations,
         "methods": methods,

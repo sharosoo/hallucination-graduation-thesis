@@ -157,3 +157,15 @@ Compare:
 자세한 positioning은 `experiments/literature/evidence_notes/valentin_calibration_vs_corpus_axis.md`,
 `experiments/literature/evidence_notes/simhi_choke_motivates_corpus_axis.md`,
 `experiments/literature/evidence_notes/quco_vs_probe.md` 참조.
+
+### 핵심 발견 (thesis-valid run, paper-faithful 결과 도착 후)
+
+본 실험 데이터에서 Simhi et al. 2025의 CHOKE 현상이 **두 직교 scope에서 동시에 재현됨**:
+- **candidate-level**: 환각 답이 정답 답보다 *더 작은 NLL* + *더 큰 confidence margin*
+  (paired win-rate 0.36 / 0.34, n≈5,200, ties 제외) — 모델이 환각을 *더 자신있게* 생성
+- **corpus-level**: `entity_pair_cooccurrence_axis` 의 paired win-rate 0.551
+  (n=2,499) — 환각 답이 corpus에 *더 자주 같이 등장하는* entity pair 사용
+
+두 evidence가 동일 그림을 그림: **"모델은 익숙한 entity를 잘못된 관계로
+confident하게 조합해서 환각을 만든다."** 자세한 분석은
+`experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md`.
