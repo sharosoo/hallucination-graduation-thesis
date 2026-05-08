@@ -2,105 +2,41 @@
 
 \section{실험 설정}
 
-본 절에서는 환각 탐지 실험 절차를 설명한다. 실험의 핵심은 모델이 새 답변을 생성한 뒤 그 정오를 사후에 판정하는 방식이 아니라, 데이터셋이 이미 정답 답과 환각 답을 명시적으로 구분해 제공한다는 점을 활용해 두 후보를 같은 질문 아래에서 paired로 비교하는 데 있다. 이렇게 하면 (i) 새 답이 정답인지를 판정하기 위한 문자열 일치 heuristic, (ii) 별도 LLM에게 정오를 묻는 LLM-as-judge 방식 모두에 의존하지 않고, 이미 annotation으로 구분된 후보 쌍을 대상으로 uncertainty와 corpus-grounded feature가 환각 탐지에 어떤 신호를 주는지 분석할 수 있다.
+본 실험은 데이터셋이 이미 정답 후보와 환각 후보를 명시적으로 구분해 제공한다는 점을 활용하여, 새 답을 생성한 뒤 정오를 사후 판정하는 절차나 LLM-as-judge 의존 없이 paired 비교를 수행한다.
 
 \subsection{데이터셋 구성}
 
-실험에는 TruthfulQA\cite{truthfulqa}와 HaluEval-QA\cite{halueval2023} 두 데이터셋을 사용하였다. 두 데이터셋 모두 질문마다 정답 후보와 잘못된(혹은 환각) 후보를 명시적으로 제공하므로 paired 평가에 적합하다. TruthfulQA에서는 각 질문의 \texttt{correct\_answers}와 \texttt{incorrect\_answers}에서 하나의 정답 후보와 하나의 오답 후보를 결정론적으로 선택하였다. HaluEval-QA에서는 데이터셋이 제공하는 \texttt{right\_answer}와 \texttt{hallucinated\_answer}를 그대로 사용하였다.
+TruthfulQA\cite{truthfulqa} 와 HaluEval-QA\cite{halueval2023} 두 데이터셋을 사용한다. TruthfulQA 는 \texttt{correct\_answers} / \texttt{incorrect\_answers} 에서 결정론적으로 한 쌍씩, HaluEval-QA 는 제공되는 \texttt{right\_answer} / \texttt{hallucinated\_answer} 를 그대로 사용한다. 각 prompt 마다 정확히 두 candidate row (정답 후보 + 환각 후보) 를 만들며, 최종 데이터는 prompt 5{,}815 개 + candidate row 11{,}630 개이다 (TruthfulQA prompt 815 / row 1{,}630, HaluEval-QA prompt 5{,}000 / row 10{,}000).
 
-각 질문은 하나의 prompt 단위로 다루며, 한 prompt에서 정확히 두 개의 candidate row를 만든다. 하나는 정답 후보, 다른 하나는 환각 후보이다. 최종 실험 데이터는 prompt 5,815개, candidate row 11,630개로 구성된다. HaluEval-QA가 prompt 5,000개와 row 10,000개, TruthfulQA가 정제 후 prompt 815개와 row 1,630개를 제공한다.
+\subsection{모델 출력 수집}
 
-\begin{table}[htbp]
-\centering
-\caption{실험 데이터셋 구성}
-\label{tab:dataset_composition}
-\begin{tabular}{@{}lrrl@{}}
-\toprule
-데이터셋 & Prompt 수 & Candidate row 수 & 후보 쌍 출처 \\
-\midrule
-TruthfulQA & 815 & 1,630 & 정답/오답 answer list \\
-HaluEval-QA & 5,000 & 10,000 & right/hallucinated answer \\
-\midrule
-합계 & 5,815 & 11,630 & paired candidates \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{환각 여부 라벨링}
-
-환각 여부 라벨은 모델 출력이나 후처리 judge에서 오지 않는다. 각 candidate row의 주 라벨은 데이터셋 annotation이 제공하는 \texttt{is\_hallucination} 이진 값이며, 이 값이 최종 환각 탐지 평가의 기준이다. 즉 본 연구는 데이터셋 annotation을 ground truth로 받아들이고, 모델 출력 자체에서 라벨을 유도하지 않는다. 이때 Semantic Entropy는 prompt 단위 값이므로 같은 질문의 정답 후보와 환각 후보가 같은 SE 값을 공유한다.
-
-\subsection{모델 scoring 절차}
-
-모델은 Qwen2.5-3B 계열 causal LM을 사용한다. 후속 분석에서 token logit을 그대로 활용하기 위해 모든 후보의 full-vocabulary logits을 함께 기록한다. 실험은 두 종류의 모델 출력을 사용한다.
+모델은 Qwen2.5-3B causal LM 을 사용한다. 두 종류의 출력을 함께 수집한다.
 
 \begin{itemize}
-    \item \textbf{Free sampling}. Semantic Entropy 계산을 위해 각 prompt에 대해 모델로 N=10개의 짧은 답변을 자유 sampling한다 (아래 ``Answer-only sampling 절차'' 참조). 이는 prompt 단위 신호의 입력이다.
-    \item \textbf{Teacher-forced scoring}. candidate 단위 feature 계산을 위해 각 정답/환각 후보 답을 모델에게 입력으로 주입하면서 점수만 측정한다 (아래 ``Teacher-forced scoring 구현'' 참조). 모델이 후보 답을 새로 만들지는 않으며, 주어진 답을 평가만 한다.
+    \item \textbf{Free sampling} (Semantic Entropy 입력용): 각 prompt 에 대해 N=10 개의 짧은 답변을 자유 sampling 한다. 답변 길이는 최대 64 token 으로 제한하고 형식이 맞지 않은 표본은 일정 횟수까지 재 sampling 한다. 짧은 entity-중심 답변에서 NLI cluster 판단이 안정적이며 후보 답변 단위와 일치한다.
+    \item \textbf{Teacher-forced scoring} (candidate diagnostic 입력용): 정답 / 환각 후보 답을 모델에 입력으로 주입하면서 점수만 측정한다. 후보 답에 해당하는 token 위치 $t$ 마다 selected token logit $z_t(x_t)$, $\log p_\theta(x_t \mid \text{prompt}, x_{<t})$, 분배 함수 $\log Z_t$, vocabulary logit 분산, top-1 vs top-2 logit 차 (confidence margin) 을 모두 기록하고 후보 답 길이 $T$ 로 평균한다.
 \end{itemize}
-
-이 구분은 이후 결과 해석에서 중요하다. Semantic Entropy는 같은 prompt의 두 candidate row에 같은 값이 복사되지만, candidate 단위 diagnostic(NLL, logit variance, confidence margin)은 후보마다 값이 다르고, Semantic Energy는 cluster 단위로 정의된다.
-
-\paragraph{Answer-only sampling 절차.}
-모델이 질문에 대해 설명을 덧붙이지 않고 답만 짧게 출력하도록 sampling을 제약하는 절차이다. 답변 1개당 최대 64 token까지 생성하되 그보다 길어지면 잘라내며, 답변 형식이 맞지 않은 표본은 일정 횟수까지 다시 sampling한다. 이렇게 한 prompt 당 짧은 답변을 N=10개 모은 뒤 NLI semantic clustering을 수행한다. 답변 길이를 짧게 제한하는 이유는 (i) NLI 모델이 짧은 entity-중심 답변에서 cluster 판단을 더 안정적으로 하고, (ii) 후보 답변과 단위가 맞아 비교가 깔끔하기 때문이다.
-
-\paragraph{Teacher-forced scoring 구현.}
-모델로 후보 답을 \emph{새로 생성}하지 않고, 주어진 후보 답이 그 prompt 뒤에 등장할 때 모델이 어떤 점수를 부여하는지를 측정한다. 구체적으로 입력은 ``prompt + 정답 후보'' 또는 ``prompt + 환각 후보''이며, 후보 답에 해당하는 token 구간만 평가 대상이 된다. 한 token 위치 $t$ 에 대해 모델은 vocabulary 전체에 대한 logit vector $z_t \in \mathbb{R}^{|V|}$ 를 산출한다. 본 실험은 그 위치에서 다음 값을 모두 기록한다.
-\begin{itemize}
-    \item 선택된 token의 logit $z_t(x_t)$ 와 log probability $\log p_\theta(x_t \mid \text{prompt}, x_{<t})$.
-    \item 분배 함수 값 $\log Z_t = \log \sum_{v \in V} \exp(z_t(v))$.
-    \item 같은 위치에서 vocabulary 전체에 대한 logit의 분산.
-    \item 가장 높은 logit을 받은 token과 두 번째로 높은 logit을 받은 token 사이의 차이(confidence margin).
-\end{itemize}
-
-후보 단위 점수는 위 token-level 값을 후보 답 길이 $T$ 에 대해 평균하여 만든다. NLL(평균 음의 로그 확률)과 token-level $-\log Z$의 평균이 candidate 단위 한 줄로 묶이는 진단 지표이다. 이 절차는 한 prompt 의 두 후보(정답/환각)를 동일한 채점 기준으로 비교할 수 있게 해 준다는 점에서 본 연구의 paired 평가 설정에 핵심적이다.
 
 \subsection{Feature 계산}
 
-본 연구는 세 종류의 feature군을 사용한다.
-
 \paragraph{Semantic Entropy.}
-Semantic Entropy는 한 prompt에서 얻은 N=10 답변을 \texttt{microsoft/deberta-large-mnli} 기반 bidirectional NLI entailment로 semantic cluster에 묶은 뒤, 표본 sequence log-likelihood를 cluster 단위로 log-sum-exp로 집계해 cluster probability mass를 만들고 그 위에서 entropy를 계산한다. 산출물에는 \texttt{semantic\_entropy\_nli\_likelihood}, \texttt{semantic\_entropy\_cluster\_count}, NLI model reference, 표본 / cluster log-likelihood가 함께 기록된다. SE는 prompt-level feature이고, paired 설정에서 정답 후보와 환각 후보가 같은 SE 값을 받는다.
+한 prompt 에서 얻은 N=10 답변을 \texttt{microsoft/deberta-large-mnli} bidirectional NLI entailment 로 semantic cluster 에 묶고, sequence log-likelihood 를 cluster 단위로 log-sum-exp 집계해 cluster probability $p(\mathbb{C}_k)$ 를 만든 뒤 그 위에서 entropy 를 계산한다 (Farquhar 등 2024). SE 는 prompt-level 신호로, paired 설정에서 한 prompt 의 두 후보가 같은 SE 값을 갖는다.
 
-\paragraph{Semantic Energy와 candidate-level diagnostic.}
-Semantic Energy는 Ma 등(2025) 식 (11)--(14)를 그대로 따른다. 동일한 N=10 답변과 SE 단계의 NLI semantic cluster를 재사용하며, cluster를 다시 계산하지 않고 \texttt{(prompt\_id, sample\_index)}로 join한다. 식은 다음과 같다.
+\paragraph{Semantic Energy.}
+Ma 등 (2025) 식 (11)--(14) 를 그대로 따른다. 동일 N=10 답변과 SE 단계의 NLI cluster 를 \texttt{(prompt\_id, sample\_index)} 로 join 하여 재사용하며,
 \begin{align}
-\tilde{E}(x_t^{(i)}) &= -z_\theta(x_t^{(i)}) \quad \text{(식 13: token energy = $-$ selected-token logit)} \\
-E(x^{(i)}) &= \frac{1}{T_i}\sum_{t=1}^{T_i} \tilde{E}(x_t^{(i)}) \quad \text{(식 11: sample energy)} \\
-E_{\text{Bolt}}(\mathbb{C}_k) &= \sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)}) \quad \text{(식 12: cluster total energy)} \\
-U(\mathbf{x}) &= \sum_{k=1}^{K} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) \quad \text{(식 14: 최종 uncertainty)}
+\tilde{E}(x_t^{(i)}) &= -z_\theta(x_t^{(i)}) & \text{(token energy)} \\
+E(x^{(i)}) &= \tfrac{1}{T_i}\sum_{t} \tilde{E}(x_t^{(i)}) & \text{(sample energy)} \\
+E_{\text{Bolt}}(\mathbb{C}_k) &= \sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)}) & \text{(cluster total)} \\
+U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \text{(최종)}
 \end{align}
-여기서 $p(\mathbb{C}_k) = \sum_{x^{(i)} \in \mathbb{C}_k} \bar{p}(x^{(i)} \mid q)$는 식 (8)의 likelihood-based cluster probability로, SE 단계에서 산출된 값을 그대로 상속한다. 이는 Ma 등(2025) §2.2가 인용하는 Farquhar 등(2024)의 cluster-likelihood weighting과 일치한다. 부호 규약은 lower energy = higher reliability(높은 energy = 높은 uncertainty)이다.
-
-한편 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin은 candidate-level Boltzmann-style energy diagnostic으로 별도 보존하며, Semantic Energy와 같은 열에 합치지 않는다.
+로 계산한다. 부호 규약은 lower energy = higher reliability. teacher-forced scoring 의 token-level $-\log Z$ 평균, NLL 평균, logit variance, confidence margin 은 candidate-level diagnostic 으로 별도 보존한다 (Energy 와 같은 열에 합치지 않는다).
 
 \paragraph{Corpus-grounded feature.}
-후보 답변에 등장하는 entity 의 corpus 내 frequency 와 두 entity 사이의 co-occurrence 를 측정해 corpus support 신호를 만든다. Entity 추출은 \emph{spaCy \texttt{en\_core\_web\_lg} NER} 을 사용하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답변의 의미 단위로 부적합하여 제외). NER 이 비면 spaCy noun-chunk 를 fallback 으로 사용하고, 그래도 비면서 ``Delhi'', ``1941'' 처럼 6 단어 이하 짧은 답인 경우 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 공백 압축 + 중복 제거를 거치며 후보 당 최대 8 개로 잘라낸다. Entity-pair 는 한 후보 답변 내에서 추출된 entity 의 unordered pair 로 정의하며, entity 가 2 개 미만 추출된 답변은 co-occurrence 계산에서 제외된다.
+후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 로 corpus support 신호를 만든다. Entity 추출은 \emph{spaCy \texttt{en\_core\_web\_lg} NER} 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 noun-chunk fallback, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거 + 후보당 최대 8 개로 잘라낸다. corpus count backend 는 Liu 등 (2024) 의 Infini-gram\cite{infinigram2024} 의 \texttt{v4\_dolmasample\_olmo} 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용하며, entity-pair co-occurrence 는 \texttt{count\_cnf} AND query 로 산출한다. 두 값을 결합한 coverage score 위에서 \emph{rank-quantile 균등 분할} 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다 — fixed-cutoff 가 spaCy NER 채택 후 좌편향 분포 (약 58\% 가 0) 에서 표본 쏠림 문제를 보이기 때문이다.
 
-corpus count backend 로는 Liu 등(2024) 이 제안한 Infini-gram\cite{infinigram2024} 을 사용하며, 본 실험은 외부 corpus 로 16B token 규모의 \texttt{v4\_dolmasample\_olmo} 인덱스 (OLMo-7B-hf tokenizer) 를 사용한다. 한 후보 답변에 대해 (i) 추출된 entity 의 frequency, (ii) 두 entity 의 co-occurrence (Infini-gram \texttt{count\_cnf} AND query), (iii) 이 두 값을 결합한 coverage score 위에서 \emph{rank-quantile 균등 분할} 로 산출한 corpus support 구간 label (낮음 / 중간 / 높음 3-bin, 5-bin, 10-bin) 을 함께 산출한다. rank-quantile 분할은 spaCy NER 채택 후 entity\_frequency\_axis 분포가 좌편향 (약 58\% 가 0) 인 환경에서 fixed-cutoff (0.1, 0.2, ... 절대 임계값) 의 표본 쏠림 문제를 해소하기 위한 선택이다 — 자세한 동기와 한계는 §결론 한계 항목에 정리한다.
+corpus 신호는 외부 자료에서 후보 답이 지지될 가능성을 \emph{간접적으로} 나타내는 proxy 이며 모델 hidden-state 나 환각 라벨을 사용하지 않는다.
 
-이 신호는 외부 자료에서 후보 답변이 지지될 가능성을 \emph{간접적으로} 나타내는 proxy이며, 모델의 hidden-state나 환각 여부 라벨을 사용하지 않는다. 낮은 frequency나 zero co-occurrence 자체는 환각 라벨이 아니라, 어디까지나 \emph{지표 신뢰도를 조건화하는 binning 변수}이다.
+\subsection{평가 지표}
 
-\subsection{실험 단계}
-
-실험은 다음 순서로 진행된다.
-
-\begin{enumerate}
-    \item Paired 데이터셋을 구성한다.
-    \item 모델 출력을 수집한다 (free sampling과 teacher-forced scoring).
-    \item Semantic Entropy를 계산한다.
-    \item Corpus support 축을 계산한다.
-    \item Semantic Energy와 candidate 단위 logit diagnostic을 계산한다.
-    \item 위 신호를 한 feature table로 결합한다.
-    \item 단일 신호 baseline과 여러 fusion 방식을 비교한다.
-    \item Robustness 분석(prompt-grouped bootstrap, leave-one-dataset-out, corpus support 구간별 신뢰도, binning sensitivity, threshold / calibration)을 수행한다.
-\end{enumerate}
-
-\subsection{평가 지표와 해석 원칙}
-
-공통 baseline 표에는 AUROC, AUPRC, F1 등 표준 분류 지표를 보고한다. 학습 라벨은 데이터셋 annotation의 \texttt{is\_hallucination} 이진 값이다. 주 분석 축은 corpus support bin(3-bin 기본, 5-bin / 10-bin sensitivity)이며, 각 bin 안에서 SE / Energy / logit-diagnostic의 AUROC와 paired win-rate를 보고한다.
-
-다만 이 candidate-row 종합 지표는 모든 feature에서 같은 의미를 갖지 않는다. Semantic Entropy는 prompt-level feature이므로, 같은 prompt의 정답 후보와 환각 후보가 같은 SE 값을 가진다. SE-only의 candidate-row AUROC가 0.5에 묶이는 것은 SE가 무의미하다는 뜻이 아니라, prompt-level feature를 candidate-row 순위 평가에 적용한 구조적 결과이다.
-
-Semantic Energy와 logit diagnostic은 candidate-level 또는 cluster-level 신호이지만, 그 신뢰도가 corpus support 조건에 따라 달라질 수 있다. 따라서 핵심 평가는 각 corpus support bin에서 환각 후보가 짝지어진 정답 후보보다 더 높은 위험 점수를 받는지 확인하는 matched-pair metric이다. 구체적으로 (i) hallucinated $-$ correct paired delta, (ii) paired win-rate, (iii) prompt-grouped bootstrap 95\% 신뢰구간, (iv) leave-one-dataset-out 일반화, (v) threshold / calibration sensitivity, (vi) 3/5/10-bin binning sensitivity를 모두 보고한다. Train/test 분할은 prompt 단위로 묶어 같은 prompt의 두 candidate row가 fold를 가로지르지 않게 강제한다.
-
+종합 표는 AUROC / AUPRC / Brier / ECE 를 보고한다. Train / test 분할은 prompt 단위 5-fold KFold (한 prompt 의 모든 정보가 같은 fold) 로 강제한다. Prompt-level main 평가의 binary 라벨은 free-sample N=10 의 token-overlap ($\ge 50\%$) 정답 매칭 비율이 $< 0.5$ 인 prompt 를 \emph{hard prompt} 로 정의한다 (SE 원논문 framing 과 일치). Candidate-row sensitivity 평가의 라벨은 데이터셋 annotation 의 \texttt{is\_hallucination} 을 그대로 사용한다.
