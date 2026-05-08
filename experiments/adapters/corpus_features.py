@@ -455,12 +455,19 @@ class CorpusFeatureAdapter:
         dataset_config_path: Path,
         *,
         entity_extractor: Any | None = None,
+        binning_strategy: str = "rank_quantile",
     ) -> None:
         self.candidates_path = candidates_path
         self.rows = load_candidate_rows(candidates_path)
         self.backend = build_corpus_count_backend(candidates_path)
         self.analysis_bins, self.analysis_bin_specs = read_analysis_bin_config(dataset_config_path)
         self.entity_extractor = entity_extractor or _get_default_entity_extractor()
+        if binning_strategy not in {"fixed_cutoff", "rank_quantile"}:
+            raise ValueError(
+                f"Unsupported binning_strategy={binning_strategy!r}. "
+                "Allowed: 'fixed_cutoff', 'rank_quantile'."
+            )
+        self.binning_strategy = binning_strategy
         self._prefetch_entities()
         self._maybe_warmup_backend()
 
@@ -539,6 +546,11 @@ class CorpusFeatureAdapter:
             rows.append(slim_row)
             provenance_records.append(heavy_provenance)
         self._provenance_records = provenance_records  # consumed by sidecar writer
+
+        quantile_summary: dict[str, Any] | None = None
+        if self.binning_strategy == "rank_quantile":
+            quantile_summary = self._apply_rank_quantile_bins(rows)
+
         rows_by_source = Counter(str(row["features"].get("corpus_source")) for row in rows)
         rows_by_status = Counter(str(row["features"].get("corpus_status")) for row in rows)
         report = {
@@ -554,8 +566,52 @@ class CorpusFeatureAdapter:
             "corpus_status_counts": dict(rows_by_status),
             "allowed_backend_ids": sorted(ALLOWED_BACKEND_IDS),
             "count_backend_contract": "direct corpus counts only; candidate_text proxy counting and BM25 retrieval scores are forbidden",
+            "binning_strategy": self.binning_strategy,
         }
+        if quantile_summary is not None:
+            report["binning_quantile"] = quantile_summary
         return rows, report
+
+    def _apply_rank_quantile_bins(self, rows: list[dict[str, Any]]) -> dict[str, Any]:
+        """Recompute corpus_axis_bin/_5/_10 by rank-quantile over coverage_score.
+
+        Fixed-cutoff binning on entity_frequency_axis-derived coverage_score is
+        unstable when the score distribution is highly skewed (e.g., spaCy NER
+        produces many rows with entity_frequency_min=0 → coverage_score=0,
+        collapsing 80%+ of rows into the lowest bin). Rank-quantile binning
+        replaces the fixed thresholds with sample quantiles so that each bin
+        receives an equal share of rows that have a coverage_score, while rows
+        with coverage_score=None retain corpus_axis_bin=None.
+        """
+        eligible = [
+            (idx, row["features"].get("coverage_score"))
+            for idx, row in enumerate(rows)
+            if row["features"].get("coverage_score") is not None
+        ]
+        if not eligible:
+            return {"eligible_row_count": 0, "bin_counts": {}}
+        # Stable rank by score then by original index for tie determinism.
+        eligible.sort(key=lambda item: (item[1], item[0]))
+        n = len(eligible)
+        bin_specs = (
+            ("corpus_axis_bin", THREE_BIN_RULES),
+            ("corpus_axis_bin_5", FIVE_BIN_RULES),
+            ("corpus_axis_bin_10", TEN_BIN_RULES),
+        )
+        bin_counts: dict[str, dict[str, int]] = {}
+        for field, rules in bin_specs:
+            labels = [label for label, _ in rules]
+            n_bins = len(labels)
+            counts = Counter()
+            for rank, (idx, _) in enumerate(eligible):
+                # Map rank to bin via floor((rank * n_bins) / n).
+                slot = min(rank * n_bins // n, n_bins - 1)
+                label = labels[slot]
+                rows[idx]["features"][field] = label
+                rows[idx]["corpus_axis"][field] = label
+                counts[label] += 1
+            bin_counts[field] = dict(counts)
+        return {"eligible_row_count": n, "bin_counts": bin_counts}
 
     def _build_row(self, run_id: str, source_row: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         question_entities, answer_entities, entities = self._cached_combine_entities(source_row)

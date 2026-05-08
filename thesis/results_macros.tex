@@ -1,23 +1,24 @@
 % Headline metric macros for thesis prose.
 %
 % Source: thesis-valid run pipeline-20260507T103225Z, S5-S9 re-run with
-% spaCy en_core_web_lg entity extractor (2026-05-08 round 5 pivot from
-% regex / QuCo). Earlier macro values (regex-era 0.166 / QuCo-era unused)
-% are superseded.
+% spaCy en_core_web_lg entity extractor + rank-quantile corpus binning
+% (2026-05-08 round 6 binning fix). Earlier macro values (regex-era /
+% QuCo-era / fixed-cutoff spaCy) are superseded.
 %
 % 갱신 정책: 매크로만 swap, 본문 prose 손대지 않음. SE/Energy candidate-row aggregate
 % AUROC = 0.5 는 prompt-level broadcast 의 구조적 artifact 이므로 본문에서 결과 수치로
 % 보고하지 않음.
 %
 % Headline 비교: corpus-bin weighted fusion vs 선형 global learned fusion (no corpus).
-% spaCy entity extractor 채택 후 corpus signal 정보가 더 잘 보존되어 corpus-bin
-% weighted fusion AUROC 가 0.601 (regex 시기 0.538) 로 상승 → 비선형 sklearn
-% gradient boosting (no corpus, 0.541) 을 +0.060 으로 확실히 능가.
+% Rank-quantile binning 도입으로 corpus-bin weighted fusion AUROC 가 0.578 (fixed-
+% cutoff 시기 0.601 → 보수화) 로 조정 → 비선형 sklearn gradient boosting (no
+% corpus, 0.541) 을 +0.037 으로 안정적으로 상회. Bootstrap delta vs global no-corpus
+% learned fusion: +0.206 [+0.196, +0.216].
 
 \providecommand{\HeadlineCorpusOnlyAuroc}{0.498}
 \providecommand{\HeadlineLearnedFusionNoCorpusAuroc}{0.372}
-\providecommand{\HeadlineLearnedFusionWithCorpusAuroc}{0.601}
-\providecommand{\HeadlineCorpusFusionAurocDelta}{0.229}
-\providecommand{\HeadlineCorpusFusionAurocCILower}{0.219}
-\providecommand{\HeadlineCorpusFusionAurocCIUpper}{0.239}
-\providecommand{\HeadlineCorpusFusionAuprcDelta}{0.138}
+\providecommand{\HeadlineLearnedFusionWithCorpusAuroc}{0.578}
+\providecommand{\HeadlineCorpusFusionAurocDelta}{0.206}
+\providecommand{\HeadlineCorpusFusionAurocCILower}{0.196}
+\providecommand{\HeadlineCorpusFusionAurocCIUpper}{0.216}
+\providecommand{\HeadlineCorpusFusionAuprcDelta}{0.134}

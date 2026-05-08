@@ -159,6 +159,7 @@ def build_stages(
     entity_extractor: str = "regex",
     entity_extractor_model_ref: str = "ZhishanQ/QuCo-extractor-0.5B",
     entity_extractor_device: str | None = None,
+    binning_strategy: str = "rank_quantile",
 ) -> tuple[PipelineStage, ...]:
     artifacts = artifact_paths(run_dir)
     results = artifacts["results_dir"]
@@ -290,6 +291,8 @@ def build_stages(
                 "--entity-extractor-model-ref",
                 entity_extractor_model_ref,
                 *(("--entity-extractor-device", entity_extractor_device) if entity_extractor_device else ()),
+                "--binning-strategy",
+                binning_strategy,
             ),
             expected_inputs=(artifacts["candidate_rows"],),
             expected_outputs=(artifacts["corpus_rows"],),
@@ -550,6 +553,7 @@ def build_manifest(
     entity_extractor: str = "regex",
     entity_extractor_model_ref: str = "ZhishanQ/QuCo-extractor-0.5B",
     entity_extractor_device: str | None = None,
+    binning_strategy: str = "rank_quantile",
 ) -> dict[str, object]:
     run_id = f"pipeline-{utc_stamp()}"
     run_dir = out_root / run_id
@@ -559,6 +563,7 @@ def build_manifest(
         entity_extractor=entity_extractor,
         entity_extractor_model_ref=entity_extractor_model_ref,
         entity_extractor_device=entity_extractor_device,
+        binning_strategy=binning_strategy,
     )
     artifacts = artifact_paths(run_dir)
     schemas = artifact_schema_versions()
@@ -667,6 +672,15 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Device for QuCo extractor (e.g. 'cuda:0').",
     )
+    parser.add_argument(
+        "--binning-strategy",
+        choices=("rank_quantile", "fixed_cutoff"),
+        default="rank_quantile",
+        help=(
+            "Strategy for corpus_axis_bin/_5/_10 in S5 (default: rank_quantile, "
+            "equal-count bins; fixed_cutoff is the legacy pre-2026-05-08 behaviour)."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -681,6 +695,7 @@ def main() -> int:
         entity_extractor=args.entity_extractor,
         entity_extractor_model_ref=args.entity_extractor_model_ref,
         entity_extractor_device=args.entity_extractor_device,
+        binning_strategy=args.binning_strategy,
     )
     print(
         json.dumps(

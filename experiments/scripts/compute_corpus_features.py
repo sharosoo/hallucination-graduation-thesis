@@ -72,6 +72,18 @@ def parse_args() -> argparse.Namespace:
             "rows and only call inference for new texts (kill-restart safe)."
         ),
     )
+    parser.add_argument(
+        "--binning-strategy",
+        choices=("rank_quantile", "fixed_cutoff"),
+        default="rank_quantile",
+        help=(
+            "Strategy for assigning corpus_axis_bin/_5/_10 over coverage_score. "
+            "rank_quantile (default): equal-count bins via sample quantiles, "
+            "robust to skewed score distributions (recommended after spaCy NER). "
+            "fixed_cutoff: legacy thresholds (0.1, 0.2, ..., 0.9 on coverage_score), "
+            "kept for reproducibility of pre-2026-05-08 runs."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -208,6 +220,7 @@ def main() -> int:
         candidates_path=candidates_path,
         dataset_config_path=dataset_config_path,
         entity_extractor=extractor,
+        binning_strategy=args.binning_strategy,
     )
     _emit(progress_path, phase="build_rows", completed=0, total=len(direct_adapter.rows), message="building corpus feature rows from required count backend", out_path=out_path)
     rows, report = direct_adapter.build_feature_rows()

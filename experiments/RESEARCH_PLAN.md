@@ -158,17 +158,21 @@ Compare:
 `experiments/literature/evidence_notes/simhi_choke_motivates_corpus_axis.md`,
 `experiments/literature/evidence_notes/quco_vs_probe.md` 참조.
 
-### 핵심 발견 (thesis-valid run, paper-faithful 결과 도착 후)
+### 핵심 발견 (thesis-valid run, spaCy + rank-quantile 갱신 2026-05-08)
 
-본 실험 데이터에서 Simhi et al. 2025의 CHOKE 현상이 **두 직교 scope에서 동시에 재현됨**:
-- **candidate-level**: 환각 답이 정답 답보다 *더 작은 NLL* + *더 큰 confidence margin*
-  (paired win-rate 0.36 / 0.34, n≈5,200, ties 제외) — 모델이 환각을 *더 자신있게* 생성
-- **corpus-level**: `entity_pair_cooccurrence_axis` 의 paired win-rate 0.551
-  (n=2,499) — 환각 답이 corpus에 *더 자주 같이 등장하는* entity pair 사용
-
-두 evidence가 동일 그림을 그림: **"모델은 익숙한 entity를 잘못된 관계로
-confident하게 조합해서 환각을 만든다."** 자세한 분석은
-`experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md`.
+본 실험 데이터에서 Simhi et al. 2025의 CHOKE 현상은 **candidate-level 에서 강하게 재현, corpus-level 직접 marker 는 약화**됨:
+- **candidate-level (강함)**: 환각 답이 정답 답보다 *더 작은 NLL* + *더 큰 confidence margin*
+  (paired win-rate 0.36 / 0.34, n≈5,785, ties 제외) — 모델이 환각을 *더 자신있게* 생성.
+- **corpus-level (약함, 본 데이터)**: spaCy NER 채택 후 `entity_pair_cooccurrence_axis`
+  의 paired win-rate 0.493 (n=2,908) 으로 사실상 무작위. spaCy 가 후보당 더 많은
+  entity 를 추출하여 두 paired 후보의 entity-pair 집합 차이가 작아진 결과.
+  regex era 의 0.551 (n=2,499) 우위는 retract.
+- **Conditioning 가치는 유지**: corpus support 를 rank-quantile 균등 분할 (각 decile
+  n=1,163) 한 위에서 corpus-bin weighted fusion 이 *모든 10 decile 에서* paired
+  win-rate CI 가 0.5 위에 위치하며 sweet spot (decile 20--60, win 0.635--0.650)
+  을 형성한다. corpus-level 신호는 직접 marker 가 아니라 **conditional fusion 의
+  conditioning 변수**로서 작동하는 것이 본 데이터의 결론이다. 자세한 분석은
+  `experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md`.
 
 ## 8. Entity 추출 backend 변경 (2026-05 pivot)
 

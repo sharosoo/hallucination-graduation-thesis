@@ -185,8 +185,9 @@ uv run python experiments/scripts/validate_feature_provenance.py experiments/res
     - `quco` (실험적, archived): `ZhishanQ/QuCo-extractor-0.5B` (QuCo-RAG 공개 distilled 모델). knowledge triplet `(head, relation, tail)` 출력에서 head / tail 사용. **본 데이터셋에서 짧은 factoid 답 (`"Delhi"` 등) 의 100% 가 empty triplet → 사용하지 않음.** 어댑터는 보존.
   - Infini-gram-compatible count backend 또는 고정 corpus snapshot 에서 entity frequency 와 `head AND tail` co-occurrence 를 조회한다.
   - raw counts, log-transformed continuous axis scores, low/zero flags, bin ids, corpus provenance, **entity_extractor provenance** (`entity_extractor_version`, `entity_extractor_model_ref`, `entity_extractor_prompt_template`) 를 저장한다.
+  - **binning strategy** (`--binning-strategy`, default `rank_quantile`): `corpus_axis_bin` (3-bin), `corpus_axis_bin_5` (5-bin), `corpus_axis_bin_10` (10-bin) 을 sample quantile 로 균등 분할한다 (각 bin 표본 수가 거의 동일). spaCy NER 채택 후 `entity_frequency_axis` 분포가 좌편향 (≥58% 가 0) 이라 fixed-cutoff (legacy, `0.1, 0.2, ...` 절대 임계값) 으로는 80%+ 표본이 단일 lowest bin 에 몰리는 문제가 발생한다. 재현성 비교 등 legacy run 을 재현해야 할 때만 `--binning-strategy fixed_cutoff` 사용.
 
-Elasticsearch / BM25 는 retrieval evidence 용도다. entity frequency 와 entity-pair co-occurrence 는 Infini-gram-compatible count backend 의 direct count semantics 를 따른다. Corpus feature 는 hallucination label 이 아니라 reliability conditioning axis 이다. Entity extractor 변경 시에는 S5 → S7 → S8 → S9 만 재실행하면 충분하다 (S2 모델 sampling / scoring, S4 NLI cluster, S6 Semantic Energy 는 entity 와 무관).
+Elasticsearch / BM25 는 retrieval evidence 용도다. entity frequency 와 entity-pair co-occurrence 는 Infini-gram-compatible count backend 의 direct count semantics 를 따른다. Corpus feature 는 hallucination label 이 아니라 reliability conditioning axis 이다. Entity extractor 또는 binning strategy 변경 시에는 S5 → S7 → S8 → S9 만 재실행하면 충분하다 (S2 모델 sampling / scoring, S4 NLI cluster, S6 Semantic Energy 는 entity 와 무관).
 
 ### S6. paper-faithful Semantic Energy 및 logit diagnostics 생성
 
