@@ -390,7 +390,7 @@ decile & n & paired win-rate [95\% CI] & mean delta [95\% CI] \\
 
 세 가지 패턴이 두드러진다.
 \begin{itemize}
-    \item \textbf{모든 10 decile 에서 통계적으로 유의한 우위}: rank-quantile 분할로 각 decile 표본이 1{,}163 으로 균등화된 결과, paired win-rate 95\% 신뢰구간이 \emph{전 decile 에서 0.5 위에 위치} 한다. corpus 가 거의 모르는 매우 희귀한 영역 (decile 00--10) 에서도, 매우 풍부한 영역 (decile 90--100) 에서도 결합기가 일관되게 환각 후보를 정답 후보보다 더 위험하게 평가한다.
+    \item \textbf{모든 10 decile 에서 통계적으로 유의한 우위}: rank-quantile 분할로 각 decile 표본이 1{,}163 으로 균등화된 결과, paired win-rate 95\% 신뢰구간이 \emph{전 decile 에서 0.5 위에 위치} 한다. corpus 가 거의 모르는 매우 희귀한 영역 (decile 00--10) 에서도, 매우 풍부한 영역 (decile 90--100) 에서도 결합기가 일관되게 환각 후보를 정답 후보보다 더 위험하게 평가한다 (legacy fixed-cutoff 분할에서는 decile 00--10 에 표본의 ${\sim}81\%$ 가 몰려 표본 불균형 artifact 가 결과를 왜곡했으며, 본 변화의 동기는 §결론 한계의 ``Rank-quantile 분할의 한계와 절대값 해석 주의'' 항목 참조).
     \item \textbf{Decile 20--60 sweet spot (n=4{,}652, 40\%)}: 네 decile 모두 win-rate 0.635--0.650 으로 가장 강하다. 중간 corpus support 영역 — corpus 가 entity 의 일부는 알지만 모두 알지는 못하는 ``경계 영역'' — 에서 본 결합기의 conditional 가중치가 가장 효과적으로 작동한다.
     \item \textbf{Decile 70--90 약화 영역 (mean delta CI 가 0 을 포함)}: win-rate 자체는 0.548 / 0.552 로 통계적 유의 (양 끝 CI lower $> 0.5$) 하지만 mean delta CI 가 0 을 포함하여 평균적 점수 격차는 작다. 매우 풍부한 corpus support 영역에서 결합기 우위가 ``순서 역전 빈도'' 형태로만 남고 점수 격차로는 완화되는 패턴.
 \end{itemize}
@@ -623,11 +623,6 @@ S. Lin, J. Hilton, and O. Evans,
 Z. Qiu et al.,
 ``QuCo-RAG: Query-aware Corpus Grounding for Retrieval-Augmented Generation,''
 \textit{arXiv preprint arXiv:2512.19134}, 2025.
-
-\bibitem{phillips2026}
-J. Phillips et al.,
-``Learning to Predict When Language Models Are Wrong,''
-\textit{arXiv preprint arXiv:2603.21172}, 2026.
 
 \bibitem{simhi2025choke}
 A. Simhi et al.,
