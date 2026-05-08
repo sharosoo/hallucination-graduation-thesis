@@ -94,7 +94,7 @@ LLM 환각 탐지 지표 신뢰성 분석:\\%
 
 \keyword{대규모 언어모델, 환각 탐지, Semantic Entropy, Semantic Energy, corpus support axis, metric reliability}
 \begin{abstract}
-본 논문은 LLM 환각 탐지 지표의 신뢰도가 corpus support에 따라 어떻게 달라지는지 분석한다. 여기서 corpus support는 후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 얼마나 자주 함께 등장하는지(entity-pair co-occurrence)를 정량화한 외부 신호이다. TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 prompt, 11{,}630개 candidate row의 paired 평가 위에서 Semantic Entropy(N=10, NLI cluster + likelihood), Semantic Energy, candidate-level logit diagnostics(NLL, logit variance, confidence margin), 그리고 Infini-gram 기반 corpus support 지표를 9단계 자동화 pipeline(S0--S9)으로 평가하였다.
+본 논문은 LLM 환각 탐지 지표의 신뢰도가 corpus support에 따라 어떻게 달라지는지 분석한다. 여기서 corpus support는 후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 얼마나 자주 함께 등장하는지(entity-pair co-occurrence)를 정량화한 외부 신호이다. TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 prompt, 11{,}630개 candidate row의 paired 설정 위에서 Semantic Entropy(N=10, NLI cluster + likelihood), Semantic Energy, candidate-level logit diagnostics(NLL, logit variance, confidence margin), 그리고 Infini-gram 기반 corpus support 지표를 비교 평가하였다.
 
 핵심 결과는 다음과 같다. corpus feature를 단일 global fusion에 그대로 더하면 오히려 성능이 떨어진다. 그러나 corpus support bin마다 별도 가중치를 학습하는 corpus-bin weighted fusion은 corpus 신호를 쓰지 않는 global fusion 대비 AUROC가 +0.166 향상되며, 2{,}000회 prompt-grouped bootstrap의 95\% 신뢰구간이 0보다 위에 있다. corpus support를 decile로 나누면 30--50분위에서 corpus-bin weighted fusion이 모든 방법 중 1위, 가장 낮은 0--10분위에서는 sklearn gradient boosting(no corpus)만이 1위이며, 20--50분위에서는 logit diagnostic의 paired win-rate가 0.28--0.36까지 떨어지는 강한 역전이 동시에 관측된다. 이는 Simhi 등(2025)이 보고한 CHOKE 패턴이 본 데이터에서 심화된 형태로 재현된 것이다. 어느 신호가 신뢰로운지가 corpus support에 따라 비단조적으로 바뀌므로, 단일 global fusion으로 환원되지 않는 conditional reliability 구조가 데이터로 확인된다.
 \end{abstract}
@@ -545,7 +545,7 @@ corpus-bin weighted fusion은 분류 정확도뿐 아니라 calibration에서도
 
 \section{연구 요약}
 
-본 논문은 LLM 환각 탐지에서 Semantic Entropy(SE), Semantic Energy, corpus-grounded 신호를 corpus support라는 조건 축 관점에서 재정리하고, paired 평가 위에서 SE, Semantic Energy, Infini-gram 기반 corpus support bin, corpus-bin weighted fusion을 단일 9단계 pipeline(S0--S9)으로 평가하였다. 핵심 결론은 다음과 같다.
+본 논문은 LLM 환각 탐지에서 Semantic Entropy(SE), Semantic Energy, corpus-grounded 신호를 corpus support라는 조건 축 관점에서 재정리하고, paired 설정 위에서 SE, Semantic Energy, Infini-gram 기반 corpus support bin, corpus-bin weighted fusion을 비교 평가하였다. 핵심 결론은 다음과 같다.
 
 \begin{enumerate}
     \item Candidate-row AUROC만으로는 SE / Energy의 의도된 주장을 직접 검정할 수 없다. SE는 한 prompt의 두 candidate row에 같은 값이 복사되어 들어가고, Semantic Energy는 cluster 단위로 정의되므로, 평가 단위를 섞으면 신호가 가려진다.
