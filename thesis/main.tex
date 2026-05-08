@@ -347,10 +347,6 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
 
 후자는 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin을 candidate 단위 한 줄로 묶은 진단 지표이다. 정의 단위가 cluster vs candidate로 다르므로 두 신호는 같은 열에 합치지 않는다.
 
-\section{재현 가능한 산출 계약}
-
-본문에 박힌 핵심 수치는 단일 자동화 실행이 만든 \path{summary.json}, \path{robustness/*.json}, 자동 생성 LaTeX 표(\path{thesis_evidence_table.tex}), 자동 생성 figure(\path{figures/money_figure_*.png})에서 가져온다. 본문에 인용되는 핵심 수치는 \path{thesis/results_macros.tex}에 매크로로 분리되어 있어 동일 입력에서 재실행할 때 본문 문장을 손대지 않고 매크로만 갱신하면 된다. 산출물 재생성은 동일한 feature table과 평가 설정(\path{experiments/configs/fusion.yaml}, \path{datasets.yaml}, \path{generation.yaml})에서 가능해야 한다.
-
 \chapter{실험}{\label{ch:experiment}}
 
 % 상세 실험 방법 (sections/experiment_method.tex)
@@ -577,7 +573,6 @@ corpus-bin weighted fusion은 분류 정확도뿐 아니라 calibration에서도
     \item \textbf{조건부 reliability 분석 절차의 통계적 검증}. corpus support bin마다 어떤 신호가 안정적으로 작동하는지 분리 평가하는 절차를 제안하고, corpus-bin weighted fusion이 단일 global fusion 대비 AUROC \HeadlineCorpusFusionAurocDelta\ 향상(95\% 신뢰구간이 모두 양수임)을 보임으로써, 단일 global fusion으로 환원되지 않는 conditional 우위를 통계적으로 검증하였다.
     \item \textbf{CHOKE 패턴의 두 직교 scope 동시 재현}. Simhi 등(2025)이 보고한 high-certainty hallucination 패턴을 candidate-level(NLL/confidence margin paired win-rate 0.36/0.34)과 corpus-level(entity-pair co-occurrence paired win-rate 0.551)에서 동시에 관측하여, 외부 corpus 신호로 같은 현상을 분리해 낼 수 있음을 실증하였다.
     \item \textbf{평가 단위 분리의 명시적 적용}. SE는 prompt-level broadcast, Semantic Energy는 cluster-level, logit diagnostic은 candidate-level 신호임을 본문, 표, 그림 전체에 일관되게 적용하여, 단위 혼동에서 비롯된 잘못된 비교를 차단하였다.
-    \item \textbf{재현 가능한 산출 계약}. 본문에 박힌 수치를 단일 자동화 실행 산출물(summary, table, figure)에서 자동 생성되도록 고정하여, 동일 입력에서 본문 문장 변경 없이 수치만 갱신할 수 있게 하였다.
 \end{enumerate}
 
 \section{한계}
