@@ -95,7 +95,7 @@ Semantic Entropy / Energy 와 외부 corpus 신호의\\%
 
 \keyword{대규모 언어모델, 환각 탐지, Semantic Entropy, Semantic Energy, corpus support axis, metric reliability}
 \begin{abstract}
-본 논문은 LLM 환각 탐지에서 Semantic Entropy (SE, Farquhar 등 2024\cite{farquhar2024}) 와 Semantic Energy (Ma 등 2025\cite{ma2025}) 의 두 prompt-level uncertainty 신호 위에 외부 corpus support 신호 (Infini-gram\cite{infinigram2024} entity frequency 와 entity-pair co-occurrence) 를 결합한 fusion detector 가 단독 신호 baseline 대비 어떤 추가 lift 를 제공하는지 prompt-level 단위에서 평가한다. TruthfulQA 와 HaluEval-QA 에서 구성한 5{,}815 개 prompt 위에서, 각 prompt 의 free-sample N=10 정답 매칭 비율이 50\% 미만인 prompt 를 \emph{hard prompt} 로 정의하고 (전체 31\% — HaluEval-QA 20\% / TruthfulQA 97\%) 이를 binary 라벨로 사용해 prompt-level AUROC / AUPRC / calibration 을 측정하였다.
+본 논문은 LLM 환각 탐지에서 Semantic Entropy (SE, Farquhar 등 2024\cite{farquhar2024}) 와 Semantic Energy (Ma 등 2025\cite{ma2025}) 의 두 prompt-level uncertainty 신호 위에 외부 corpus support 신호 (Infini-gram\cite{infinigram2024} entity frequency 와 entity-pair co-occurrence) 를 결합한 fusion detector 가 단독 신호 baseline 대비 어떤 추가 lift 를 제공하는지 prompt-level 단위에서 평가한다. TruthfulQA\cite{truthfulqa} 와 HaluEval-QA\cite{halueval2023} 에서 구성한 5{,}815 개 prompt 위에서, 각 prompt 의 free-sample N=10 정답 매칭 비율이 50\% 미만인 prompt 를 \emph{hard prompt} 로 정의하고 (전체 31\% — HaluEval-QA 20\% / TruthfulQA 97\%) 이를 binary 라벨로 사용해 prompt-level AUROC / AUPRC / calibration 을 측정하였다.
 
 핵심 결과는 다음과 같다. 첫째, SE / Semantic Energy 가 본 데이터에서 prompt-level baseline 으로 재현된다 — SE-only AUROC \HeadlineSEAuroc, Energy-only \HeadlineEnergyAuroc 으로 Farquhar 등 (2024) 이 TriviaQA / Llama-2 7B 에서 보고한 SE AUROC 0.79 와 동일 수준이다. 이는 후속 corpus signal lift 비교의 토대가 된다. 둘째, \emph{본 논문의 main 발견}: 외부 corpus 신호의 한계 효용은 corpus support 영역에 따라 매우 비균일적으로 분포한다. corpus 가 entity 를 거의 모르는 lowest decile (00--10, n=582) 에서 corpus 추가의 lift 가 \emph{+\HeadlineDecileLowestLift} 로 가장 크고, corpus 가 풍부한 high decile (90--100) 에서는 SE / Energy 만으로도 AUROC 0.98 에 도달해 corpus 의 한계 효용이 0 에 가까워진다. 이는 본 논문의 conditioning 가설 — corpus 가 부족한 영역에서 모델 신호의 신뢰도가 낮아지므로 외부 corpus 보완 신호의 가치가 가장 크다 — 의 직접 데이터 evidence 이다. 셋째, 종합 lift 는 작지만 통계적으로 유의하다 — corpus 를 추가한 GBM (with corpus) 는 prompt-level AUROC \HeadlineGBMWithCorpusAuroc 으로 동일 feature set 의 선형 baseline 대비 +\HeadlineCorpusLiftVsLR\ [\HeadlineCorpusLiftVsLRCILower, \HeadlineCorpusLiftVsLRCIUpper], 비선형 baseline 대비 +\HeadlineCorpusLiftVsGBM\ [\HeadlineCorpusLiftVsGBMCILower, \HeadlineCorpusLiftVsGBMCIUpper] 의 AUROC delta (prompt-grouped bootstrap n=2{,}000, CI lower bound $> 0$). Calibration 도 강하다 (Brier \HeadlineBrier, ECE \HeadlineECE\%). 본 결과는 corpus statistic (Qiu 등 2025\cite{qucorag} QuCo-RAG, Zhang 등 2025\cite{zhang2025corpus}) 이 환각 탐지에 보완 가치를 가진다는 선행 가설을 prompt-level uncertainty signal 위에서 \emph{영역별 분포까지 분해해} 정량 검증한다.
 \end{abstract}
@@ -274,7 +274,7 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
 \begin{itemize}
     \item \textbf{신호의 역할}. Zhang 등은 corpus n-gram 통계를 환각 탐지 신호 \emph{자체} 로 평가하는 반면, 본 연구는 corpus 빈도를 탐지 신호로 사용하지 않고 \emph{어느 corpus support 구간에서 어느 신호의 신뢰도가 높은가} 를 나누는 조건 축으로 재해석한다. corpus 빈도가 낮다고 환각 라벨로, 높다고 정답 라벨로 쓰지 않는다.
     \item \textbf{신호의 단위}. Zhang 등은 token surface 수준의 n-gram lexical coverage 를 측정하나, 본 연구는 entity frequency 와 entity-pair co-occurrence 라는 \emph{관계 수준} 의 신호를 사용한다. 동일 entity 가 등장하더라도 entity 간 관계가 corpus 에 얼마나 공출현하는지를 측정함으로써, ``익숙한 entity 를 잘못된 관계로 조합하는'' CHOKE 가설과 자연스럽게 연결될 수 있는 측정 단위이다 (인과 관계가 아닌 상관 관찰; 본 chapter 마지막 단락의 caveat 및 §결론 한계 참조).
-    \item \textbf{평가 패러다임}. Zhang 등은 단일 생성 답변의 이진 분류로 평가하는 반면, 본 연구는 같은 prompt 의 정답 후보와 환각 후보를 paired 로 비교하는 matched-pair 설정을 사용한다. 이 설정은 CHOKE 패턴(환각 답이 정답 답보다 더 높은 확신으로 평가됨) 을 paired win-rate 로 직접 검출할 수 있게 한다.
+    \item \textbf{평가 패러다임}. Zhang 등은 단일 생성 답변의 이진 분류 (single answer hallucinated / not) 로 평가하는 반면, 본 연구는 prompt 단위로 ``이 prompt 의 free-sample 정답률이 임계값 미만인가'' 를 평가하는 prompt-level binary task 를 main 으로 채택한다 (Farquhar 2024 SE 의 평가 단위와 일치). 추가로 같은 prompt 의 정답 후보와 환각 후보를 paired 로 비교하는 candidate-row matched-pair 단위를 sensitivity 분석 (\S\ref{sec:sensitivity}) 으로 보고하여, CHOKE 패턴 (환각 답이 정답 답보다 더 높은 확신으로 평가됨) 을 paired win-rate 로 직접 검출한 결과를 보완 evidence 로 제시한다.
 \end{itemize}
 
 Zhang 등이 명시한 ``결과는 상관관계이며 인과 관계를 확립하지 않는다''는 caveat 은 본 연구의 corpus-level 해석에도 동일하게 적용된다 — corpus 카운트 backend 의 외부 corpus snapshot 이 모델의 실제 pretraining corpus 와 다를 수 있으므로, corpus support 와 환각의 연결은 \emph{상관} 이지 \emph{인과} 가 아니다.
@@ -288,7 +288,7 @@ Zhang 등이 명시한 ``결과는 상관관계이며 인과 관계를 확립하
 
 \chapter{제안 방법}{\label{ch:method}}
 
-본 장에서는 본 논문이 제안하는 \emph{corpus-conditioned reliability 분석 절차}와 그 이론적 동기를 정리한다. 제~\ref{ch:related}장에서 정리한 SE / Semantic Energy / corpus 신호의 한계가 출발점이고, 결과 보고 형식 (reliability map) 까지가 결과 chapter (\S\ref{ch:experiment}) 와 자연스럽게 연결되도록 절차를 정의한다.
+본 장에서는 본 논문이 제안하는 \emph{prompt-level corpus-conditioned 분석 절차}와 그 이론적 동기를 정리한다. 제~\ref{ch:related}장에서 정리한 SE / Semantic Energy / corpus 신호의 정의 단위 차이와 한계가 출발점이고, 결과 보고 형식 (decile-level corpus 추가 lift heatmap) 까지가 결과 chapter (\S\ref{ch:experiment}) 와 자연스럽게 연결되도록 절차를 정의한다.
 
 \section{단일 전역 점수 가정의 한계}
 
@@ -457,7 +457,7 @@ decile & n & GBM (no corpus) & \textbf{GBM (with corpus)} & RF (no corpus) & LR 
 \begin{itemize}
     \item \textbf{Candidate-level CHOKE 패턴 직접 관찰}. 같은 prompt 의 환각 후보가 정답 후보보다 NLL 이 작은 비율 61.6\% (paired win-rate 0.384), confidence margin 이 작은 비율 65.2\% (paired win-rate 0.348). Simhi 등 (2025)\cite{simhi2025choke} 이 보고한 high-certainty hallucination 패턴 — 모델이 환각 답을 정답 답보다 더 자신있게 생성하는 현상 — 이 본 데이터에서 강하게 재현된다.
     \item \textbf{Corpus-level paired 신호는 약함}. entity-pair co-occurrence 가 환각 후보 쪽에서 더 큰 비율은 paired win-rate 0.493 (n=2{,}908) 으로 사실상 무작위. corpus 신호는 candidate 단위 직접 marker 로 쓰기에는 약하다. 이 사실이 본 논문의 main framing — corpus 신호를 prompt-level 보완 결합기에 사용 — 의 합리성을 보강한다.
-    \item \textbf{Candidate-row 단위 결합기 비교}. SE / Energy artifact 를 빼고 나면 이 단위에서 GBM (no corpus) 가 candidate-row AUROC 0.541 의 약한 detector 였다. corpus 를 추가한 fusion 이 이 단위에서도 +0.04 정도의 약한 lift 를 보였으나, prompt-level 단위 (+0.060 vs SE, +0.030 vs Energy) 의 강한 결과를 가리는 것이 아니라 더 어려운 단위에서도 corpus signal 의 기여 방향이 일관됨을 시사한다.
+    \item \textbf{Candidate-row 단위 결합기 비교}. SE / Energy artifact 를 빼고 나면 이 단위에서 GBM (no corpus) 의 candidate-row AUROC 가 0.541 으로 약한 detector 였다. corpus signal 을 추가한 결합기 (corpus-bin weighted fusion) 가 이 단위에서도 AUROC 0.578 로 +0.037 의 lift 를 보였으나, 이 단위 결과는 prompt-level 단위에서의 main 결과 (GBM with corpus 0.892, Energy 단독 대비 +0.030 / SE 단독 대비 +0.060) 를 가리는 것이 아니라 더 어려운 단위에서도 corpus signal 의 기여 방향이 일관됨을 시사하는 robustness 관찰이다.
 \end{itemize}
 
 본 절의 인사이트: (i) CHOKE 패턴이 candidate-level 에서 명확히 관측되어 logit / margin 기반 단독 detector 의 한계를 데이터로 보여주고, (ii) 그 한계를 corpus signal 로 \emph{직접} 메우려 하면 candidate paired 단위에서 corpus 신호가 약하다는 사실을 보지만, (iii) 평가 단위를 prompt-level 로 올리면 corpus 신호의 보완 가치가 통계적으로 유의하게 측정된다. 따라서 본 논문은 prompt-level 단위를 main 으로 채택한 정당성을 데이터로 확인한다.
@@ -594,11 +594,6 @@ P. Manakul, A. Liusie, and M. J. F. Gales,
 S. Min et al.,
 ``FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation,''
 \textit{Proceedings of EMNLP}, pp. 12076--12100, 2023.
-
-\bibitem{ravichander2025halogen}
-A. Ravichander, S. Ghela, D. Wadden, and Y. Choi,
-``HALoGEN: Fantastic LLM Hallucinations and Where to Find Them,''
-\textit{Proceedings of ACL}, pp. 1402--1425, 2025.
 
 \bibitem{ma2025}
 Z. Ma et al.,
