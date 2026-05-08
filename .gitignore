@@ -46,6 +46,7 @@ graphify-out/
 
 # private viva prep notes (not for commit)
 FAQ.md
+STUDY_GUIDE.md
 
 # LaTeX build artifacts
 thesis/*.aux

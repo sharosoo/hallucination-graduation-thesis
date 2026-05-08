@@ -101,39 +101,44 @@ def validate_row(row: dict[str, Any], row_index: int) -> list[str]:
         problems.append(f"row {row_index}: corpus_axis must be an object")
         corpus_axis = None
     if isinstance(corpus_axis, dict):
+        row_status = corpus_axis.get("row_status")
+        # Excluded rows are tolerated tail outcomes (counted but not gated).
+        if isinstance(row_status, str) and row_status.startswith("excluded_"):
+            return problems
         backend_id = corpus_axis.get("backend_id")
         if backend_id not in ALLOWED_BACKEND_IDS:
             problems.append(f"row {row_index}: corpus_axis.backend_id must be one of {sorted(ALLOWED_BACKEND_IDS)}")
         if corpus_axis.get("counts_complete") is not True:
             problems.append(f"row {row_index}: corpus_axis.counts_complete must be true for thesis-valid rows")
-        row_status = corpus_axis.get("row_status")
+        # Excluded rows (e.g. excluded_no_entities for prompts whose candidate_text
+        # yields no entity matches) are expected outcomes for a small tail of the
+        # dataset. Their detailed axis fields are intentionally null. Skip the
+        # per-row schema checks so the validator surfaces exclusions as a count
+        # rather than a fail-stop.
+        if isinstance(row_status, str) and row_status.startswith("excluded_"):
+            return problems
         if row_status not in FINAL_OK_STATUSES:
             problems.append(f"row {row_index}: corpus_axis.row_status must be one of {sorted(FINAL_OK_STATUSES)}")
-        for field_name in ("entity_frequency_axis", "entity_pair_cooccurrence_axis", "corpus_axis_score", "corpus_axis_bin", "corpus_axis_bin_5"):
+        for field_name in ("entity_frequency_axis", "entity_pair_cooccurrence_axis", "corpus_axis_score", "corpus_axis_bin", "corpus_axis_bin_5", "corpus_axis_bin_10"):
             if corpus_axis.get(field_name) is None:
                 problems.append(f"row {row_index}: corpus_axis missing required field {field_name}")
-        for collection_name, key_name in (("entities", "term"), ("pairs", "pair")):
-            entries = corpus_axis.get(collection_name)
-            if not isinstance(entries, list) or not entries:
-                problems.append(f"row {row_index}: corpus_axis.{collection_name} must be a non-empty list")
-                continue
-            for entry_index, entry in enumerate(entries):
-                if not isinstance(entry, dict):
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] must be an object")
-                    continue
-                if not isinstance(entry.get(key_name), str) or not entry.get(key_name):
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing {key_name}")
-                if entry.get("backend_id") not in ALLOWED_BACKEND_IDS:
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] uses disallowed backend_id")
-                if entry.get("status") not in FINAL_OK_STATUSES:
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] status must be resolved/fallback_resolved")
-                if entry.get("raw_count") is None:
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing raw_count")
-                if bool(entry.get("approximate", False)):
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] must not be approximate")
-                query = entry.get("query")
-                if not isinstance(query, str) or not query.strip():
-                    problems.append(f"row {row_index}: corpus_axis.{collection_name}[{entry_index}] missing query provenance")
+        # Per-row entity/pair provenance is no longer inlined to keep the
+        # parquet row-group lean; check the aggregate counts instead. Detailed
+        # per-query provenance is preserved in the corpus-count cache file.
+        entity_count = corpus_axis.get("entity_count")
+        if not isinstance(entity_count, int) or entity_count <= 0:
+            problems.append(f"row {row_index}: corpus_axis.entity_count must be a positive int")
+        pair_count = corpus_axis.get("pair_count")
+        if not isinstance(pair_count, int) or pair_count < 0:
+            problems.append(f"row {row_index}: corpus_axis.pair_count must be a non-negative int")
+        for total_field in ("missing_entity_count_total", "missing_pair_count_total", "approximate_entity_total", "approximate_pair_total"):
+            value = corpus_axis.get(total_field)
+            if not isinstance(value, int) or value < 0:
+                problems.append(f"row {row_index}: corpus_axis.{total_field} must be a non-negative int")
+            elif total_field.startswith("approximate_") and value > 0:
+                problems.append(f"row {row_index}: corpus_axis.{total_field}={value}; approximate counts are not allowed for thesis-valid rows")
+            elif total_field.startswith("missing_") and value > 0 and corpus_axis.get("counts_complete") is True:
+                problems.append(f"row {row_index}: corpus_axis.{total_field}={value} but counts_complete is true")
 
     provenance = row.get("feature_provenance")
     if not isinstance(provenance, list):

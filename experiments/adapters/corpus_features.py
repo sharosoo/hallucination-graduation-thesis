@@ -448,7 +448,13 @@ class CorpusFeatureAdapter:
 
     def build_feature_rows(self) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         run_id = f"corpus-features-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
-        rows = [self._build_row(run_id, row) for row in self.rows]
+        rows: list[dict[str, Any]] = []
+        provenance_records: list[dict[str, Any]] = []
+        for source_row in self.rows:
+            slim_row, heavy_provenance = self._build_row(run_id, source_row)
+            rows.append(slim_row)
+            provenance_records.append(heavy_provenance)
+        self._provenance_records = provenance_records  # consumed by sidecar writer
         rows_by_source = Counter(str(row["features"].get("corpus_source")) for row in rows)
         rows_by_status = Counter(str(row["features"].get("corpus_status")) for row in rows)
         report = {
@@ -466,7 +472,7 @@ class CorpusFeatureAdapter:
         }
         return rows, report
 
-    def _build_row(self, run_id: str, source_row: dict[str, Any]) -> dict[str, Any]:
+    def _build_row(self, run_id: str, source_row: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         question_entities, answer_entities, entities = combine_entities(source_row)
         pair_terms = [pair_key(left, right) for left, right in combinations(sorted(set(entities)), 2)]
         entity_results = {entity: self.backend.count_entity(entity) for entity in entities}
@@ -541,18 +547,24 @@ class CorpusFeatureAdapter:
         analysis_bin = select_analysis_bin(0.0, self.analysis_bins, self.analysis_bin_specs)
         backend_summary = self.backend.describe()
         corpus_source = str(backend_summary.get("backend_id") or "unknown_backend")
+        # Slim corpus_axis: scalar fields only. Per-row entity/pair lists,
+        # raw_*_counts dicts, and missing/approximate lists are heavy nested
+        # provenance that bloats parquet row-groups by 100x+ at read time.
+        # Global count provenance is preserved in the infini-gram cache file;
+        # per-row entity/pair detail can be reconstructed deterministically by
+        # rerunning combine_entities + cache lookup if ever needed.
+        missing_entity_count_total = len(missing_entity_counts)
+        missing_pair_count_total = len(missing_pair_counts)
+        approximate_entity_total = len(approximate_entities)
+        approximate_pair_total = len(approximate_pairs)
         corpus_axis = {
             "backend_id": corpus_source,
             "index_ref": backend_summary.get("index_ref"),
             "cache_ref": backend_summary.get("cache_ref"),
             "row_status": row_status,
             "counts_complete": counts_complete,
-            "question_entities": question_entities,
-            "answer_entities": answer_entities,
-            "entities": [{"term": entity, **payload} for entity, payload in entity_payloads.items()],
-            "pairs": [{"pair": pair, **payload} for pair, payload in pair_payloads.items()],
-            "raw_entity_counts": raw_entity_counts,
-            "raw_pair_counts": raw_pair_counts,
+            "entity_count": len(entities),
+            "pair_count": len(pair_terms),
             "entity_frequency_mean_raw": entity_frequency_mean,
             "entity_frequency_min_raw": entity_frequency_min,
             "entity_pair_cooccurrence_raw_mean": pair_count_mean,
@@ -563,15 +575,11 @@ class CorpusFeatureAdapter:
             "corpus_axis_bin_5": corpus_axis_bin_5,
             "corpus_axis_bin_10": corpus_axis_bin_10,
             "excluded_reason": None if counts_complete else row_status,
-            "missing_entity_counts": missing_entity_counts,
-            "missing_pair_counts": missing_pair_counts,
-            "approximate_entities": approximate_entities,
-            "approximate_pairs": approximate_pairs,
+            "missing_entity_count_total": missing_entity_count_total,
+            "missing_pair_count_total": missing_pair_count_total,
+            "approximate_entity_total": approximate_entity_total,
+            "approximate_pair_total": approximate_pair_total,
             "source_text_field": SOURCE_TEXT_FIELD,
-            "query_rules": {
-                "entity_frequency": "direct count(entity)",
-                "entity_pair_cooccurrence": "direct count(entity_a AND entity_b)",
-            },
         }
         features = {
             "semantic_entropy": None,
@@ -604,7 +612,6 @@ class CorpusFeatureAdapter:
                 "includes_upper_bound": analysis_bin.includes_upper_bound,
                 "note": analysis_bin.note,
             },
-            "corpus_details": corpus_axis,
         }
         provenance = [
             serialize_provenance(entry)
@@ -614,7 +621,7 @@ class CorpusFeatureAdapter:
                 corpus_status=row_status,
             )
         ]
-        return {
+        slim_row = {
             "run_id": run_id,
             "dataset": str(source_row["dataset"]),
             "dataset_id": str(source_row.get("dataset_id") or source_row["split_id"]),
@@ -637,6 +644,34 @@ class CorpusFeatureAdapter:
             "formula_manifest_ref": "experiments/README.md#4-feature-contract",
             "dataset_manifest_ref": str(self.candidates_path),
         }
+        # Heavy per-row provenance is preserved verbatim in the sidecar JSONL.
+        # Downstream stages do NOT read this — they consume the slim parquet —
+        # but it keeps the per-row entity/pair attribution recoverable for
+        # thesis paper-trail spot checks without rerunning combine_entities.
+        heavy_provenance = {
+            "run_id": run_id,
+            "candidate_id": str(source_row["candidate_id"]),
+            "prompt_id": str(source_row["prompt_id"]),
+            "pair_id": str(source_row["pair_id"]),
+            "candidate_role": str(source_row["candidate_role"]),
+            "row_status": row_status,
+            "counts_complete": counts_complete,
+            "question_entities": question_entities,
+            "answer_entities": answer_entities,
+            "entities": [{"term": entity, **payload} for entity, payload in entity_payloads.items()],
+            "pairs": [{"pair": pair, **payload} for pair, payload in pair_payloads.items()],
+            "raw_entity_counts": raw_entity_counts,
+            "raw_pair_counts": raw_pair_counts,
+            "missing_entity_counts": missing_entity_counts,
+            "missing_pair_counts": missing_pair_counts,
+            "approximate_entities": approximate_entities,
+            "approximate_pairs": approximate_pairs,
+            "query_rules": {
+                "entity_frequency": "direct count(entity)",
+                "entity_pair_cooccurrence": "direct count(entity_a AND entity_b)",
+            },
+        }
+        return slim_row, heavy_provenance
 
 
 def write_feature_artifact(

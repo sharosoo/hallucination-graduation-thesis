@@ -82,31 +82,30 @@ run_stage S4 'compute semantic entropy (batched NLI)' \
     --progress "$LOGS/S4.semantic_entropy.progress.json" \
     --resume
 
-# ---------- Memory precheck before heavy S5 ----------
-# Infini-gram local engine + parquet write can spike RSS to ~10–30 GB; abort or
-# wait if host MEM is tight (e.g. S2 still leaking pages).
-S5_MIN_AVAIL_GB=20
-for attempt in 1 2 3 4 5; do
-  AVAIL_KB=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)
-  AVAIL_GB=$((AVAIL_KB / 1024 / 1024))
-  echo "[$(date -Iseconds)] memory check attempt=$attempt available=${AVAIL_GB} GiB threshold=${S5_MIN_AVAIL_GB} GiB"
-  if [ "$AVAIL_GB" -ge "$S5_MIN_AVAIL_GB" ]; then break; fi
-  if [ "$attempt" -eq 5 ]; then
-    echo "[$(date -Iseconds)] FATAL: host MEM still tight (${AVAIL_GB} GiB available, need ${S5_MIN_AVAIL_GB} GiB) after 5 retries; aborting before S5 to avoid swap thrashing."
-    exit 3
-  fi
-  echo "[$(date -Iseconds)] waiting 60s for memory to free..."
-  sleep 60
-done
-
-# ---------- S5: corpus features (rebuild if missing — needed for corpus_axis_bin_10) ----------
-# 기존 prebuild parquet은 corpus_axis_bin_10 컬럼이 없어 새 schema 검증 fail. 삭제됐으므로
-# 이 단계가 cache hit 기반으로 새로 산출. Infini-gram local engine은 내부 OpenMP/Rust
-# thread pool을 fan-out (이전 stuck 시 256 threads + 31 GB RSS 관측)하므로
-# OMP/MKL/OPENBLAS/RAYON num_threads를 4로 캡 + warmup parallelism도 4로 낮춰 host RAM
-# 압박을 줄인다. S2 (Qwen2.5-3B) 와 동시 실행되지 않도록 watcher가 chain을 S2 종료 후
-# launch하는 흐름은 유지.
-run_stage S5 'compute corpus features (rebuild for 10-bin schema)' \
+# ---------- S5: corpus features (skip if existing valid prebuild, else rebuild) ----------
+# 일반 흐름: prebuild parquet (corpus_axis_bin_10 포함, schema_version=corpus_axis_counts_v1)
+# 이 이미 존재 → --resume이 즉시 skip. 없으면 thread cap을 걸고 새로 산출.
+# Infini-gram local engine은 OpenMP/Rust thread pool fan-out (이전 stuck 시 256 threads +
+# 31 GB RSS) 이 발생하므로 OMP/MKL/OPENBLAS/RAYON num_threads를 4로 캡. cap 적용 시 RSS
+# ~17 GB 안에서 안정적으로 종료 확인됨.
+if [ -f "$CORPUS_OUT" ]; then
+  echo "[$(date -Iseconds)] S5: existing $CORPUS_OUT detected; --resume will skip if schema matches"
+else
+  echo "[$(date -Iseconds)] S5: $CORPUS_OUT missing; will rebuild with thread cap"
+  S5_MIN_AVAIL_GB=15
+  for attempt in 1 2 3 4 5; do
+    AVAIL_KB=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)
+    AVAIL_GB=$((AVAIL_KB / 1024 / 1024))
+    echo "[$(date -Iseconds)] memory check attempt=$attempt available=${AVAIL_GB} GiB threshold=${S5_MIN_AVAIL_GB} GiB"
+    [ "$AVAIL_GB" -ge "$S5_MIN_AVAIL_GB" ] && break
+    if [ "$attempt" -eq 5 ]; then
+      echo "[$(date -Iseconds)] FATAL: host MEM tight after 5 retries; aborting before S5 rebuild."
+      exit 3
+    fi
+    sleep 60
+  done
+fi
+run_stage S5 'compute corpus features (resume-skip if existing)' \
   env \
     OMP_NUM_THREADS=4 \
     MKL_NUM_THREADS=4 \
