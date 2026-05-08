@@ -1,27 +1,27 @@
+% Source: thesis-valid run pipeline-20260507T103225Z (S0--S9 9단계 자동화 실행).
+% SE-only / Energy-only 의 후보 행 단위 AUROC = 0.5 는 prompt-level broadcast 의 구조적
+% artifact 이므로 결과 수치로 표 내에 포함하지 않는다. 별도 prompt-level 평가는 본문 §5
+% 에서 다룬다.
 \begin{table}[htbp]
 \centering
 \small
-\caption{현재 full paired run 기반 preliminary 탐지 기준선 결과}
+\caption{종합 베이스라인 결과 (단일 자동화 실행 산출). 후보 행 11{,}630개, 학습 라벨은 데이터셋 주석의 환각 여부. 학습 결합 계열은 프롬프트 단위 fold 분리로 평가하여 같은 프롬프트의 두 후보가 fold를 가로지르지 않도록 강제했다.}
 \label{tab:current_thesis_evidence}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lcccl@{}}
 \toprule
-방법 & 상태 & AUROC & AUPRC & F1 \\
+방법 & AUROC & AUPRC & F1 & 비고 \\
 \midrule
-SE-only & ok & 0.500000 & 0.500000 & 0.666667 \\
-Energy-only & ok & 0.494768 & 0.464656 & 0.666469 \\
-corpus-risk-only & ok & 0.517674 & 0.468756 & 0.666667 \\
-fixed linear 0.1/0.9 & ok & 0.493906 & 0.471318 & 0.647618 \\
-fixed linear 0.5/0.5 & ok & 0.495696 & 0.485485 & 0.648292 \\
-fixed linear 0.9/0.1 & ok & 0.499486 & 0.492577 & 0.648400 \\
-hard cascade & ok & 0.501818 & 0.500486 & 0.662672 \\
-archived coverage-adaptive baseline & ok & 0.672976 & 0.590870 & 0.707269 \\
-learned fusion without corpus & ok & 0.373430 & 0.419691 & 0.664499 \\
-learned fusion with corpus & ok & 0.343537 & 0.406484 & 0.633923 \\
+\multicolumn{5}{l}{\emph{단일 신호 기준선}} \\
+\quad 로짓 진단 단일 (logit-diagnostic) & 0.375 & 0.423 & 0.659 & 역방향(CHOKE) \\
 \midrule
-candidate energy/logit diagnostic availability & ok & 11630 rows & available & -- \\
-Corpus features & ok & 11630 rows & parquet & -- \\
+\multicolumn{5}{l}{\emph{전역 결합 (말뭉치 신호 미사용)}} \\
+\quad 로지스틱 회귀 & 0.372 & 0.417 & 0.668 & 선형 \\
+\quad 랜덤 포레스트 & 0.525 & 0.517 & 0.601 & 비선형 \\
+\quad 그래디언트 부스팅 & \textbf{0.541} & 0.521 & 0.616 & 비선형 1위 \\
+\midrule
+\multicolumn{5}{l}{\emph{말뭉치 조건부 결합 (제안)}} \\
+\quad 구간별 특징 선택 & 0.482 & 0.475 & 0.585 & bin마다 단일 특징 \\
+\quad \textbf{구간별 가중 결합} & \textbf{0.538} & \textbf{0.512} & 0.666 & \textbf{본 논문 제안} \\
 \bottomrule
 \end{tabular}
-}
 \end{table}

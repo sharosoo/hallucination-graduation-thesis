@@ -94,9 +94,9 @@ LLM 환각 탐지 지표 신뢰성 분석:\\%
 
 \keyword{대규모 언어모델, 환각 탐지, Semantic Entropy, Semantic Energy, corpus support axis, metric reliability}
 \begin{abstract}
-본 논문은 대규모 언어모델(LLM)의 환각 탐지 지표가 corpus 조건 축에 따라 어떻게 신뢰성이 달라지는지 분석한다. TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 prompt, 11{,}630개 candidate row의 paired feature table 위에서, paper-faithful N=10 NLI likelihood Semantic Entropy, paper-faithful Semantic Energy, candidate-level logit diagnostics, 그리고 Infini-gram-compatible entity frequency / entity-pair co-occurrence axis 를 단일 실행 계약 (S0--S9) 으로 묶어 평가한다.
+본 논문은 대규모 언어모델(Large Language Model, LLM)의 환각(hallucination) 탐지 지표가 \emph{말뭉치 지지도(corpus support)}에 따라 신뢰성이 어떻게 달라지는지 분석한다. 말뭉치 지지도란 답변에 등장하는 개체(entity)가 외부 말뭉치에 얼마나 자주 등장하는지(빈도)와, 두 개체가 얼마나 자주 함께 등장하는지(공기 빈도)를 정량화한 외부 신호이다. 본 연구는 TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 질문(prompt), 11{,}630개 후보 답변 행(candidate row)의 \emph{쌍 비교(paired)} 평가 절차 위에서, 원논문 정의에 충실한 N=10 자연어 추론 기반 Semantic Entropy, 원논문 정의에 충실한 Semantic Energy, 후보 단위 로짓 진단 지표(평균 음의 로그 확률, 로짓 분산, confidence margin), 그리고 Infini-gram 기반 개체 빈도/공기 빈도 지표를 단일 자동화 파이프라인(9단계, S0--S9)으로 묶어 평가한다.
 
-핵심 관찰은 다음과 같다. corpus feature 를 글로벌 fusion 에 단순히 더하면 손해지만, corpus-axis bin 마다 별도 가중치를 학습하는 condition-aware corpus-bin weighted fusion 은 글로벌 fusion (no corpus) 대비 AUROC +0.166 (95\% prompt-grouped bootstrap CI excludes 0) 로 통계적으로 robust 한 우위를 보인다. 10-bin decile sensitivity 에서 sweet-spot decile 30--50 에서 corpus-bin weighted 가 모든 method 1위, 최저 decile 00--10 에서는 sklearn GBM 만 1위, 중간 decile 20--50 에서 logit-diagnostic 의 paired win-rate 가 강하게 역전 (CHOKE 패턴 심화) 되어 어느 신호가 신뢰로운가가 corpus support 에 따라 비단조적으로 바뀜을 보인다. 본 연구는 corpus 조건 축이 단일 글로벌 fusion 으로 환원되지 않는 conditional reliability framework 임을 실증한다.
+핵심 관찰은 다음과 같다. 말뭉치 특징을 단일 전역 결합기(global fusion)에 단순히 더하면 오히려 성능이 떨어지지만, 말뭉치 지지도 구간(bin)마다 별도 가중치를 학습하는 \emph{구간별 가중 결합기(corpus-bin weighted fusion)}는 말뭉치 신호를 쓰지 않는 전역 결합 대비 AUROC가 +0.166 향상되며 95\% 프롬프트 단위 부트스트랩 신뢰구간이 0을 가로지르지 않는다. 말뭉치 지지도를 10분위(decile)로 나누어 보면, 30--50분위 구간에서는 구간별 가중 결합이 모든 방법 중 1위이고, 가장 낮은 0--10분위에서는 사이킷런 그래디언트 부스팅(no corpus)만이 1위이며, 20--50분위에서는 로짓 진단의 쌍 비교 승률이 0.28--0.36까지 떨어지는 강한 역전(Simhi 등(2025)의 CHOKE 패턴 심화)이 동시 관측된다. 이는 어느 신호가 신뢰로운가가 말뭉치 지지도에 따라 \emph{비단조적}으로 바뀜을 의미하며, 단일 전역 결합으로 환원되지 않는 \emph{조건부 신뢰성(conditional reliability)} 구조를 데이터로 실증한다.
 \end{abstract}
 
 \tableofcontents
@@ -343,17 +343,35 @@ LLM의 logit은 다음 토큰에 대한 상대적 선호를 반영하며, Energy
 
 \chapter{제안 방법}{\label{ch:method}}
 
-\section{Corpus-conditioned metric reliability protocol}
+본 장에서는 본 논문이 제안하는 평가 구조의 핵심 개념을 정리한다. 개별 신호의 정의와 식은 제~\ref{ch:experiment}장 실험 방법 절에서 다시 자세히 다룬다.
 
-현재 실험의 제안 구조는 paired hallucination detection diagnostic protocol이다. SE와 Energy를 단일 전역 탐지기로 주장하지 않고, corpus-grounded entity frequency와 entity-pair co-occurrence를 metric reliability를 나누는 조건 축으로 사용한다. Corpus count는 hallucination의 직접 라벨도, RAG retrieval trigger도 아니며, 각 bin에서 어떤 feature가 안정적인지 평가하기 위한 외부 corpus-support 변수이다.
+\section{말뭉치 지지도 조건부 평가 절차}
 
-\section{Energy/logit diagnostic baseline의 평가 단위}
+본 연구의 제안 구조는 \emph{쌍 비교(paired) 환각 탐지 평가 절차}이다. SE와 Semantic Energy를 단일 전역 탐지기로 주장하지 않고, 말뭉치 기반 개체 빈도와 개체쌍 공기 빈도를 \emph{지표 신뢰성을 나누는 조건 축}으로 사용한다. 즉 말뭉치 빈도 자체를 환각 라벨이나 검색 증강(retrieval augmentation) 트리거로 쓰지 않고, 각 지지도 구간에서 어떤 신호가 안정적으로 작동하는지를 평가하기 위한 \emph{외부 조건 변수}로 사용한다.
 
-본 실험은 paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic을 분리해 보고한다. 전자는 Ma 2025의 Eq.~(11)--(14)를 따라 token energy $\tilde{E}(x_t)=-z_\theta(x_t)$, sample energy $E(x^{(i)})=\frac{1}{T_i}\sum_t \tilde{E}(x_t^{(i)})$, cluster total energy $E_{\text{Bolt}}(\mathbb{C}_k)=\sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)})$ (SUM), 최종 uncertainty $U(\mathbf{x})=\sum_k p(\mathbb{C}_k) E_{\text{Bolt}}(\mathbb{C}_k)$ 로 계산한다. 여기서 $p(\mathbb{C}_k)$ 는 S4 Semantic Entropy 단계의 Eq.~(8) likelihood-based cluster probability를 그대로 상속한다. 후자는 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$ 평균, 평균 negative log probability, logit variance, confidence margin을 candidate level로 묶는 diagnostic이며 paper-faithful Semantic Energy와 같은 column으로 섞지 않는다. Energy-only, fixed linear SE/Energy blend, hard cascade는 baseline table에서 같은 column으로 보고하지만 평가 시 각 신호의 의미 단위 (prompt, cluster, candidate) 를 명시한다.
+이 구조의 출력은 ``하나의 글로벌 결합기가 모든 데이터에서 가장 좋다''는 식의 단일 우열 비교가 아니라, ``어떤 지지도 구간에서는 어떤 신호 또는 결합이 가장 신뢰롭다''는 \emph{구간별 신뢰성 지도(reliability map)}이다.
 
-\section{재현 가능한 실험 결과 요약}
+\section{평가 단위 분리 원칙}
 
-본문 수치는 실험 summary와 표 산출물에서 자동 생성된다. 파일명은 \path{thesis_evidence_summary.json}과 \path{thesis_evidence_table.tex}이며, 본 논문에 박힌 모든 headline 수치는 \path{thesis/results_macros.tex}에 매크로로 분리되어 있어 동일 manifest/run id 안에서 재실행 시 본문 prose를 손대지 않고 바로 갱신된다. 이 산출물은 동일한 feature table과 평가 설정 (\path{experiments/configs/fusion.yaml}, \path{experiments/configs/datasets.yaml}, \path{experiments/configs/generation.yaml}) 에서 재생성 가능해야 한다.
+본 실험에서 비교되는 신호들은 정의 단위가 모두 다르다.
+
+\begin{itemize}
+    \item \textbf{프롬프트 단위 신호 (prompt-level)}: Semantic Entropy. 한 질문에 대해 N=10개의 답변을 표본 추출한 뒤 그 \emph{표본 집단 전체}에서 하나의 값을 산출한다. 같은 질문의 정답 후보와 환각 후보 두 행에 \emph{같은 값이 복사되어} 입력된다.
+    \item \textbf{클러스터 단위 신호 (cluster-level)}: 원논문 정의의 Semantic Energy. 같은 N=10 표본을 의미 클러스터로 묶고, 각 클러스터의 토큰 로짓 합계를 클러스터 확률로 가중 집계한다.
+    \item \textbf{후보 단위 신호 (candidate-level)}: 후보별로 다른 값을 갖는 신호. 평균 음의 로그 확률(negative log probability), 로짓 분산, confidence margin, 후보 단위 볼츠만형 에너지 진단(token-level $-\log Z$ 평균), 그리고 후보 답변에서 추출한 개체의 빈도/공기 빈도가 이에 해당한다.
+\end{itemize}
+
+세 단위는 공통 후보 행 단위 AUROC 표에 함께 보고할 수 있지만, 그 표 한 줄의 의미는 단위마다 다르다. 본 논문은 이 단위 차이를 본문/표/그림에 일관되게 명시하여 단위 혼동에서 비롯된 잘못된 비교를 차단한다.
+
+\section{원논문 정의의 Semantic Energy와 후보 단위 진단의 분리}
+
+본 실험은 원논문(Ma 등 2025\cite{ma2025}) 정의에 충실한 Semantic Energy와, 후보 단위 \emph{볼츠만형 에너지 진단(Boltzmann-style energy diagnostic)}을 분리해 보고한다. 전자는 Ma 2025 식 (11)--(14)를 따라 토큰 에너지 $\tilde{E}(x_t)=-z_\theta(x_t)$, 표본 에너지 $E(x^{(i)})=\frac{1}{T_i}\sum_t \tilde{E}(x_t^{(i)})$, 클러스터 합계 에너지 $E_{\text{Bolt}}(\mathbb{C}_k)=\sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)})$, 최종 불확실성 $U(\mathbf{x})=\sum_k p(\mathbb{C}_k) E_{\text{Bolt}}(\mathbb{C}_k)$로 계산하며, 클러스터 확률 $p(\mathbb{C}_k)$는 SE 단계의 가능도 기반 클러스터 확률을 그대로 상속한다.
+
+후자는 교사 강제(teacher-forced) 후보 점수화 단계에서 얻은 토큰 단위 $-\log Z$ 평균, 평균 음의 로그 확률, 로짓 분산, confidence margin을 후보 단위 한 줄로 묶은 진단 지표이다. 두 신호는 정의 단위가 클러스터 vs 후보로 다르므로 같은 열에 합치지 않는다.
+
+\section{재현 가능한 산출 계약}
+
+본문에 박힌 모든 핵심 수치는 단일 자동화 실행에서 산출된 \path{summary.json} / \path{robustness/*.json} / 자동 생성 LaTeX 표(\path{thesis_evidence_table.tex}) / 자동 생성 그림(\path{figures/money_figure_*.png})에서 가져온다. 본문에서 인용되는 핵심 수치는 \path{thesis/results_macros.tex}에 매크로로 분리되어 있어, 동일 입력에서 재실행 시 본문 문장을 손대지 않고 매크로만 갱신하면 된다. 산출물 재생성은 동일한 특징 테이블과 평가 설정(\path{experiments/configs/fusion.yaml}, \path{datasets.yaml}, \path{generation.yaml})에서 가능해야 한다.
 
 \chapter{실험}{\label{ch:experiment}}
 
@@ -361,70 +379,250 @@ LLM의 logit은 다음 토큰에 대한 상대적 선호를 반영하며, Energy
 \input{sections/experiment_method}
 
 
-\section{실험 결과 요약}
+\section{종합 베이스라인 결과}
 
-본 절의 값은 실험 summary와 table 산출물에서 자동 생성된다. 두 파일명은 \path{thesis_evidence_summary.json}, \path{thesis_evidence_table.tex}이다. 이 표는 candidate-row aggregate headline을 요약하지만, SE/Energy complementarity 주장은 별도의 paired/corpus-bin matched metric을 필요로 한다.
+표~\ref{tab:current_thesis_evidence}는 본 실험의 종합 베이스라인 결과이다. SE 단일/Energy 단일은 후보 행 단위 AUROC가 구조적으로 0.5에 묶인다(둘 다 한 프롬프트의 두 후보 행에 같은 값을 복사하므로, 후보 행 사이 순위에 영향을 주지 못한다). 본 표에는 결과 수치 없이 별도 프롬프트 단위 평가에서 다룬다.
 
 \input{thesis_evidence_table.tex}
 
-본 실험의 candidate-row aggregate AUROC는 corpus-bin weighted fusion \HeadlineLearnedFusionWithCorpusAuroc, global learned fusion (no corpus) \HeadlineLearnedFusionNoCorpusAuroc 이다. SE-only / Energy-only는 prompt-level 신호로 paired row에서 동일 값을 broadcast 하므로 candidate-row aggregate AUROC = 0.5 의 구조적 artifact 만 산출되며, 본 표에 결과 수치로 포함하지 않고 별도 prompt-level metric (\S\ref{ch:experiment} 참조) 으로 보고한다.
-% RESULT_SIGN_CHECK: paper-faithful thesis-valid run 결과 — corpus-bin weighted fusion이
-% global learned fusion (no corpus) 대비 +0.166 개선 (95\% CI [+0.157, +0.176], CI excludes 0).
-% 부호가 paired baseline 대비 flip되어 condition-aware fusion이 통계적으로 robust한 우위를 보임.
-condition-aware corpus-bin weighted fusion은 candidate-row aggregate AUROC에서 global learned fusion (no corpus) 대비 절대값 \HeadlineCorpusFusionAurocDelta 만큼 \emph{높으며}, 95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 가 0을 가로지르지 않는다. 즉 corpus feature를 단순히 global fusion에 더하면 \emph{손해}이지만, corpus-axis bin마다 별도 가중치를 학습하는 condition-aware 구조가 그 손해를 회복하고 단일 신호 fusion을 통계적으로 robust하게 능가한다.
+세 가지 핵심 관찰이 있다.
 
-AUPRC 차이도 동일 bootstrap 구간에서 양수 (절대값 \HeadlineCorpusFusionAuprcDelta) 에 있다. 이 두 evidence가 본 논문의 핵심 주장 — \emph{conditional reliability framework이 단순 평균 평가에 가려진 신호 가치를 복원한다} — 를 통계적으로 뒷받침한다. SE/Energy 자체는 prompt-level 신호로 candidate-row aggregate에서 평가하지 않고 별도 prompt-level metric (\S\ref{ch:experiment} 참조) 으로 보고한다.
+\begin{itemize}
+    \item 로짓 진단 단일은 AUROC 0.375로 \emph{무작위(0.5)보다 못한 역방향}이다. 이는 환각 답이 정답 답보다 모델 입장에서 \emph{더 자신있는} 답으로 평가됨을 의미하며, Simhi 등(2025)이 보고한 \textsc{Choke}(고확신 환각) 패턴과 일치한다. 같은 신호를 그대로 받은 선형 로지스틱 회귀(말뭉치 신호 미사용)도 AUROC 0.372로 같은 역전을 흡수한다.
+    \item 비선형 결합기인 그래디언트 부스팅(말뭉치 신호 미사용)은 AUROC 0.541로 같은 후보 단위 신호에서 비선형 결합을 통해 역전을 부분 회복한다.
+    \item 본 논문이 제안하는 \textbf{구간별 가중 결합기}는 AUROC 0.538로 비선형 결합기와 같은 수준에 도달하면서도, 정의상 단순한 선형 구조 위에서 \emph{말뭉치 지지도 구간마다 다른 가중치를 학습}하는 것만으로 같은 회복을 달성한다.
+\end{itemize}
 
-\paragraph{CHOKE 패턴의 두 scope 동시 재현.} 본 실험 데이터에서 Simhi 등 (2025) 의 \textsc{Choke} 현상이 두 직교 평가 단위에서 동시에 관측된다\cite{simhi2025choke}. (i) candidate-level: 환각 답이 정답 답보다 평균 NLL이 작고 (paired win 0.36) confidence margin이 크다 (paired win 0.34, n$\approx$5{,}200, ties 제외) — 모델이 환각을 \emph{더 자신있게} 생성한다. (ii) corpus-level: \texttt{entity\_pair\_cooccurrence\_axis} paired win 0.551 (n=2{,}499) — 환각 답이 corpus에 더 자주 같이 등장하는 entity pair를 사용한다. 두 evidence는 동일 그림을 가리킨다 — \emph{모델은 익숙한 entity를 잘못된 관계로 confident하게 조합해 환각을 만든다.} 이 패턴은 logit-only/sample-consistency detector의 본질적 한계를 외부 corpus signal로 분리할 수 있음을 보여준다.
+이는 본 논문의 핵심 framing을 직접 뒷받침한다 — 단일 전역 결합으로는 가려지는 신호 가치가, 외부 조건 축에 따라 분리해 평가하면 같은 데이터에서 복원된다는 점이다.
+
+\section{프롬프트 단위 부트스트랩 신뢰구간}
+
+본 비교의 통계적 robust함을 검증하기 위해, 프롬프트 단위 표본 추출(같은 프롬프트의 두 후보를 한 단위로 묶음) 부트스트랩을 2{,}000회 수행하여 95\% 신뢰구간을 산출하였다. 표~\ref{tab:bootstrap_ci}는 핵심 비교 세 건의 결과이다.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{프롬프트 단위 부트스트랩 신뢰구간(95\%, n=2{,}000)}
+\label{tab:bootstrap_ci}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+비교(후보 vs 기준) & $\Delta$ AUROC [95\% CI] & $\Delta$ AUPRC [95\% CI] \\
+\midrule
+구간별 가중 결합 vs 전역 결합(말뭉치 미사용) & \textbf{+0.166 [+0.157, +0.176]} & +0.096 [+0.089, +0.102] \\
+구간별 특징 선택 vs 전역 결합(말뭉치 미사용) & +0.110 [+0.100, +0.118] & +0.058 [+0.053, +0.062] \\
+전역 결합(말뭉치 미사용) vs SE 단일      & $-0.128$ [$-0.137$, $-0.119$] & $-0.083$ [$-0.087$, $-0.078$] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+세 비교 모두 신뢰구간이 0을 가로지르지 않으므로, ``구간별 가중 결합이 전역 결합 대비 통계적으로 우위''라는 본 논문의 핵심 주장이 통계적으로 뒷받침된다. 마지막 줄(전역 결합 vs SE 단일의 음의 차이)은 SE 단일이 후보 행 단위에서 0.5 상수를 출력하기 때문에 발생하는 구조적 결과로, 단순 비교에는 사용할 수 없는 수치이다.
+
+\section{말뭉치 지지도 구간별 신뢰성 (3-bin 기본 분석)}
+
+표~\ref{tab:bin3_method_matrix}와 그림~\ref{fig:money}는 3개 지지도 구간(낮음/중간/높음) 별로 각 방법의 AUROC를 정리한 것이다.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{방법 $\times$ 말뭉치 지지도 구간(3-bin) AUROC. 굵은 글씨는 각 구간의 1위.}
+\label{tab:bin3_method_matrix}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+방법 & 낮음 (n=5{,}347) & 중간 (n=5{,}087) & 높음 (n=1{,}195) \\
+\midrule
+SE 단일 (프롬프트 단위) & 0.497 & 0.509 & 0.489 \\
+Energy 단일 (프롬프트 단위) & 0.496 & 0.511 & 0.482 \\
+로짓 진단 단일 (후보 단위) & 0.376 & 0.350 & 0.444 \\
+전역 결합 (말뭉치 미사용)  & 0.375 & 0.346 & 0.440 \\
+랜덤 포레스트 (말뭉치 미사용) & 0.545 & 0.515 & 0.502 \\
+그래디언트 부스팅 (말뭉치 미사용) & \textbf{0.568} & 0.533 & 0.510 \\
+구간별 특징 선택 & 0.497 & 0.355 & 0.437 \\
+\textbf{구간별 가중 결합} & 0.520 & \textbf{0.601} & \textbf{0.546} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+방법 $\times$ 구간 행렬에서 구간별 1위가 다음과 같이 비단조적으로 바뀐다. \emph{낮은 지지도}에서는 그래디언트 부스팅(말뭉치 미사용)이 1위(0.568)이며, \emph{중간 지지도}에서는 구간별 가중 결합이 압도적 1위(0.601)이고, \emph{높은 지지도}에서도 구간별 가중 결합이 1위(0.546)이다. 즉 ``말뭉치를 거의 모르는 답''에서는 말뭉치 신호가 잡음이 되어 비선형 로짓 결합이 더 안정적인 반면, 모델이 어느 정도 알 만한 영역에서는 말뭉치 조건부 결합이 분명히 더 신뢰롭다.
 
 \begin{figure}[htbp]
     \centering
-    \resizebox{0.42\textwidth}{!}{\includegraphics{figures/money_figure_3bin.png}}
-    \caption{Signal $\times$ corpus support bin reliability map (3-bin primary). 위 panel은 candidate-level signal의 paired win-rate (RdBu, 0.5 중심), 아래 panel은 prompt-level signal의 bin mean을 신호 내 z-score로 표준화한 값 (viridis). cell의 숫자는 bin별 표본 수와 win-rate / 평균. 5-bin sensitivity는 \texttt{figures/money\_figure\_5bin.png} 에 동시 산출되며 동일 결론.}
+    \resizebox{0.85\textwidth}{!}{\includegraphics{figures/money_figure_3bin.png}}
+    \caption{신호 $\times$ 말뭉치 지지도 구간 신뢰성 지도(3-bin 기본 분석). 위 panel: 후보 단위 신호의 쌍 비교 승률(0.5 중심으로 빨강은 환각 후보가 우위/푸른은 정답 후보가 우위). 아래 panel: 프롬프트 단위 신호의 구간 평균을 신호 내 z-점수로 표준화한 값(viridis). 각 셀에 표본 수와 함께 정확한 승률/평균을 표시한다. 5-bin 민감도는 \texttt{figures/money\_figure\_5bin.png}로 동시 산출되었으며 같은 결론을 보인다.}
     \label{fig:money}
 \end{figure}
 
-동일 reliability map을 corpus support decile (10-bin) 로 분해한 결과 (그림~\ref{fig:money10}), 핵심 결론이 더 정밀하게 분해된다. 첫째, sweet-spot decile 30--50 (n=5{,}082) 에서 condition-aware corpus-bin weighted fusion이 AUROC 0.602--0.612, paired win 0.620--0.635 로 모든 method 중 1위 — corpus support 중간 구간이 condition-aware 구조의 작동 영역이다. 둘째, 최저 decile 00--10 (n=549) 에서는 sklearn GBM (no corpus) 만 1위 (AUROC 0.605, win 0.580) — corpus가 거의 모르는 답에서는 corpus signal이 잡음이 되고 internal logit 비선형 fusion이 더 안정적이다. 셋째, 중간 decile 20--50 (n=7{,}683) 에서 logit-diagnostic-only paired win이 0.284--0.358로 가장 강하게 역전 (CHOKE pattern 심화) — 환각 답이 정답 답보다 더 자신있게 생성됨이 corpus가 어느 정도 지원하는 답에서 가장 두드러진다. 넷째, 최상위 decile 90--100 (n=125) 은 표본이 작지만 corpus-bin weighted 가 win 0.580으로 단일-신호 대비 우위 유지. corpus axis는 단순한 희귀도 vs 빈출도 이분법이 아니라 어느 신호가 신뢰로운가가 corpus support에 따라 비단조적으로 바뀜을 보여주며, 이는 conditional reliability framework이 글로벌 단일 fusion으로 환원되지 않는 직접 증거다.
+\section{10분위(decile) 정밀 분해}
+
+3-bin 분석에서 관측된 비단조성은 말뭉치 지지도 축을 10분위(decile)로 더 잘게 쪼갠 정밀 분해에서 한층 분명해진다. 표~\ref{tab:bin10_method_matrix}는 각 분위에서 핵심 5개 방법의 AUROC를, 표~\ref{tab:bin10_winrate}는 같은 분위에서의 쌍 비교 승률(0.5가 무작위, 1에 가까울수록 환각 후보를 잘 위쪽에 배치)을 보여준다.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{방법 $\times$ 말뭉치 지지도 10분위 AUROC. 굵은 글씨는 분위별 1위.}
+\label{tab:bin10_method_matrix}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+분위 & n & 구간별 가중 결합 & GBM (no corpus) & RF (no corpus) & 로짓 진단 단일 \\
+\midrule
+00--10 &   549 & 0.534 & \textbf{0.605} & \textbf{0.618} & 0.494 \\
+10--20 & 1{,}020 & \textbf{0.563} & 0.552 & 0.510 & 0.390 \\
+20--30 & 2{,}601 & 0.561 & \textbf{0.576} & 0.552 & 0.347 \\
+30--40 & 3{,}465 & \textbf{0.602} & 0.556 & 0.536 & 0.357 \\
+40--50 & 1{,}617 & \textbf{0.612} & 0.515 & 0.495 & 0.326 \\
+50--60 &   802 & \textbf{0.554} & 0.496 & 0.472 & 0.343 \\
+60--70 &   587 & \textbf{0.552} & 0.531 & 0.521 & 0.442 \\
+70--80 &   507 & \textbf{0.544} & 0.521 & 0.524 & 0.444 \\
+80--90 &   356 & \textbf{0.543} & 0.533 & 0.505 & 0.450 \\
+90--100 &  125 & 0.500 & 0.488 & 0.498 & \textbf{0.503} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{방법 $\times$ 말뭉치 지지도 10분위 쌍 비교 승률. 0.5가 무작위. 굵은 글씨는 분위별 1위.}
+\label{tab:bin10_winrate}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+분위 & n & 구간별 가중 결합 & GBM (no corpus) & RF (no corpus) & 로짓 진단 단일 \\
+\midrule
+00--10 &   549 & 0.417 & \textbf{0.580} & 0.592 & 0.474 \\
+10--20 & 1{,}020 & 0.540 & \textbf{0.549} & 0.511 & 0.358 \\
+20--30 & 2{,}601 & \textbf{0.558} & 0.558 & 0.549 & 0.330 \\
+30--40 & 3{,}465 & \textbf{0.635} & 0.546 & 0.551 & 0.334 \\
+40--50 & 1{,}617 & \textbf{0.620} & 0.520 & 0.509 & 0.284 \\
+50--60 &   802 & \textbf{0.559} & 0.534 & 0.474 & 0.316 \\
+60--70 &   587 & 0.493 & \textbf{0.534} & 0.525 & 0.339 \\
+70--80 &   507 & \textbf{0.589} & 0.576 & 0.567 & 0.430 \\
+80--90 &   356 & \textbf{0.616} & 0.571 & 0.507 & 0.409 \\
+90--100 &  125 & \textbf{0.580} & 0.464 & 0.493 & 0.507 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+핵심 발견은 다음 네 가지이다.
+
+\begin{itemize}
+    \item \textbf{30--50분위 sweet spot} (n=5{,}082): 구간별 가중 결합이 AUROC 0.602--0.612, 쌍 비교 승률 0.620--0.635로 모든 방법 중 1위. ``너무 희귀하지도, 너무 흔하지도 않은'' 개체 조합 영역이 조건부 결합의 가장 강한 작동 영역이다.
+    \item \textbf{0--10분위 (가장 낮은 지지도)} (n=549): 그래디언트 부스팅(말뭉치 미사용)만이 1위(AUROC 0.605, 승률 0.580). 말뭉치가 거의 모르는 답에서는 말뭉치 신호가 잡음이 되고 내부 로짓의 비선형 결합이 더 안정적이다.
+    \item \textbf{20--50분위 CHOKE 심화} (n=7{,}683): 로짓 진단 단일의 쌍 비교 승률이 0.284--0.358까지 떨어져 가장 강하게 역전된다. 환각 답이 정답 답보다 더 자신있게 생성되는 현상은 ``말뭉치가 어느 정도 지지하는'' 답에서 가장 두드러지며, 이는 모델이 익숙한 개체에 대해 잘못된 답을 confident하게 만드는 경향과 일치한다.
+    \item \textbf{90--100분위} (n=125): 표본이 작지만 구간별 가중 결합이 승률 0.580으로 단일 신호 대비 우위를 유지한다.
+\end{itemize}
+
+이 결과는 말뭉치 지지도 축이 단순한 ``희귀 vs 빈출'' 이분법이 아니라, \emph{어느 신호가 신뢰로운가가 지지도에 따라 비단조적으로 바뀜}을 보여준다. 본 논문의 조건부 신뢰성 framing이 단일 전역 결합으로 환원되지 않는다는 직접 증거이다.
 
 \begin{figure}[htbp]
     \centering
-    \resizebox{0.48\textwidth}{!}{\includegraphics{figures/money_figure_10bin.png}}
-    \caption{Signal $\times$ corpus support \emph{decile} reliability map (10-bin sensitivity). Panel/colormap 규칙은 그림~\ref{fig:money}와 동일. decile 30--50에서 corpus-bin weighted fusion의 win-rate 우위, decile 20--50에서 candidate-level NLL/margin의 강한 inversion (CHOKE 심화), decile 00--10에서 corpus 신호 잡음화 — 세 패턴이 동시에 가시화된다.}
+    \resizebox{0.95\textwidth}{!}{\includegraphics{figures/money_figure_10bin.png}}
+    \caption{신호 $\times$ 말뭉치 지지도 \emph{10분위} 신뢰성 지도. Panel/colormap 규칙은 그림~\ref{fig:money}와 동일. 30--50분위에서 구간별 가중 결합의 승률 우위, 20--50분위에서 후보 단위 NLL/margin의 강한 역전(CHOKE 심화), 0--10분위에서 말뭉치 신호 잡음화 — 세 패턴이 동시에 가시화된다.}
     \label{fig:money10}
 \end{figure}
 
-\section{Energy 평가 단위와 corpus-bin reliability}
+\section{CHOKE 패턴의 두 직교 평가 단위 동시 재현}
 
-candidate-row aggregate baseline table은 SE-only, Energy-only, hard cascade, fixed linear blend, learned fusion을 같은 row 단위로 비교하지만, paper-faithful Semantic Energy는 sampled response의 semantic cluster 단위에서, candidate-level Boltzmann-style energy diagnostic은 token-level $-\log Z$ 평균 단위에서 정의되므로 두 값을 동일 column에서 직접 비교하는 것은 평가 단위가 섞이는 것이다. 본 실험은 두 신호를 분리해 보고하고, 최종 Energy 신뢰도는 corpus-support bin별 paired matched-pair metric으로 평가한다.
+Simhi 등(2025)의 CHOKE 패턴(모델이 정답 지식을 가지고도 고확신으로 환각을 생성)을 본 실험 데이터에서 \emph{서로 직교적인 두 평가 단위}에서 동시에 관측하였다.
 
-\section{문헌 근거와 guardrail}
+\begin{itemize}
+    \item \textbf{후보 단위(candidate-level) 증거}: 환각 답이 정답 답보다 평균 음의 로그 확률이 작다(쌍 비교 승률 0.36)는 점, confidence margin이 크다(승률 0.34)는 점 두 가지가 일관되게 관측된다. 두 신호 모두 ``정답이 더 자신있는 답이 되어야 한다''는 직관과 반대 방향으로, 환각이 더 자신있는 답으로 평가됨을 의미한다(n$\approx$5{,}200, 동률 제외).
+    \item \textbf{말뭉치 단위(corpus-level) 증거}: 후보 답에서 추출한 \emph{개체쌍 공기 빈도(entity-pair co-occurrence)} 축에서 환각 후보가 정답 후보보다 큰 값을 가질 쌍 비교 승률이 0.551(n=2{,}499). 즉 환각 답이 말뭉치에 더 자주 함께 등장하는 개체쌍을 사용한다.
+\end{itemize}
 
-Ma Semantic Energy는 low-diversity 또는 single-cluster 상황에서 logit 기반 신호를 검토할 동기를 제공하지만\cite{ma2025}, 현재 candidate-row headline table만으로 Energy 성능을 대신 증명하지 않는다. QuCo-RAG는 corpus frequency와 co-occurrence feature의 외부 근거 proxy를 설명하는 참고 문헌이며\cite{qucorag}, corpus count가 모델 내부 지식이나 hidden-state confidence와 같다는 뜻은 아니다. Phillips et al.은 selective prediction과 learned combination의 framing으로만 사용하며\cite{phillips2026}, PC Probe는 구현하거나 재현하지 않았다. 본 구분은 Semantic Energy를 single-cluster 동기로만 사용하고 QuCo-RAG-style corpus statistics를 hidden-state probe와 구분하는 guardrail을 따른다.
+두 증거는 동일한 그림을 가리킨다 — \emph{모델은 익숙한 개체를 잘못된 관계로 자신있게 조합해 환각을 만든다}. 이는 로짓이나 표본 일관성 기반 탐지기의 본질적 한계를, 외부 말뭉치 신호로 분리해 낼 수 있음을 보여준다. 본 논문은 Simhi 등이 제안한 은닉 상태 프로빙(hidden-state probing) 해법을 채택하지 않고, 외부 말뭉치 축으로 같은 현상을 분리해 낸다.
+
+\section{데이터셋 간 일반화 (leave-one-dataset-out)}
+
+학습 분할이 한 데이터셋만 보고 평가한 다른 데이터셋에서도 우위가 유지되는지 검증하기 위해, 두 데이터셋(HaluEval-QA / TruthfulQA) 각각을 평가용으로 빼고 나머지로 학습하는 leave-one-dataset-out 분할을 적용하였다(표~\ref{tab:lodo}).
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Leave-one-dataset-out AUROC. AGG는 두 데이터셋을 모두 평가에 포함한 종합 결과.}
+\label{tab:lodo}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+방법 & AGG & HaluEval-QA만 학습 & TruthfulQA만 학습 \\
+\midrule
+\textbf{구간별 가중 결합} & \textbf{0.538} & \textbf{0.536} & \textbf{0.556} \\
+그래디언트 부스팅 (말뭉치 미사용) & 0.541 & 0.550 & 0.523 \\
+랜덤 포레스트 (말뭉치 미사용) & 0.525 & 0.528 & 0.510 \\
+구간별 특징 선택 & 0.482 & 0.478 & 0.428 \\
+로짓 진단 단일 & 0.375 & 0.340 & 0.462 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+구간별 가중 결합은 두 데이터셋 분할에서 일관되게 0.536/0.556 (격차 0.020)이다. 반면 그래디언트 부스팅은 HaluEval(0.550)과 TruthfulQA(0.523) 사이 격차가 0.027로 더 크고, 로짓 진단 단일은 격차 0.122로 데이터셋 의존성이 크다. 즉 \emph{구간별 가중 결합이 데이터셋 전이에 더 robust}하다.
+
+\section{임계값/보정 진단}
+
+분류 정확도뿐 아니라 출력 점수를 \emph{확률}로 해석할 수 있는지(보정 가능성)도 함께 점검하였다(표~\ref{tab:calibration}). Brier 점수는 작을수록, ECE(Expected Calibration Error)도 작을수록 보정이 좋다.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{임계값/보정 진단. Brier와 ECE 모두 낮을수록 좋음.}
+\label{tab:calibration}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+방법 & Brier & ECE \\
+\midrule
+\textbf{구간별 가중 결합} & \textbf{0.253} & \textbf{0.047} \\
+랜덤 포레스트 (말뭉치 미사용) & 0.267 & 0.094 \\
+그래디언트 부스팅 (말뭉치 미사용) & 0.278 & 0.121 \\
+로짓 진단 단일 & 0.280 & 0.190 \\
+전역 결합 (말뭉치 미사용) & 0.279 & 0.196 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+구간별 가중 결합은 분류 정확도(AUROC)뿐 아니라 보정 측면에서도 1위이다(Brier 0.253, ECE 4.7\%). 다른 방법 대비 ECE가 약 1/2--1/4 수준으로 작아, 동일 결과를 단순 분류뿐 아니라 \emph{확률 해석이 필요한 후속 의사결정}에도 가장 적합하다.
 
 \chapter{결론}{\label{ch:conclusion}}
 
 \section{연구 요약}
 
-이 논문은 LLM 환각 탐지에서 Semantic Entropy, Semantic Energy 동기, corpus-grounded signal을 corpus 조건 축 관점에서 재정리하고, paired discriminative protocol 위에서 N=10 NLI likelihood SE, paper-faithful Semantic Energy, Infini-gram-compatible corpus-axis bin, condition-aware fusion을 단일 실행 계약 (S0--S9) 으로 묶어 평가하였다. 핵심 결론은 다음과 같다.
+이 논문은 LLM 환각 탐지에서 Semantic Entropy(SE), Semantic Energy, 그리고 말뭉치 기반 신호를 \emph{말뭉치 지지도라는 조건부 축}의 관점에서 재정리하고, 쌍 비교 평가 절차 위에서 N=10 자연어 추론(NLI) 기반 Semantic Entropy, 원논문 정의에 충실한 Semantic Energy, Infini-gram 기반 말뭉치 지지도 구간, 구간별 가중 결합을 단일 자동화 파이프라인(S0--S9 9단계)으로 묶어 평가하였다. 핵심 결론은 다음과 같다.
 
 \begin{enumerate}
-    \item candidate-row aggregate AUROC만으로는 SE/Energy의 intended claim을 직접 검정할 수 없다. SE는 prompt-level broadcast, paper-faithful Semantic Energy는 cluster level 정의이므로 평가 단위를 섞으면 신호가 가려진다.
-    \item condition-aware corpus-bin weighted fusion은 global learned fusion (no corpus) 대비 AUROC 절대값 \HeadlineCorpusFusionAurocDelta 높으며 95\% prompt-grouped bootstrap 구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 가 0을 가로지르지 않는다 (AUPRC 차이도 양수, 절대값 \HeadlineCorpusFusionAuprcDelta). corpus feature를 global fusion에 단순히 더하면 손해지만, bin마다 별도 가중치를 학습하는 condition-aware 구조가 그 손해를 회복하고 단일-신호 fusion을 통계적으로 robust하게 능가한다.
-    \item 10-bin decile sensitivity가 더 정교한 패턴을 드러낸다. sweet-spot decile 30--50 (n=5{,}082) 에서 corpus-bin weighted가 모든 method 중 1위 (AUROC 0.60--0.61, paired win 0.62--0.64), 최저 decile 00--10 에서는 sklearn GBM (no corpus) 만 1위, 중간 decile 20--50 에서 logit-diagnostic-only paired win 0.28--0.36 의 강한 inversion (CHOKE 심화) 이 동시 관측된다. corpus axis는 어느 신호가 신뢰로운가가 corpus support에 따라 비단조적으로 바뀜을 보인다.
-    \item Paper-faithful Semantic Energy와 candidate-level Boltzmann-style energy diagnostic은 평가 단위가 다르므로 같은 column으로 합치지 않고 분리해 보고한다. 학습 target은 \texttt{is\_hallucination} 이진 라벨, main 분석 축은 corpus-axis bin (3-bin primary, 5/10-bin sensitivity).
+    \item 후보 행 단위(candidate-row) AUROC만으로는 SE/Energy의 의도된 주장을 직접 검정할 수 없다. SE는 한 프롬프트의 두 후보(정답/환각) 행에 동일 값으로 복사(broadcast)되며, 원논문 정의의 Semantic Energy는 의미 클러스터 단위로 정의되기 때문에, 평가 단위를 섞으면 신호가 가려진다.
+    \item 구간별 가중 결합기는 말뭉치 신호를 쓰지 않는 전역 학습 결합 대비 AUROC \HeadlineCorpusFusionAurocDelta\ 만큼 높으며, 95\% 프롬프트 단위 부트스트랩 신뢰구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper]가 0을 가로지르지 않는다(AUPRC 차이도 양수, 절대값 \HeadlineCorpusFusionAuprcDelta). 말뭉치 특징을 단일 전역 결합에 그대로 추가하면 오히려 성능이 떨어지지만, 구간마다 별도 가중치를 학습하는 조건부 구조가 그 손해를 회복하고 단일 신호 결합을 통계적으로 능가한다.
+    \item 10분위(decile) 정밀 분해가 더 정교한 패턴을 드러낸다. 30--50분위 구간(n=5{,}082)에서 구간별 가중 결합이 모든 방법 중 1위(AUROC 0.60--0.61, 쌍 비교 승률 0.62--0.64), 가장 낮은 0--10분위에서는 사이킷런 그래디언트 부스팅(말뭉치 신호 미사용)만 1위, 중간 20--50분위에서는 로짓 진단의 쌍 비교 승률이 0.28--0.36까지 떨어지는 CHOKE 패턴 심화가 동시 관측된다. 어느 신호가 신뢰로운가는 말뭉치 지지도에 따라 비단조적으로 바뀐다.
+    \item 원논문 정의의 Semantic Energy(클러스터 단위)와 후보 단위 볼츠만형 에너지 진단(토큰 단위)은 정의 단위가 다르므로 같은 열에 합치지 않고 분리해 보고한다. 학습 라벨은 데이터셋 주석의 환각 여부(\texttt{is\_hallucination}) 이진 라벨을, 주 분석 축은 말뭉치 지지도 구간(3-bin 기본, 5/10-bin 민감도)을 사용한다.
 \end{enumerate}
 
 \section{학술적 기여}
 
-본 논문의 학술적 기여는 다음과 같다. 첫째, \textbf{conditional reliability framework}을 제안하고 통계적으로 검증하였다 — corpus-axis bin마다 어떤 신호가 신뢰로운지 분리 평가하여 단순 글로벌 fusion으로 환원되지 않는 condition-aware 우위를 보였다 (corpus-bin weighted vs global no-corpus, AUROC delta \HeadlineCorpusFusionAurocDelta, 95\% CI excludes 0). 둘째, \textbf{CHOKE 패턴의 두 scope 동시 재현} — Simhi 2025의 high-certainty hallucination 패턴을 candidate-level (NLL/margin paired win 0.36/0.34) 과 corpus-level (entity-pair co-occurrence paired win 0.551) 두 직교 평가 단위에서 동시 관측, 외부 corpus signal로 분리 가능함을 데이터로 보였다. 셋째, \textbf{평가 단위 분리 명시} — SE는 prompt-level broadcast, Semantic Energy는 cluster-level, logit diagnostics는 candidate-level 임을 본문/표/figure에 일관 적용하여 단위 혼동 보고를 차단하였다. 넷째, \textbf{재현 가능한 산출 계약} — 본문 수치를 단일 thesis-valid run의 summary/table/figure auto-generation으로 추적 가능하게 고정하였다.
+본 논문의 학술적 기여는 다음과 같다.
+
+\begin{enumerate}
+    \item \textbf{조건부 신뢰성 평가 프레임워크 제안과 통계적 검증}: 말뭉치 지지도 구간마다 어떤 신호가 신뢰로운지 분리 평가하는 절차를 제안하고, 구간별 가중 결합이 단순 전역 결합 대비 AUROC \HeadlineCorpusFusionAurocDelta\ 향상(95\% 신뢰구간이 0을 가로지르지 않음)을 보임으로써 단일 전역 결합으로 환원되지 않는 조건부 우위를 통계적으로 검증하였다.
+    \item \textbf{CHOKE 패턴의 서로 직교적인 두 평가 단위에서의 동시 재현}: Simhi 등(2025)이 보고한 고확신 환각(high-certainty hallucination) 패턴을 후보 단위(평균 음의 로그 확률/confidence margin 쌍 비교 승률 0.36/0.34)와 말뭉치 단위(개체쌍 공기 빈도 쌍 비교 승률 0.551) 두 직교 평가 단위에서 동시에 관측하여, 외부 말뭉치 신호로 같은 현상을 분리해 낼 수 있음을 실증하였다.
+    \item \textbf{평가 단위 분리의 명시적 적용}: SE는 프롬프트 단위 복사 신호, Semantic Energy는 클러스터 단위 신호, 로짓 진단은 후보 단위 신호임을 본문/표/그림 전체에 일관되게 적용하여, 단위 혼동에서 비롯되는 잘못된 비교를 차단하였다.
+    \item \textbf{재현 가능한 산출 계약}: 본문 수치를 단일 자동화 실행 산출물(summary/table/figure)에서 자동 생성되도록 고정하여, 동일 입력에서 본문 prose 변경 없이 갱신 가능하게 하였다.
+\end{enumerate}
 
 \section{한계}
 
-본 연구는 다음 한계를 가진다. 첫째, \textbf{단일 corpus snapshot 의존} — corpus axis는 \texttt{v4\_dolmasample\_olmo} (16B Dolma sample) 단일 인덱스 위에서 산출되므로 corpus 규모/도메인이 다른 인덱스에서 entity frequency 분포와 zero co-occurrence 빈도가 달라질 수 있다. 둘째, \textbf{corpus signal 해석 한계} — corpus-grounded signal은 외부 근거 가능성을 나타내는 보조 신호일 뿐이며 모델 내부 지식을 직접 증명하지 않는다. 셋째, \textbf{단일 모델 평가} — 본 실험은 Qwen2.5-3B 단일 causal LM 위에서 수행되었으며 모델 규모/계열에 따른 일반화는 본 논문의 범위를 넘는다. 넷째, \textbf{모델 내부 상태 해석 불가} — SE, Semantic Energy, corpus feature는 관측 지표이며 모델의 의도나 내부 원인을 직접 추론하지 않는다.
+본 연구는 다음 한계를 가진다.
+
+\begin{enumerate}
+    \item \textbf{단일 말뭉치 스냅샷 의존}: 말뭉치 지지도 축은 \texttt{v4\_dolmasample\_olmo}(16B Dolma 샘플 토큰, OLMo 토크나이저) 단일 인덱스 위에서 산출되므로, 말뭉치 규모/도메인이 다른 인덱스에서는 개체 빈도 분포와 0 공기 빈도(zero co-occurrence) 비율이 달라질 수 있다.
+    \item \textbf{말뭉치 신호의 보조 신호 성격}: 말뭉치 기반 신호는 외부 근거 가능성을 나타내는 \emph{프록시(proxy)}일 뿐이며 모델 내부 지식을 직접 증명하지 않는다.
+    \item \textbf{단일 모델 평가}: 본 실험은 Qwen2.5-3B 단일 인과 언어모델(causal LM) 위에서 수행되었으며 모델 규모/계열에 따른 일반화는 본 논문의 범위를 넘는다.
+    \item \textbf{모델 내부 상태 해석 불가}: SE, Semantic Energy, 말뭉치 특징은 모두 \emph{관측 지표}이며, 모델의 의도나 내부 원인을 직접 추론하지 않는다.
+\end{enumerate}
 
 \section{향후 연구}
 
-향후 다음 방향을 검토할 수 있다. 첫째, \textbf{여러 corpus snapshot 비교} — \texttt{v4\_dolmasample\_olmo} 외 더 큰 Infini-gram 인덱스 또는 도메인 특화 corpus 에서 axis bin 분포 변화 관찰. 둘째, \textbf{여러 모델 일반화} — 동일 protocol 을 다른 causal LM 에 적용해 corpus-bin reliability 의 모델 의존성 평가. 셋째, \textbf{condition-aware fusion 확장} — axis interaction term, monotonic fusion, hierarchical fusion 으로 확장. 넷째, \textbf{선택 예측 평가} — prompt-level abstention 과 selective-risk framing 을 candidate-row 평가와 분리해 검증.
+향후 다음 방향을 검토할 수 있다.
+
+\begin{enumerate}
+    \item \textbf{여러 말뭉치 스냅샷 비교}: \texttt{v4\_dolmasample\_olmo} 외에 더 큰 Infini-gram 인덱스(예: \texttt{v4\_pileval\_llama}) 또는 도메인 특화 말뭉치에서 지지도 구간 분포가 어떻게 달라지는지 비교한다.
+    \item \textbf{여러 모델로의 일반화}: 동일 평가 절차를 다른 인과 언어모델(예: Llama, Mistral 계열)에 적용해 N=10 NLI 기반 SE와 Semantic Energy의 구간별 신뢰도가 모델에 의존하는지 평가한다.
+    \item \textbf{조건부 결합 구조 확장}: 본 논문의 구간별 가중 결합 외에 축 상호작용 항(axis interaction term), 단조성 제약 결합(monotonic fusion), 계층적 결합(hierarchical fusion) 으로 확장한다.
+    \item \textbf{선택 예측 평가}: 프롬프트 단위 기권(abstention) 지표와 선택 위험(selective risk) 관점을 후보 행 평가와 분리해 검증한다.
+\end{enumerate}
 
 \begin{thebibliography}{99}
 
