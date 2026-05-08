@@ -162,11 +162,37 @@ def phrase_candidates(text: str) -> list[str]:
     return normalized
 
 
-def combine_entities(row: dict[str, Any]) -> tuple[list[str], list[str], list[str]]:
+_DEFAULT_ENTITY_EXTRACTOR: Any = None  # set lazily in combine_entities
+
+
+def _get_default_entity_extractor() -> Any:
+    """Resolve the default entity extractor (regex) once."""
+    global _DEFAULT_ENTITY_EXTRACTOR
+    if _DEFAULT_ENTITY_EXTRACTOR is None:
+        # Local import avoids a circular dep when the adapter is imported
+        # before the ports package is on sys.path.
+        from experiments.adapters.entity_extractor_regex import RegexEntityExtractor
+
+        _DEFAULT_ENTITY_EXTRACTOR = RegexEntityExtractor()
+    return _DEFAULT_ENTITY_EXTRACTOR
+
+
+def combine_entities(
+    row: dict[str, Any],
+    *,
+    extractor: Any = None,
+) -> tuple[list[str], list[str], list[str]]:
+    """Extract question / answer / merged entity lists for a candidate row.
+
+    ``extractor`` accepts any object satisfying ``EntityExtractorPort``:
+    ``RegexEntityExtractor`` (default, legacy regex heuristic) or
+    ``QucoEntityExtractor`` (QuCo-extractor-0.5B, recommended for new runs).
+    """
+    extractor = extractor or _get_default_entity_extractor()
     question = str(row.get("question", ""))
     response = str(row.get(SOURCE_TEXT_FIELD, ""))
-    question_entities = phrase_candidates(question)
-    answer_entities = phrase_candidates(response)
+    question_entities = extractor.extract(question, role="question")
+    answer_entities = extractor.extract(response, role="declarative")
     ordered: list[str] = []
     for entity in question_entities + answer_entities:
         if entity and entity not in ordered:
@@ -423,11 +449,18 @@ def compute_corpus_risk_only(
 class CorpusFeatureAdapter:
     """Computes corpus-axis rows from candidate artifacts using a required count backend port."""
 
-    def __init__(self, candidates_path: Path, dataset_config_path: Path) -> None:
+    def __init__(
+        self,
+        candidates_path: Path,
+        dataset_config_path: Path,
+        *,
+        entity_extractor: Any | None = None,
+    ) -> None:
         self.candidates_path = candidates_path
         self.rows = load_candidate_rows(candidates_path)
         self.backend = build_corpus_count_backend(candidates_path)
         self.analysis_bins, self.analysis_bin_specs = read_analysis_bin_config(dataset_config_path)
+        self.entity_extractor = entity_extractor or _get_default_entity_extractor()
         self._maybe_warmup_backend()
 
     def _maybe_warmup_backend(self) -> None:
@@ -437,7 +470,7 @@ class CorpusFeatureAdapter:
         all_entities: set[str] = set()
         all_pairs: set[str] = set()
         for source_row in self.rows:
-            _, _, entities = combine_entities(source_row)
+            _, _, entities = combine_entities(source_row, extractor=self.entity_extractor)
             unique = sorted(set(entities))
             for entity in unique:
                 if entity:
@@ -465,6 +498,7 @@ class CorpusFeatureAdapter:
             "source_text_field": SOURCE_TEXT_FIELD,
             "candidate_identity_fields": ["dataset", "split_id", "prompt_id", "pair_id", "candidate_id"],
             "corpus_backend": self.backend.describe(),
+            "entity_extractor": self.entity_extractor.describe(),
             "corpus_source_counts": dict(rows_by_source),
             "corpus_status_counts": dict(rows_by_status),
             "allowed_backend_ids": sorted(ALLOWED_BACKEND_IDS),
@@ -473,7 +507,7 @@ class CorpusFeatureAdapter:
         return rows, report
 
     def _build_row(self, run_id: str, source_row: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-        question_entities, answer_entities, entities = combine_entities(source_row)
+        question_entities, answer_entities, entities = combine_entities(source_row, extractor=self.entity_extractor)
         pair_terms = [pair_key(left, right) for left, right in combinations(sorted(set(entities)), 2)]
         entity_results = {entity: self.backend.count_entity(entity) for entity in entities}
         pair_results = {pair: self.backend.count_pair(pair[0], pair[1]) for pair in pair_terms}

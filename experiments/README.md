@@ -92,6 +92,15 @@ These diagnostics may be useful baselines, but they must not be described as the
 
 Corpus feature meanings follow the QuCo-RAG-style reference pattern: entity frequency comes from direct corpus count queries, entity-pair co-occurrence comes from corpus windowed pair counts, and low/zero flags are thresholded derivatives. These values are corpus-support conditions for reliability analysis, not direct correctness labels.
 
+### Entity extractor backends
+
+Entity extraction is pluggable via `EntityExtractorPort` (see `experiments/ports/entity_extractor.py`). Two adapters are provided.
+
+- `regex` (default, legacy): `phrase_candidates` heuristic. Quote-wrapped phrases (3+ chars), 1–4 word capitalized n-grams, and non-stopword tokens of length ≥5. No NER dependency.
+- `quco` (recommended for new runs): `ZhishanQ/QuCo-extractor-0.5B` (Qwen2.5-0.5B-Instruct fine-tuned, distilled from GPT-4o-mini, released by the QuCo-RAG authors). Emits knowledge triplets `(head, relation, tail)`; we keep `head` and `tail` as entities and discard `relation` text (same choice as QuCo-RAG paper §3.3 — relational predicates have high lexical variability).
+
+Selection is via the `--entity-extractor {regex,quco}` flag on `compute_corpus_features.py` and `run_pipeline.py`. The selected backend's provenance (version, model ref, prompt template) is recorded in `corpus_features.parquet`. Switching extractor only requires re-running S5 → S7 → S8 → S9; S2/S4/S6 artifacts are entity-independent and can be reused.
+
 ## 5. Baseline contract
 
 All baseline methods must be implemented and reported:

@@ -35,7 +35,40 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--progress", help="Optional progress JSON path updated atomically.")
     parser.add_argument("--resume", action="store_true", help="Skip when existing output validates.")
     parser.add_argument("--force", action="store_true", help="Replace existing output instead of refusing overwrite.")
+    parser.add_argument(
+        "--entity-extractor",
+        choices=("regex", "quco"),
+        default="regex",
+        help=(
+            "Entity extractor backend. 'regex' (default) = legacy "
+            "phrase_candidates heuristic. 'quco' = ZhishanQ/QuCo-extractor-0.5B "
+            "(Qwen2.5-0.5B-Instruct fine-tuned, knowledge triplet output)."
+        ),
+    )
+    parser.add_argument(
+        "--entity-extractor-model-ref",
+        default="ZhishanQ/QuCo-extractor-0.5B",
+        help="HF model id or local path used when --entity-extractor=quco.",
+    )
+    parser.add_argument(
+        "--entity-extractor-device",
+        default=None,
+        help="Override device for QuCo extractor (e.g. 'cuda:0', 'cpu').",
+    )
     return parser.parse_args()
+
+
+def _build_entity_extractor(args: argparse.Namespace) -> Any:
+    if args.entity_extractor == "regex":
+        from experiments.adapters.entity_extractor_regex import RegexEntityExtractor
+        return RegexEntityExtractor()
+    if args.entity_extractor == "quco":
+        from experiments.adapters.entity_extractor_quco import QucoEntityExtractor
+        return QucoEntityExtractor(
+            model_ref=args.entity_extractor_model_ref,
+            device=args.entity_extractor_device,
+        )
+    raise ValueError(f"Unknown entity extractor: {args.entity_extractor}")
 
 
 def _validate_existing(path: Path, expected_source_path: Path) -> tuple[bool, str]:
@@ -146,7 +179,12 @@ def main() -> int:
 
     _emit(progress_path, phase="start", completed=0, total=0, message="starting corpus feature computation", out_path=out_path)
     dataset_config_path = ROOT / "experiments" / "configs" / "datasets.yaml"
-    direct_adapter = CorpusFeatureAdapter(candidates_path=candidates_path, dataset_config_path=dataset_config_path)
+    extractor = _build_entity_extractor(args)
+    direct_adapter = CorpusFeatureAdapter(
+        candidates_path=candidates_path,
+        dataset_config_path=dataset_config_path,
+        entity_extractor=extractor,
+    )
     _emit(progress_path, phase="build_rows", completed=0, total=len(direct_adapter.rows), message="building corpus feature rows from required count backend", out_path=out_path)
     rows, report = direct_adapter.build_feature_rows()
     _emit(progress_path, phase="write_output", completed=len(rows), total=len(rows), message="writing corpus feature artifact", out_path=out_path)

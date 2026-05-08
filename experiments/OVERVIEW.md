@@ -83,7 +83,7 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 | `mean_negative_log_probability` | candidate | 다름 | 후보 토큰의 −log p 평균 |
 | `logit_variance`, `confidence_margin` | candidate | 다름 | 후보 토큰 위치 logits에서 계산하는 diagnostic |
 | `semantic_energy_boltzmann_diagnostic` | candidate | 다름 | 기존 candidate-level `-logsumexp` 평균. paper-faithful Semantic Energy가 아니라 energy-inspired diagnostic으로 표기 |
-| `entity_frequency_axis`, `entity_pair_cooccurrence_axis`, `corpus_axis_bin` | candidate/pair | 다름 | candidate 답 텍스트에서 entity를 추출하고 Infini-gram-compatible count backend로 raw count, log score, bin을 계산 |
+| `entity_frequency_axis`, `entity_pair_cooccurrence_axis`, `corpus_axis_bin` | candidate/pair | 다름 | candidate 답 텍스트에서 entity를 추출하고 Infini-gram-compatible count backend로 raw count, log score, bin을 계산. Entity 추출은 두 backend 중 선택: `regex` (legacy, 따옴표/Capitalized n-gram/5+자 token), `quco` (권장, `ZhishanQ/QuCo-extractor-0.5B` knowledge triplet). |
 
 ## 6. corpus-axis 분석 원칙
 

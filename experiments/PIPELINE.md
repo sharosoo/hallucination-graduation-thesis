@@ -158,19 +158,34 @@ SE는 prompt-level 신호다. 같은 `pair_id`에서 나온 right/hallucinated c
 ### S5. QuCo-style corpus axis 생성
 
 ```bash
-uv run python experiments/scripts/compute_corpus_features.py --candidates experiments/results/datasets/candidate_rows.jsonl --out experiments/results/corpus_features.parquet
+# 기본 (legacy regex extractor)
+uv run python experiments/scripts/compute_corpus_features.py \
+  --candidates experiments/results/datasets/candidate_rows.jsonl \
+  --out experiments/results/corpus_features.parquet \
+  --entity-extractor regex
+
+# 권장 (QuCo-extractor-0.5B, 신규 runs 부터)
+uv run python experiments/scripts/compute_corpus_features.py \
+  --candidates experiments/results/datasets/candidate_rows.jsonl \
+  --out experiments/results/corpus_features.parquet \
+  --entity-extractor quco \
+  --entity-extractor-model-ref ZhishanQ/QuCo-extractor-0.5B \
+  --entity-extractor-device cuda:0
+
 uv run python experiments/scripts/validate_feature_provenance.py experiments/results/corpus_features.parquet
 ```
 
 - 입력: `candidate_rows.jsonl`
-- 모듈: `experiments/scripts/compute_corpus_features.py`, corpus count adapter
+- 모듈: `experiments/scripts/compute_corpus_features.py`, corpus count adapter, entity extractor adapter (`experiments/adapters/entity_extractor_{regex,quco}.py`)
 - 출력: `experiments/results/corpus_features.parquet`
 - 계산:
-  - candidate answer text에서 entity를 추출한다.
-  - Infini-gram-compatible count backend 또는 고정 corpus snapshot에서 entity frequency와 `head AND tail` co-occurrence를 조회한다.
-  - raw counts, log-transformed continuous axis scores, low/zero flags, bin ids, corpus provenance를 저장한다.
+  - candidate answer text 에서 entity 를 추출한다 — 두 backend 중 선택:
+    - `regex` (legacy default): 따옴표 감싼 3+ 자 / 1-4 단어 capitalized n-gram / stopword 가 아닌 5+ 자 lower-case token 후보를 정규화 + 중복 제거. NER 도구 없이 동작 가능.
+    - `quco` (권장): `ZhishanQ/QuCo-extractor-0.5B` (Qwen2.5-0.5B-Instruct fine-tuned, GPT-4o-mini 에서 distill 된 QuCo-RAG 공개 모델) 로 knowledge triplet `(head, relation, tail)` 을 추출한 뒤 head / tail 을 entity 로 사용. relation 은 lexical variability 때문에 사용하지 않음 (QuCo-RAG paper §3.3 와 동일 결정).
+  - Infini-gram-compatible count backend 또는 고정 corpus snapshot 에서 entity frequency 와 `head AND tail` co-occurrence 를 조회한다.
+  - raw counts, log-transformed continuous axis scores, low/zero flags, bin ids, corpus provenance, **entity_extractor provenance** (`entity_extractor_version`, `entity_extractor_model_ref`, `entity_extractor_prompt_template`) 를 저장한다.
 
-Elasticsearch/BM25는 retrieval evidence 용도다. entity frequency와 entity-pair co-occurrence는 Infini-gram-compatible count backend의 direct count semantics를 따른다. Corpus feature는 hallucination label이 아니라 reliability conditioning axis이다.
+Elasticsearch / BM25 는 retrieval evidence 용도다. entity frequency 와 entity-pair co-occurrence 는 Infini-gram-compatible count backend 의 direct count semantics 를 따른다. Corpus feature 는 hallucination label 이 아니라 reliability conditioning axis 이다. Entity extractor 변경 시에는 S5 → S7 → S8 → S9 만 재실행하면 충분하다 (S2 모델 sampling / scoring, S4 NLI cluster, S6 Semantic Energy 는 entity 와 무관).
 
 ### S6. paper-faithful Semantic Energy 및 logit diagnostics 생성
 

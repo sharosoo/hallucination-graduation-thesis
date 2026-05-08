@@ -153,7 +153,13 @@ def artifact_schema_versions() -> dict[str, str]:
     }
 
 
-def build_stages(run_dir: Path) -> tuple[PipelineStage, ...]:
+def build_stages(
+    run_dir: Path,
+    *,
+    entity_extractor: str = "regex",
+    entity_extractor_model_ref: str = "ZhishanQ/QuCo-extractor-0.5B",
+    entity_extractor_device: str | None = None,
+) -> tuple[PipelineStage, ...]:
     artifacts = artifact_paths(run_dir)
     results = artifacts["results_dir"]
     datasets = artifacts["datasets_dir"]
@@ -279,6 +285,11 @@ def build_stages(run_dir: Path) -> tuple[PipelineStage, ...]:
                 "--progress",
                 path_string(logs / "S5.corpus.progress.json"),
                 "--resume",
+                "--entity-extractor",
+                entity_extractor,
+                "--entity-extractor-model-ref",
+                entity_extractor_model_ref,
+                *(("--entity-extractor-device", entity_extractor_device) if entity_extractor_device else ()),
             ),
             expected_inputs=(artifacts["candidate_rows"],),
             expected_outputs=(artifacts["corpus_rows"],),
@@ -532,11 +543,23 @@ def build_script_execution_log(stage_records: list[dict[str, object]]) -> list[d
     return log_rows
 
 
-def build_manifest(out_root: Path, *, execute: bool) -> dict[str, object]:
+def build_manifest(
+    out_root: Path,
+    *,
+    execute: bool,
+    entity_extractor: str = "regex",
+    entity_extractor_model_ref: str = "ZhishanQ/QuCo-extractor-0.5B",
+    entity_extractor_device: str | None = None,
+) -> dict[str, object]:
     run_id = f"pipeline-{utc_stamp()}"
     run_dir = out_root / run_id
     logs_dir = run_dir / "logs"
-    stages = build_stages(run_dir)
+    stages = build_stages(
+        run_dir,
+        entity_extractor=entity_extractor,
+        entity_extractor_model_ref=entity_extractor_model_ref,
+        entity_extractor_device=entity_extractor_device,
+    )
     artifacts = artifact_paths(run_dir)
     schemas = artifact_schema_versions()
     stage_records: list[dict[str, object]] = []
@@ -628,6 +651,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out", default="experiments/results/runs", help="Directory for run manifests and logs")
     parser.add_argument("--execute", action="store_true", help="Execute real pipeline commands and capture stdout/stderr logs")
     parser.add_argument("--dry-run", action="store_true", help="Write manifest without executing commands")
+    parser.add_argument(
+        "--entity-extractor",
+        choices=("regex", "quco"),
+        default="regex",
+        help="Entity extractor backend used in S5 (default: regex; recommended new runs: quco).",
+    )
+    parser.add_argument(
+        "--entity-extractor-model-ref",
+        default="ZhishanQ/QuCo-extractor-0.5B",
+        help="HF id / local path for QuCo extractor when --entity-extractor=quco.",
+    )
+    parser.add_argument(
+        "--entity-extractor-device",
+        default=None,
+        help="Device for QuCo extractor (e.g. 'cuda:0').",
+    )
     return parser.parse_args()
 
 
@@ -636,7 +675,13 @@ def main() -> int:
     if args.execute and args.dry_run:
         print("Choose only one of --execute or --dry-run.", file=sys.stderr)
         return 2
-    manifest = build_manifest(Path(args.out), execute=bool(args.execute))
+    manifest = build_manifest(
+        Path(args.out),
+        execute=bool(args.execute),
+        entity_extractor=args.entity_extractor,
+        entity_extractor_model_ref=args.entity_extractor_model_ref,
+        entity_extractor_device=args.entity_extractor_device,
+    )
     print(
         json.dumps(
             {

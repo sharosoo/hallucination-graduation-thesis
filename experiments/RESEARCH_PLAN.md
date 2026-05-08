@@ -169,3 +169,33 @@ Compare:
 두 evidence가 동일 그림을 그림: **"모델은 익숙한 entity를 잘못된 관계로
 confident하게 조합해서 환각을 만든다."** 자세한 분석은
 `experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md`.
+
+## 8. Entity 추출 backend 변경 (2026-05 pivot)
+
+기존 S5 corpus features 는 `phrase_candidates` regex 휴리스틱으로 entity 를
+추출하였으나, 다음 두 reviewer 지적으로 NER backend 를 pluggable 하게 만들고
+QuCo-RAG 의 공개 distilled 모델로 교체할 수 있도록 했다.
+
+- **Reviewer 지적**: 연도 (`1958`, `1941`) 와 같은 4 자 entity 누락, 문장 시작
+  capitalized 일반 단어 (`The`, `What`) false positive, 5+ 자 일반 명사가
+  stopword 누락 시 후보로 들어옴. 이 노이즈가 corpus-level CHOKE 효과 크기
+  (paired win-rate 0.551) 를 약화시켰을 가능성.
+- **결정**: `EntityExtractorPort` 를 신설하고 두 adapter 제공:
+  - `RegexEntityExtractor` (legacy, default): 기존 `phrase_candidates` 그대로.
+    재현 호환을 위해 보존.
+  - `QucoEntityExtractor` (권장): `ZhishanQ/QuCo-extractor-0.5B`
+    (Qwen2.5-0.5B-Instruct fine-tuned, GPT-4o-mini 에서 distill 된 QuCo-RAG
+    공개 모델). knowledge triplet `(head, relation, tail)` 출력에서 head /
+    tail 만 entity 로 사용.
+- **CLI**: `compute_corpus_features.py --entity-extractor {regex,quco}`,
+  `run_pipeline.py --entity-extractor {regex,quco}`. 기본은 `regex` 로 유지
+  (기존 산출물 재현 가능). 신규 thesis-valid run 은 `quco` 권장.
+- **재실행 scope**: S5 → S7 → S8 → S9 만 재실행 (전체 30%). S2 모델 sampling /
+  scoring, S4 NLI cluster, S6 Semantic Energy 는 entity 와 무관하므로 재사용.
+- **Provenance**: `corpus_features.parquet` 의 report 에 `entity_extractor`
+  필드 추가 (`version`, `kind`, `model_ref`, `prompt_template`).
+- **Caveat 보존**: Infini-gram 16B index ≠ 모델 (Qwen2.5-3B) 의 실제
+  pretraining corpus. corpus support 는 여전히 *proxy* 이며 인과 관계가 아닌
+  상관 관계로만 해석한다 (Zhang et al. 2025 의 동일 caveat 인용).
+
+자세한 결정 근거는 `experiments/literature/evidence_notes/quco_extractor_adoption.md`.
