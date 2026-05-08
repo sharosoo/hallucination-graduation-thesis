@@ -1,42 +1,31 @@
-% Headline metric macros for thesis prose (prompt-level reframe).
+% Headline metric macros (prompt-level, blueprint v5).
+% Source: pipeline-20260507T103225Z, run_prompt_level_analysis.py.
+% 5,815 prompts (HaluEval-QA 5,000 + TruthfulQA 815), is_hard 라벨.
 %
-% Source: thesis-valid run pipeline-20260507T103225Z, prompt-level analysis
-% (run_prompt_level_analysis.py, 2026-05-08 round 7 reframe). 5,815 prompts
-% (HaluEval-QA 5,000 + TruthfulQA 815). Label: is_hard = (free-sample
-% accuracy < 0.5), token-overlap matching against right_answer / best_answer
-% / correct_answers.
-%
-% 새 main framing: SE / Semantic Energy (Farquhar 2024 / Ma 2025) baseline 위에
-% corpus signal (Infini-gram entity frequency + pair co-occurrence) 을 추가한
-% gradient boosting fusion (GBM with corpus) 가 SE-only / Energy-only 대비
-% prompt-level AUROC 에서 통계적으로 유의한 추가 lift 를 보인다는 것이 본
-% 논문의 핵심 결과이다.
+% 본 논문 main: Energy = best single signal, Fusion 의 우월성은 corpus
+% 영역별 변동. 외부 corpus signal 추가 lift 는 본 논문에서 보고 보류
+% (self-conditioning artifact 위험, §방법 참조).
 
-% Single-signal baselines (Farquhar 2024 framing 직접 비교 가능)
+% Single signal (모든 영역에서 score-based AUROC, 학습 없음)
 \providecommand{\HeadlineSEAuroc}{0.832}
 \providecommand{\HeadlineEnergyAuroc}{0.862}
 \providecommand{\HeadlineLogitDiagAuroc}{0.581}
 \providecommand{\HeadlineCorpusAxisOnlyAuroc}{0.634}
 
-% Best fusion (GBM with corpus, prompt-level)
-\providecommand{\HeadlineGBMNoCorpusAuroc}{0.889}
-\providecommand{\HeadlineGBMWithCorpusAuroc}{0.892}
+% Fusion (5-fold CV GBM, corpus aggregate 미입력)
+\providecommand{\HeadlineFusionAuroc}{0.889}
 
-% Lift vs single-signal baselines
-\providecommand{\HeadlineFusionVsSEDelta}{0.060}
-\providecommand{\HeadlineFusionVsEnergyDelta}{0.030}
+% Fusion - Energy delta (per-decile 변동 강조)
+\providecommand{\HeadlineFusionVsEnergyMean}{0.027}
+\providecommand{\HeadlineFusionVsEnergyMaxDelta}{0.043}
+\providecommand{\HeadlineFusionVsEnergyMinDelta}{-0.014}
 
-% Bootstrap CI of corpus contribution
-\providecommand{\HeadlineCorpusLiftVsLR}{0.0158}
-\providecommand{\HeadlineCorpusLiftVsLRCILower}{0.0108}
-\providecommand{\HeadlineCorpusLiftVsLRCIUpper}{0.0208}
-\providecommand{\HeadlineCorpusLiftVsGBM}{0.0027}
-\providecommand{\HeadlineCorpusLiftVsGBMCILower}{0.0001}
-\providecommand{\HeadlineCorpusLiftVsGBMCIUpper}{0.0053}
+% Decile lowest / highest 의 Fusion AUROC
+\providecommand{\HeadlineFusionDecileLowest}{0.851}
+\providecommand{\HeadlineFusionDecileHighest}{0.978}
+\providecommand{\HeadlineEnergyDecileLowest}{0.821}
+\providecommand{\HeadlineEnergyDecileHighest}{0.954}
 
-% Calibration (GBM with corpus)
-\providecommand{\HeadlineBrier}{0.110}
-\providecommand{\HeadlineECE}{1.7}
-
-% Decile sweet spot (lowest decile = corpus 가 가장 부족한 영역)
-\providecommand{\HeadlineDecileLowestLift}{0.022}
+% Calibration (Fusion)
+\providecommand{\HeadlineBrier}{0.113}
+\providecommand{\HeadlineECE}{1.4}

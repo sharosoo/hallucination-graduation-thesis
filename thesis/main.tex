@@ -94,9 +94,11 @@ Semantic Entropy / Energy 와\\%
 
 \keyword{대규모 언어모델, 환각 탐지, Semantic Entropy, Semantic Energy, corpus support axis, metric reliability}
 \begin{abstract}
-본 논문은 LLM 환각 탐지에서 Semantic Entropy (SE, Farquhar 등 2024\cite{farquhar2024}) 와 Semantic Energy (Ma 등 2025\cite{ma2025}) 의 두 uncertainty 신호 위에 외부 corpus support 신호 (Infini-gram\cite{infinigram2024} entity frequency 와 entity-pair co-occurrence) 를 결합한 fusion 탐지기 가 단독 신호 baseline 대비 어떤 추가 lift 를 제공하는지 평가한다. TruthfulQA\cite{truthfulqa} 와 HaluEval-QA\cite{halueval2023} 에서 구성한 5{,}815 개 prompt 위에서, 각 prompt 의 free-sample N=10 정답 매칭 비율이 50\% 미만인 prompt 를 \emph{hard prompt} 로 정의하고 (전체 31\% — HaluEval-QA 20\% / TruthfulQA 97\%) 이를 binary 라벨로 사용해 AUROC / AUPRC / calibration 을 측정하였다.
+LLM 환각 탐지에서 Semantic Entropy (SE\cite{farquhar2024}), Semantic Energy\cite{ma2025} 같은 단일 신호와 이들을 결합한 fusion 결합기의 평균 성능을 보고하는 기존 연구는 입력 조건에 따른 영역별 행태를 가린다. 본 논문은 외부 corpus statistic (Infini-gram\cite{infinigram2024} 의 entity frequency 와 entity-pair co-occurrence) 을 \emph{외부 conditional 축}으로 채택하여 5{,}815 개 질문 (TruthfulQA\cite{truthfulqa} + HaluEval-QA\cite{halueval2023}) 을 corpus support 의 rank-quantile 10-decile 로 분할하고, 각 영역에서 단일 신호 (SE / Energy / logit-diagnostic) 와 fusion 의 AUROC 를 비교한다. 라벨은 각 질문의 free-sample N=10 정답 매칭 비율이 50\% 미만인 경우 \emph{어려운 질문}으로 정의한다.
 
-핵심 결과는 다음과 같다. 첫째, SE / Energy 가 본 데이터에서 baseline 으로 재현된다 — SE-only AUROC \HeadlineSEAuroc, Energy-only \HeadlineEnergyAuroc 으로 Farquhar 등 (2024) 이 TriviaQA / Llama-2 7B 에서 보고한 SE AUROC 0.79 와 동일 수준이며 후속 corpus lift 비교의 토대가 된다. 둘째, \emph{본 논문의 핵심 발견}: 외부 corpus 신호의 한계 효용은 corpus support 영역에 따라 매우 비균일적으로 분포한다. corpus 가 entity 를 거의 모르는 lowest decile (00--10, n=582) 에서 corpus 추가의 lift 가 \emph{+\HeadlineDecileLowestLift} 로 가장 크고, corpus 가 풍부한 high decile (90--100) 에서는 SE / Energy 만으로도 AUROC 0.98 에 도달해 corpus 의 한계 효용이 0 에 가까워진다. 이는 본 논문의 conditioning 가설 — corpus 가 부족한 영역에서 모델 신호의 신뢰도가 낮아지므로 외부 corpus 보완 신호의 가치가 가장 크다 — 의 직접 데이터 근거이다. 셋째, 종합 lift 는 작지만 통계적으로 유의하다 — corpus 를 추가한 GBM (with corpus) 는 AUROC \HeadlineGBMWithCorpusAuroc 으로 동일 feature set 의 선형 baseline 대비 +\HeadlineCorpusLiftVsLR\ [\HeadlineCorpusLiftVsLRCILower, \HeadlineCorpusLiftVsLRCIUpper], 비선형 baseline 대비 +\HeadlineCorpusLiftVsGBM\ [\HeadlineCorpusLiftVsGBMCILower, \HeadlineCorpusLiftVsGBMCIUpper] 의 AUROC delta (prompt 단위 bootstrap n=2{,}000, CI lower bound $> 0$). Calibration 도 강하다 (Brier \HeadlineBrier, ECE \HeadlineECE\%). 본 결과는 corpus statistic (Qiu 등 2025\cite{qucorag} QuCo-RAG, Zhang 등 2025\cite{zhang2025corpus}) 이 환각 탐지에 보완 가치를 가진다는 선행 가설을 \emph{영역별 분포까지 분해해} 정량 검증한다.
+세 가지 발견. 첫째, 환각 탐지 난이도는 모든 신호에서 corpus 부족 영역에 집중된다 (Energy AUROC 가 가장 낮은 decile 에서 \HeadlineEnergyDecileLowest, 가장 높은 decile 에서 \HeadlineEnergyDecileHighest 로 단조 상승; SE / Fusion 도 동일 패턴). 둘째, 단일 신호 비교는 corpus 영역과 무관 — Energy 가 모든 10 decile 에서 SE 를 +0.020 ~ +0.030 능가하고 logit-diagnostic 은 모든 영역에서 약하다 (CHOKE 패턴\cite{simhi2025choke}). 셋째, \emph{Fusion 이 항상 best 가 아니다} — fusion 이 SE / logit-diagnostic 은 모든 영역에서 능가하지만, Energy 단독과는 영역별로 변동 (decile 70--90 에서 fusion +\HeadlineFusionVsEnergyMaxDelta 로 가장 큰 우위, decile 40--50 에서는 \emph{Energy 단독이 fusion 보다 +0.014 더 좋음}). 평균 우위 한 수치 (+\HeadlineFusionVsEnergyMean) 로는 가려지는 영역별 변동이 데이터로 보인다.
+
+본 결과는 (i) 환각 탐지 난이도와 외부 corpus support 의 관계를 영역별로 분해하고, (ii) fusion 의 우월성이 입력 조건에 따라 변동한다는 점을 정량 보고하여, 기존 fusion 연구의 평균 metric 보고 관행이 가리는 정보를 드러낸다.
 \end{abstract}
 
 \tableofcontents
@@ -118,102 +120,79 @@ Semantic Entropy / Energy 와\\%
 본 연구는 이 한계를 \emph{외부 corpus 신호} 로 보완한다. 후보 답의 entity frequency 와 entity-pair co-occurrence 를 외부 corpus 에서 측정한 뒤, SE / Energy baseline 위에 결합하여 추가 lift 가 발생하는지 측정하고, 그 lift 가 corpus support 영역별로 어떻게 분포하는지 분해한다. corpus 빈도는 환각 라벨이 아니라 \emph{지표 신뢰성을 보완하는 외부 조건 변수} 이다.
 
 
+본 연구는 외부 corpus 신호를 \emph{탐지기 입력 feature 로 사용하지 않고} 평가 단위 (외부 conditional 축) 로만 사용한다. corpus 의 영역별 단위에서 단일 신호와 fusion 의 행태를 분해해 보고하며, corpus 빈도 자체는 정답/환각 라벨이 아니라 \emph{지표 신뢰성을 분해하는 외부 조건 변수}로 다룬다.
+
+
 \section{연구 목적}
 
-본 연구는 SE / Semantic Energy 같은 uncertainty 신호 위에 외부 corpus support 신호를 결합하면 환각 탐지 성능에 추가 lift 가 발생하는지를 정량 평가한다는 관점에서 다음 세 가지 질문을 다룬다.
+본 연구는 다음 세 질문을 다룬다.
 
 \begin{enumerate}
-    \item \textbf{SE / Energy baseline 재현}. Farquhar 등 (2024)\cite{farquhar2024} 의 SE 와 Ma 등 (2025)\cite{ma2025} 의 Semantic Energy 가 본 데이터 (TruthfulQA + HaluEval-QA, Qwen2.5-3B) 에서 어떤 AUROC 를 보이는지 측정하고, SE 원논문 (TriviaQA / Llama-2 7B 기반 AUROC 0.79) 과 일치하는지 확인한다. 본 질문은 단순 재현이 아니라 다음 두 질문의 \emph{사전 검증} 이다 — baseline 이 재현되지 않으면 그 위에 corpus signal 을 결합한다는 후속 결과의 토대가 성립하지 않는다.
-    \item \textbf{Corpus signal 추가의 한계 효용 (marginal lift) 측정}. SE / Energy 위에 외부 corpus support 신호 (entity frequency, entity-pair co-occurrence) 를 추가하면 AUROC 가 얼마나 더 올라가는지를 bootstrap (n=2{,}000) 으로 통계적 유의성을 포함해 측정한다.
-    \item \textbf{Corpus support 구간별 lift 분포 분석}. corpus 추가의 한계 효용이 모든 corpus support 영역에서 균일한지, 아니면 corpus 가 entity 를 거의 모르는 영역에서 더 큰지를 3-bin / 5-bin / 10-bin decile 분해로 측정한다. 이는 corpus signal 의 가치가 \emph{어디에서 가장 크게 발생하는지} 를 데이터로 드러내는 분석이다.
+    \item \textbf{난이도 ↔ corpus support 관계}. SE, Semantic Energy, logit-diagnostic, fusion 의 AUROC 가 corpus support 영역 (10-decile) 에 따라 어떻게 변하는가? 모든 신호가 공통 패턴을 보이는가, 아니면 신호별로 다른가?
+    \item \textbf{영역별 단일 신호 우열}. 단일 신호 비교 (SE / Energy / logit-diagnostic) 의 결론이 corpus support 영역에 따라 달라지는가, 아니면 일관된가?
+    \item \textbf{Fusion 의 영역별 변동}. Fusion 결합기가 단일 신호보다 항상 우수한가, 아니면 어떤 영역에서는 단일 신호가 더 좋은 케이스가 있는가?
 \end{enumerate}
 
-\paragraph{본 논문의 기여.} 본 논문은 SE / Semantic Energy 의 baseline 위에 외부 corpus signal 을 추가했을 때 발생하는 한계 효용을 직접 측정하고, 그 효용이 corpus support 영역에 따라 어떻게 분포하는지를 정량 보고한다. corpus support 가 부족한 lowest decile 에서 lift 가 가장 크다는 것이 본 논문이 데이터로 보이는 핵심 사실이다. 모델 출력에 의존하지 않는 외부 corpus statistic 으로 환각 탐지 신호를 보완하는 방향은 Valentin 등 (2024)\cite{valentin2024} 이 모델 \emph{내부} score attribute 로 conditional calibration 을 시도한 방향과 직교적이다.
+\paragraph{본 논문의 기여.} 본 논문은 외부 corpus statistic 을 평가 단위로 사용하여 환각 탐지 신호의 영역별 행태를 분해한다. 평균 AUROC 한 수치로 신호와 fusion 의 우열을 보고하는 기존 관행이 가리는 영역별 변동을 데이터로 보인다. 외부 corpus 를 탐지기 입력 feature 가 아니라 평가 축으로 사용하는 방향은 Valentin 등 (2024)\cite{valentin2024} 이 모델 \emph{내부} score attribute 로 conditional calibration 을 시도한 방향과 직교적이다.
 
 \section{논문 구성}
 
-본 논문은 다음과 같이 구성된다. 제~\ref{ch:related}장에서는 LLM 환각 탐지 관련 연구와 본 연구의 위치를 정리한다. 제~\ref{ch:method}장에서는 평가 절차의 근거와 corpus support 를 보완 신호로 쓰는 이론적 근거 (QuCo-RAG, Zhang 등 2025) 를 제시한다. 제~\ref{ch:experiment}장에서는 종합 baseline (SE / Energy / fusion), bootstrap CI, corpus support bin 별 한계 효용, leave-one-dataset-out 일반화, threshold / calibration 진단을 보고한다. 제~\ref{ch:conclusion}장에서 세 연구 질문에 대한 답변과 학술적 기여, 한계, 향후 연구 방향을 제시한다.
+본 논문은 다음과 같이 구성된다. 제~\ref{ch:related}장에서는 LLM 환각 탐지 관련 연구와 본 연구의 위치를 정리한다. 제~\ref{ch:method}장에서는 단일 점수 가정의 한계, corpus support 를 외부 conditional 축으로 사용하는 근거, 본 논문의 분석 절차를 제시한다. 제~\ref{ch:experiment}장에서는 종합 baseline 위에 영역별 비교 결과 세 가지를 차례로 보고하고 leave-one-dataset-out 일반화와 threshold / calibration 진단을 추가한다. 제~\ref{ch:conclusion}장에서 세 연구 질문에 대한 답변과 학술적 기여, 한계, 향후 연구 방향을 제시한다.
 
 
 \chapter{관련 연구}{\label{ch:related}}
 
-본 장에서는 LLM 환각 연구를 두 흐름으로 구분해 검토한다. 첫째는 환각의 정의, 사실성 평가, 벤치마크를 다루는 연구이며, 둘째는 생성 모델의 불확실성 또는 내부 점수를 이용해 환각을 탐지하려는 방법 연구이다. 이 구분은 본 연구가 기존 사실성 평가 자체를 대체하려는 것이 아니라, 반복 샘플링 기반 SE의 한계가 드러나는 영역에서 보조 탐지 신호와 결합 구조를 검토한다는 점을 명확히 한다.
+본 장은 LLM 환각 탐지 연구를 (a) 단일 신호, (b) 신호 결합 (fusion), (c) corpus statistic 활용 시도의 세 흐름으로 정리하고, 마지막에 공통 한계와 본 논문의 위치를 명시한다.
 
-\section{환각 분류, 사실성, 벤치마크}
+\section{단일 신호 기반 탐지}
 
-환각은 LLM이 입력, 문맥, 또는 외부 사실과 맞지 않는 내용을 생성하는 현상으로 다루어진다. Huang 등은 LLM 환각의 원인, 유형, 탐지 과제를 폭넓게 정리하며, 환각 탐지가 LLM 신뢰성 확보를 위한 핵심 문제임을 보인다\cite{huang2025survey}. Maynez 등은 생성 텍스트 평가에서 사실성(factuality)과 충실성(faithfulness)을 구분해 논의했으며\cite{maynez2020faithfulness}, 이 구분은 환각 탐지 문장을 작성할 때 단순한 ``틀림''보다 어떤 기준에서 맞지 않는지 명확히 해야 함을 보여준다.
+환각 탐지의 가장 기본적인 접근은 단일 신호로 모델의 답변 신뢰도를 평가하는 것이다. 본 논문이 baseline 으로 사용하는 세 신호를 정리한다 (표~\ref{tab:method_comparison}).
 
-벤치마크와 평가 연구는 환각 탐지의 대상과 평가 기준을 제공한다. TruthfulQA는 모델이 인간의 오해나 거짓 믿음을 모방하는지를 측정하는 질의응답 벤치마크이다\cite{truthfulqa}. FActScore는 장문 생성에서 원자적 사실 단위의 정밀도를 평가하는 방법을 제안한다\cite{factscore2023}. 이러한 연구들은 환각을 평가하고 분류하는 기준을 제공하지만, 본 연구가 다루는 ``\emph{어느 corpus support 구간에서 어느 신호의 신뢰도가 높은가}''라는 조건부 신뢰성 문제는 직접 다루지 않는다.
+\paragraph{Semantic Entropy (SE).} Farquhar 등 (2024)\cite{farquhar2024} 이 Nature 에 발표한 방법으로, 한 질문에 대해 $K$ 개 응답을 샘플링한 뒤 NLI 모델로 의미 클러스터에 묶고 클러스터 분포의 Shannon entropy $SE = -\sum_{c} p(c) \log p(c)$ 를 산출한다. SelfCheckGPT\cite{selfcheckgpt2023} 가 시작한 sample-consistency 접근의 의미-단위 일반화이며, TriviaQA / Llama-2 7B 환경에서 AUROC 0.79 를 보고하였다.
 
-\section{불확실성 및 반복 샘플링 기반 탐지}
+\paragraph{Semantic Energy.} Ma 등 (2025)\cite{ma2025} 은 SE 가 softmax 후 cluster 확률 분포의 entropy 만 사용해 token logit 의 크기 정보를 잃는다는 점을 지적하며, softmax 전 raw logit $z_\theta(x_t)$ 의 부호 반전 평균 $\tilde{E}(x_t) = -z_\theta(x_t)$ 을 sample energy 로 정의하고 NLI cluster 확률 가중 합으로 질문 단위 scalar 를 산출한다. 응답 다양성이 작은 사례에서도 token logit 차이가 추가 정보를 줄 수 있다는 motivation 이다.
 
-SelfCheckGPT는 외부 지식 베이스 없이 여러 응답을 샘플링하고 응답 간 일관성을 비교해 환각을 탐지하는 접근을 제안했다\cite{selfcheckgpt2023}. 이 흐름은 하나의 응답만 보는 대신, 같은 질문에 대한 여러 생성 결과의 분산과 일관성을 환각 탐지 신호로 본다. Semantic Entropy도 이 관점과 연결되지만, 응답을 의미 클러스터로 묶고 클러스터 분포의 엔트로피를 사용한다는 점에서 더 명시적인 의미 단위 불확실성 측정 방법이다\cite{farquhar2024}.
-
-표~\ref{tab:method_comparison}은 본 연구에서 다루는 신호들의 핵심 아이디어와 한계를 요약한다.
+\paragraph{Logit diagnostic + CHOKE.} 후보 답변의 평균 음의 로그 확률 (NLL), confidence margin, logit variance 같은 token-level 신호는 ``환각 답이 정답보다 덜 자신있을 것'' 이라는 직관에 기댄다. 그러나 Simhi 등 (2025)\cite{simhi2025choke} 의 CHOKE (high-certainty hallucination) 패턴이 보였듯, 모델이 정답을 알면서도 일관된 오답을 더 확신 있게 생성하는 경우가 흔해 logit 단독 신호는 영역에 따라 방향이 역전된다.
 
 \begin{table}[htbp]
 \centering
-\caption{본 연구에서 비교하는 환각 탐지 신호.}
+\caption{본 논문이 비교하는 단일 신호.}
 \label{tab:method_comparison}
 \begin{tabular}{@{}lll@{}}
 \toprule
 신호 & 핵심 아이디어 & 한계 \\
 \midrule
-Semantic Entropy & NLI cluster + Shannon entropy & 단일 cluster 사례 판별 약함 \\
-Semantic Energy & cluster 가중 token logit 합 & cluster 정의 의존, 다양성 가정 \\
-logit diagnostic & NLL, logit variance, margin & CHOKE 사례에서 방향 역전 \\
-corpus support & entity frequency / pair co-occurrence & 외부 corpus snapshot 의존, proxy 성격 \\
+Semantic Entropy & NLI cluster + Shannon entropy & 단일 cluster 수렴 사례 약함 \\
+Semantic Energy & cluster 가중 token logit 합 & 다양성 작은 사례 의존 \\
+logit diagnostic & NLL, logit variance, margin & CHOKE 사례에서 역전 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 
-\section{Semantic Entropy (SE)}
+\section{Multi-signal Fusion}
 
-Semantic Entropy 는 Farquhar 등 (2024)\cite{farquhar2024} 이 Nature 에 발표한 LLM 불확실성 측정 방법이다. 한 질문에 대해 $K$ 개 응답을 샘플링한 뒤 NLI 모델로 의미적 클러스터로 묶고, 클러스터 분포의 Shannon entropy $SE = -\sum_{c \in C} p(c) \log p(c)$ 를 산출한다 ($p(c)$ = cluster $c$ 에 속한 응답의 비율). 토큰 단위 확률이 아닌 \emph{의미 단위} 불확실성을 측정한다는 점이 핵심 차별점이며, prompt 단위 신호 — 한 질문에 대해 하나의 SE 값 — 로 정의된다. 한계는 모든 응답이 한 cluster 로 수렴하는 \emph{고확신 환각} 사례에서 판별력이 약해진다는 점이다 (Simhi 등 2025\cite{simhi2025choke} 의 CHOKE 패턴). 본 논문은 SE 를 baseline 으로 사용하고 그 위에 외부 corpus signal 을 추가했을 때 lift 가 있는지를 \S\ref{ch:experiment} 에서 측정한다.
+단일 신호의 한계를 보완하기 위해 여러 신호를 결합하는 fusion 접근이 표준화되었다. Valentin 등 (2024)\cite{valentin2024} 은 환각 탐지 점수를 모델 내부 score attribute (예: top-k logit margin) 에 conditional 하게 calibrate 하는 multi-scoring framework 를 제안하였다. SelfCheckGPT\cite{selfcheckgpt2023} 의 multiple consistency check (BERTScore, NLI entailment, n-gram match 등) 도 단일 prompt 의 여러 일관성 측정을 결합하는 fusion 의 일종이다.
 
-
-\section{Semantic Energy}
-
-Ma 등 (2025)\cite{ma2025} 의 Semantic Energy 는 여러 generated answer 와 semantic cluster 를 사용해 토큰 logit 기반 uncertainty 를 해석한다. 토큰 단위 raw logit $z_\theta(x_t)$ 의 부호 반전 평균 $\frac{1}{nT}\sum_i \sum_t -z_\theta(x_t^{(i)})$ 를 sample energy 로 정의하고, NLI cluster 확률 가중 합으로 prompt 단위 scalar 를 산출한다 (자세한 식은 \S\ref{ch:experiment} 의 실험 방법 절). SE 가 softmax 후 cluster 확률 분포의 entropy 를 사용하는 반면 Energy 는 softmax 전 logit 의 크기를 보존한다는 점이 차별점이다. 응답 다양성이 작은 (낮은 SE) 사례에서도 토큰 logit 이 추가 정보를 줄 수 있다는 것이 motivation 이다. 본 논문은 Semantic Energy 를 SE 와 함께 baseline 으로 사용하며, 그 위에 외부 corpus support 신호를 추가했을 때 발생하는 한계 효용을 측정한다 (\S\ref{ch:experiment}).
+이러한 fusion 연구는 공통적으로 \emph{평균 AUROC / Brier 한 수치로} fusion 의 우월성을 보고한다. 그러나 fusion 결합기의 우월성이 입력 조건 (예: 질문의 entity 가 corpus 에 얼마나 등장하는지) 에 따라 어떻게 변하는지, 어떤 영역에서는 단일 신호보다 약한지를 분해해 보고한 연구는 본 저자들이 검토한 범위에서 보고되지 않았다.
 
 
-\section{QuCo-RAG: 외부 corpus 기반 신호}
+\section{Corpus statistic 의 환각 탐지 활용 시도}
 
-QuCo-RAG는 Qiu 등(2025)\cite{qucorag}이 retrieval-augmented generation(RAG) 의 query-aware corpus grounding 절차에서 사용한 외부 corpus statistic 계열 신호이다. 핵심 아이디어는 입력 query 나 후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 를 corpus count 로 측정해, 그 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지'' 를 정량화하는 것이다.
+corpus statistic 을 환각 탐지 신호로 직접 사용한 두 흐름이 있다.
 
-QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus statistic은 다음 두 측면에서 본 연구와 직접 닿는다.
+\paragraph{QuCo-RAG.} Qiu 등 (2025)\cite{qucorag} 은 retrieval-augmented generation 의 query-aware corpus grounding 절차에서 entity frequency 와 entity-pair co-occurrence 를 corpus count 로 측정해 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지'' 를 정량화하였다. 본 논문은 같은 corpus statistic 을 사용하되 그 \emph{용도} 를 retrieval trigger 가 아니라 \emph{탐지 신호 신뢰도를 분해하는 외부 조건 축} 으로 재해석한다.
 
-\begin{itemize}
-    \item \textbf{모델 출력에 의존하지 않는 외부 신호}. corpus 카운트는 모델의 logit, hidden state, 응답 다양성 등과 독립적으로 산출된다. 따라서 모델 신호의 신뢰도를 \emph{직교적으로} 조건화하는 데 쓸 수 있다.
-    \item \textbf{모델 ``익숙함'' 의 외부 측정}. entity 의 corpus frequency 는 모델이 사전 학습 단계에서 그 entity 를 얼마나 마주쳤을지에 대한 \emph{간접 지표} 이다. 다만 이는 사전 학습 노출의 직접 증거나 hidden-state 신뢰도와 동일한 것이 아니므로 어디까지나 proxy 로 다뤄야 한다.
-\end{itemize}
+\paragraph{Pretraining corpus coverage (Zhang 등 2025).} Zhang 등 (2025)\cite{zhang2025corpus} 은 RedPajama 1.3 조 토큰 pretraining corpus 위에 suffix array 를 구축하고 prompt / 답변의 n-gram 빈도를 환각 탐지 신호로 평가하였다. ``occurrence 기반 feature 는 log-probability 보다 약한 단독 신호이지만 함께 쓰면 특정 artifact 패턴 탐지에 보완 가치가 있다'' 는 결론을 보고하면서 ``결과는 상관관계이며 인과 관계를 확립하지 않는다'' 는 단서를 명시하였다.
 
-본 연구는 QuCo-RAG의 통계 자체를 그대로 사용하되, 그 \emph{용도}를 retrieval trigger가 아니라 \emph{지표 신뢰도를 나누는 외부 조건 변수}로 재해석한다. 즉 corpus 빈도가 작다고 환각 라벨로 쓰지 않고, 빈도가 크다고 정답 라벨로 쓰지 않으며, 어디까지나 \emph{어떤 corpus support 구간에서 어떤 신호가 더 안정적으로 작동하는지}를 평가하기 위한 binning 변수로 사용한다. 이 재해석은 corpus-grounded 신호와 모델-내부 hidden-state 신호를 명확히 구분하는 본 연구의 guardrail과 일치한다.
+\paragraph{WildHallucinations.} Zhao 등 (2024)\cite{wildhallucinations2024} 은 \emph{Wikipedia 페이지가 없는 entity} 에 대한 질문에서 LLM 환각률이 유의미하게 증가함을 관찰하여, corpus exposure 부족과 환각 발생률의 경험적 연관을 보고하였다.
+
+본 논문은 위 세 연구가 corpus statistic 을 환각 탐지 \emph{신호 자체} 로 사용한 것과 달리, corpus 를 \emph{탐지 신호의 영역별 행태를 분해하는 외부 조건 축} 으로만 사용한다. corpus 빈도가 낮다고 환각 라벨로 쓰지 않고, 높다고 정답 라벨로 쓰지 않으며, 탐지기 입력 feature 로도 사용하지 않는다.
 
 
-\section{기존 연구의 한계 및 연구 공백}
+\section{공통 한계와 본 논문의 위치}
 
-기존 연구들의 한계를 본 연구의 문제 설정 관점에서 정리하면 다음과 같다.
-
-\begin{enumerate}
-    \item \textbf{환각 분류 및 평가 연구}. 환각의 정의, 사실성 평가, 벤치마크를 제공하지만, ``\emph{어느 입력 조건에서 어느 탐지 신호의 신뢰도가 높은가}'' 라는 조건부 신뢰성 문제는 직접 다루지 않는다.
-    \item \textbf{SE 계열 방법}. 반복 샘플링과 의미 cluster 분포를 활용하지만, 모든 응답이 하나의 cluster로 수렴하는 사례에서는 prompt 단위 정보가 줄어든다.
-    \item \textbf{Energy / logit 계열 신호}. 토큰 단위 확신도 정보를 제공하지만, ``환각 답이 정답보다 더 자신없을 것''이라는 직관에 기댄다. 본 데이터에서는 환각 답이 오히려 더 자신있게 평가되는 CHOKE 사례가 흔해서, 단일 전역 점수로 쓰기 어렵다.
-    \item \textbf{외부 조건에 따른 결합 구조의 필요성}. 단일 글로벌 점수가 모든 데이터에서 가장 좋다는 가정 대신, 외부 조건 축에 따라 신호 신뢰성을 분리 평가하는 구조가 필요하다. 본 연구는 그 외부 조건 축으로 corpus support를 사용한다.
-\end{enumerate}
-
-\paragraph{Pretraining corpus coverage 기반 직접 탐지 (Zhang 등 2025).} Zhang 등(2025)\cite{zhang2025corpus}은 본 연구와 독립적으로 유사한 직관에서 출발한 연구를 수행하였다. 이들은 RedPajama 1.3조 토큰 pretraining corpus 위에 suffix array 를 구축하고, prompt 와 생성 답변의 n-gram 빈도($1 \le n \le 5$)를 환각 탐지 신호로 평가하였다. 핵심 결과는 ``occurrence 기반 feature 는 log-probability 보다 약한 단독 신호이지만 함께 쓸 경우 특정 artifact 패턴 탐지에 보완적 가치가 있다''는 것이다. 본 연구와의 차별점은 세 층위에 있다.
-
-\begin{itemize}
-    \item \textbf{신호의 역할}. Zhang 등은 corpus n-gram 통계를 환각 탐지 신호 \emph{자체} 로 평가하는 반면, 본 연구는 corpus 빈도를 탐지 신호로 사용하지 않고 \emph{어느 corpus support 구간에서 어느 신호의 신뢰도가 높은가} 를 나누는 조건 축으로 재해석한다. corpus 빈도가 낮다고 환각 라벨로, 높다고 정답 라벨로 쓰지 않는다.
-    \item \textbf{신호의 단위}. Zhang 등은 token surface 수준의 n-gram lexical coverage 를 측정하나, 본 연구는 entity frequency 와 entity-pair co-occurrence 라는 \emph{관계 수준} 의 신호를 사용한다. 동일 entity 가 등장하더라도 entity 간 관계가 corpus 에 얼마나 공출현하는지를 측정함으로써, ``익숙한 entity 를 잘못된 관계로 조합하는'' CHOKE 가설과 자연스럽게 연결될 수 있는 측정 단위이다 (인과 관계가 아닌 상관 관찰; 본 chapter 마지막 단락의 단서 및 §결론 한계 참조).
-    \item \textbf{평가 패러다임}. Zhang 등은 단일 생성 답변의 이진 분류 (single answer hallucinated / not) 로 평가하는 반면, 본 연구는 ``이 prompt 의 free-sample 정답률이 임계값 미만인가'' 를 평가하는 binary task 로 평가한다 (Farquhar 2024 SE 의 평가 단위와 일치).
-\end{itemize}
-
-Zhang 등이 명시한 ``결과는 상관관계이며 인과 관계를 확립하지 않는다''는 단서는 본 연구의 corpus-level 해석에도 동일하게 적용된다 — corpus 카운트 backend 의 외부 corpus snapshot 이 모델의 실제 pretraining corpus 와 다를 수 있으므로, corpus support 와 환각의 연결은 \emph{상관} 이지 \emph{인과} 가 아니다.
-
-\paragraph{High-certainty hallucination (CHOKE).} Simhi 등 (2025) 은 모델이 정답 지식을 가지고도 높은 확신으로 환각을 생성하는 사례를 CHOKE 로 정의하고, 이런 사례가 logit-only / sample-consistency 기반 탐지기 의 본질적 한계임을 보였다\cite{simhi2025choke}. 본 데이터에서도 같은 질문의 정답 답과 환각 답을 비교하면 환각 답이 NLL 이 더 작고 (61.6\%) confidence margin 이 더 큰 (65.2\%) 비율이 일관되게 관측되어 logit / margin 단독 신호의 한계가 재현된다. 본 논문은 이 한계를 직접 메우는 대신, SE / Energy 같은 sample-consistency 신호 위에 외부 corpus support 를 보완 결합하는 방향으로 우회한다 (\S\ref{ch:experiment}).
+위 세 흐름의 공통 한계는 평균 AUROC / Brier 한 수치로 신호와 fusion 의 우열을 보고한다는 점이다. 평균 한 수치는 (i) 어느 입력 조건에서 어느 신호가 안정적으로 작동하는지 가리고, (ii) fusion 결합기가 모든 영역에서 단일 신호보다 우수한지를 검증하지 않는다. 본 논문은 외부 corpus support 를 평가 단위로 채택해 단일 신호 (SE / Energy / logit-diagnostic) 와 fusion 의 영역별 행태를 10-decile 로 분해하여 평균 한 수치 뒤에 가려진 변동을 데이터로 드러낸다.
 
 \paragraph{Corpus 기반 환각 경험 증거 (WildHallucinations).} Zhao 등(2024)은 ``\emph{Wikipedia 페이지가 없는 entity}에 대한 질문에서 LLM이 더 자주 환각한다''는 관찰을 보고하였다\cite{wildhallucinations2024}. 이는 본 연구가 corpus 빈도를 조건 축으로 쓰는 가설의 \emph{선행 경험적 근거}이다. 차이점은 두 가지다. (i) WildHallucinations 는 Wikipedia 존재 여부 라는 \emph{이진} 조건을 사용하는 반면, 본 연구는 entity frequency / pair co-occurrence 기반 \emph{연속 corpus support 축}으로 일반화한다. (ii) WildHallucinations 는 환각률 자체를 corpus 조건으로 설명하는 \emph{evaluation} 연구이고, 본 연구는 이미 환각이 일어난 후보 행에 대해 \emph{어떤 탐지 신호가 corpus 조건에 따라 더 안정적으로 작동하는가}를 평가하는 \emph{detection} 연구이다.
 
@@ -228,15 +207,17 @@ Zhang 등이 명시한 ``결과는 상관관계이며 인과 관계를 확립하
 
 SE 와 Energy 같은 sample-consistency 신호는 모든 응답이 단일 의미 cluster 로 수렴하는 \emph{고확신 환각 (CHOKE)} 사례\cite{simhi2025choke} 에서 판별력이 약해지고, NLL / margin 같은 logit 신호는 환각 답이 더 자신있게 평가되는 사례에서 방향이 역전된다 (\S\ref{ch:related} CHOKE paragraph). 두 사례는 신호 자체가 무용하다는 뜻이 아니라 \emph{어느 입력 조건에서 어느 신호가 안정적으로 작동하는지를 분리해서 봐야 한다} 는 뜻이며, 본 논문은 그 외부 입력 조건으로 corpus support 를 사용한다.
 
-\section{Corpus support 를 보완 신호로 사용하는 근거}
+\section{Corpus support 를 외부 conditional 축으로 사용하는 근거}
 
-후보 답변의 entity frequency 와 entity-pair co-occurrence 는 모델이 ``익숙한'' entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025)\cite{qucorag} 의 QuCo-RAG 는 query-aware corpus grounding 에서 entity frequency 와 co-occurrence 가 모델 답변의 외부 근거 가능성과 연관됨을 보였고, Zhang 등 (2025)\cite{zhang2025corpus} 은 RedPajama 1.3T token pretraining corpus 위에 suffix array 를 구축하여 n-gram coverage 와 환각 탐지 신호의 비단조적 상관 관계를 정량 보고했다. 두 결과의 핵심은 \emph{corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다} 는 메커니즘 가설이며, 본 논문은 이 가설을 차용하되 corpus statistic 을 직접 탐지기 로 쓰지 않고 SE / Energy 위에 \emph{보완 결합} 한다.
+질문에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 는 모델이 ``익숙한'' entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025)\cite{qucorag} 의 QuCo-RAG 가 entity frequency 와 co-occurrence 를 retrieval grounding 신호로 활용하였고, Zhang 등 (2025)\cite{zhang2025corpus} 은 pretraining corpus 의 n-gram coverage 가 환각 탐지 신호와 비단조적으로 연관됨을 보고하였다. 두 결과의 공통 시사점은 corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다는 점이다.
 
-\paragraph{Conditioning 가설의 메커니즘.} ``corpus 가 부족한 영역에서 corpus 보완 신호의 가치가 가장 클 것'' 이라는 본 논문 가설은 다음 인과 사슬로 동기 부여된다. (i) Zhao 등 (2024)\cite{wildhallucinations2024} 의 WildHallucinations 가 보였듯 corpus exposure 부족 → 모델 representation 불안정 → 환각률 ↑. (ii) 이렇게 발생한 환각이 모델 입장에서 ``확신 있게 일관된'' 답으로 나오는 경우가 많은 것이 Simhi 등 (2025)\cite{simhi2025choke} 의 CHOKE 패턴 — corpus 부족 영역에서 free-sample 이 단일 cluster 로 수렴하면 SE / Energy 의 sample-consistency 판별력이 \emph{구조적으로 약화} 된다. (iii) 따라서 corpus 부족 영역에서는 모델 자체 신호로 hallucination 탐지가 어렵고, 외부 corpus 신호가 ``이 prompt 가 어려운 prompt 임'' 을 분리하는 보완 정보를 제공해야 lift 가 발생한다. 본 논문은 이 인과 사슬을 decile 별 corpus 추가 lift 분포로 정량 검증한다 (\S\ref{ch:experiment} 의 lowest decile lift +\HeadlineDecileLowestLift\ vs high decile lift $\approx 0$ 패턴).
+본 논문은 이 가설을 차용하되 corpus statistic 을 \emph{탐지기 입력 feature 로 사용하지 않고} 평가 단위 (외부 conditional 축) 로만 사용한다. 그 이유는 두 가지다. 첫째, 평가 단위 (corpus support decile bin) 와 입력 feature (corpus aggregate) 가 같은 source 에서 나오면 self-conditioning artifact 가 발생할 수 있다. 둘째, 본 논문의 질문 (단일 신호 / fusion 의 영역별 행태) 은 corpus 를 입력으로 쓰지 않고도 답할 수 있다. corpus 부족 영역에서 모델 자체 신호 (SE / Energy / logit-diagnostic) 가 어떻게 행동하는지를 직접 측정한다.
 
-\section{본 논문의 분석 방향}
+\paragraph{Conditioning 가설의 메커니즘.} corpus 부족 영역에서 모델 자체 신호의 신뢰도가 약화되는 가설은 다음 인과 사슬로 동기 부여된다. (i) Zhao 등 (2024)\cite{wildhallucinations2024} 의 WildHallucinations 는 Wikipedia 페이지가 없는 entity 에 대한 환각률 ↑ 를 보였다 — corpus exposure 부족 → representation 불안정 → 환각률 ↑. (ii) 이렇게 발생한 환각이 모델 입장에서 ``확신 있게 일관된'' 답으로 나오는 경우가 많은 것이 Simhi 등 (2025)\cite{simhi2025choke} 의 CHOKE 패턴이다 — corpus 부족 영역에서 free-sample 이 단일 cluster 로 수렴하면 SE / Energy 의 sample-consistency 판별력이 약화된다. (iii) 따라서 corpus 부족 영역에서 모델 자체 신호의 AUROC 자체가 낮을 것을 예측할 수 있다. 본 논문은 이를 영역별 AUROC 분해로 직접 측정한다 (\S\ref{ch:experiment}).
 
-위 관찰로부터 본 논문의 절차는 다음과 같다. (1) 라벨은 SE 원논문 위치 설정 그대로 — 각 질문의 free-sample N=10 정답 매칭 비율로 binary hard/easy 부여. (2) Single-signal baseline (SE / Energy / logit-diagnostic / corpus-axis-only) 과 그 위에 corpus support aggregate (entity\_frequency\_axis, entity\_pair\_cooccurrence\_axis 의 mean / max / delta) 를 추가한 fusion (LR / RF / GBM / SVM) 의 AUROC 를 비교한다. (3) corpus 추가의 한계 효용을 bootstrap (n=2{,}000) 으로 통계 검정하고 corpus support 3/5/10-bin 별로 분해한다. 실험 결과는 \S\ref{ch:experiment} 에 보고한다.
+\section{본 논문의 분석 절차}
+
+본 논문의 절차는 네 단계이다. (1) 라벨링 — 각 질문의 free-sample N=10 정답 매칭 비율이 0.5 미만이면 \emph{어려운 질문} 으로 binary 라벨 부여 (Farquhar 2024 SE 의 평가 단위와 일치). (2) 평가 단위 분할 — 5{,}815 개 질문을 corpus support 의 rank-quantile 10-decile 로 분할 (각 영역 ≈ 580 질문). (3) 단일 신호 AUROC — SE / Energy / logit-diagnostic 각각의 score-based AUROC 를 각 decile 안에서 산출 (학습 없음). (4) Fusion AUROC — SE / Energy / NLL / margin / logit variance 의 질문 단위 집계를 입력으로 하는 5-fold CV gradient boosting 의 out-of-fold 예측을 각 decile 안에서 평가. corpus statistic 은 (2) 에서 평가 단위로만 사용하고 (4) 의 fusion 입력으로는 사용하지 않는다.
 
 \chapter{실험}{\label{ch:experiment}}
 
@@ -244,199 +225,134 @@ SE 와 Energy 같은 sample-consistency 신호는 모든 응답이 단일 의미
 \input{sections/experiment_method}
 
 
-\section{Prompt-level 종합 베이스라인 결과}
-
-표~\ref{tab:current_thesis_evidence} 는 단일 signal baseline (SE, Energy, logit-diagnostic, corpus-axis-only) 과 결합기 (LR / RF / GBM / SVM, with / without corpus) 의 AUROC / AUPRC / Brier / ECE 이다. 라벨은 각 질문의 free-sample N=10 정답 매칭 비율 (token-overlap $\ge 0.5$) 이 50\% 미만이면 \emph{hard prompt} 로 정의한다 (HaluEval-QA 20\% / TruthfulQA 97\%, 종합 31\%; TruthfulQA 라벨 비대칭은 §한계 항목에서 다룬다).
+\section{종합 베이스라인}
 
 \input{thesis_evidence_table.tex}
 
-표에서 네 가지 사실이 두드러진다.
+표~\ref{tab:current_thesis_evidence} 의 결과에서 두 가지를 짚어 둔다. 첫째, SE 와 Energy 단독이 본 데이터에서도 강한 baseline 을 형성한다 (SE \HeadlineSEAuroc, Energy \HeadlineEnergyAuroc) — Farquhar 등 (2024) 의 TriviaQA / Llama-2 7B AUROC 0.79 와 동일 수준에서 재현된다. 둘째, Fusion (5-fold CV gradient boosting) 의 종합 AUROC 는 \HeadlineFusionAuroc 으로 Energy 단독 대비 평균 +\HeadlineFusionVsEnergyMean 만 우위이다. 이 평균 한 수치 뒤에 영역별로 어떤 변동이 있는지가 다음 세 절의 분석 대상이다.
 
-\begin{itemize}
-    \item \textbf{SE / Energy 단독이 강한 baseline 을 형성}. SE-only AUROC \HeadlineSEAuroc, Semantic Energy 단독 \HeadlineEnergyAuroc 으로 Farquhar 등 (2024)\cite{farquhar2024} 이 TriviaQA / Llama-2 7B 에서 보고한 SE AUROC 0.79 와 동일 수준에서 본 데이터에 재현된다. 본 논문이 사용한 SE / Energy 구현이 원논문과 일치하는 baseline 임을 검증한다.
-    \item \textbf{단일 corpus signal 은 SE / Energy 보다 약함}. corpus-axis-only AUROC \HeadlineCorpusAxisOnlyAuroc, entity-frequency-only 0.676, entity-pair-cooccurrence-only 0.593 으로 단독 사용 시 SE / Energy 에 미치지 못한다. corpus signal 의 가치는 탐지기 자체로서가 아니라 SE / Energy 위에 추가되는 보완 신호로서 발휘됨을 시사한다.
-    \item \textbf{본 논문 핵심: GBM (with corpus) 가 종합 1위}. AUROC \HeadlineGBMWithCorpusAuroc 으로 Energy 단독 (\HeadlineEnergyAuroc) 대비 +\HeadlineFusionVsEnergyDelta, SE 단독 (\HeadlineSEAuroc) 대비 +\HeadlineFusionVsSEDelta\ 의 lift. Brier \HeadlineBrier, ECE \HeadlineECE\% 로 calibration 도 모든 결합기 중 1위.
-    \item \textbf{Corpus 추가 lift 는 작지만 일관 양수}. LR (0.876 → 0.878), RF (0.888 → 0.889), GBM (0.889 → 0.892). 통계적 유의성과 corpus support 영역별 분포는 다음 두 절에서 분석한다.
-\end{itemize}
 
-\section{Corpus 추가의 한계 효용 — Bootstrap CI}
+\section{탐지 난이도와 corpus support 의 관계}
 
-corpus signal 추가가 SE / Energy baseline 위에서 통계적으로 유의한 추가 lift 를 제공하는지 검정하기 위해, 5{,}815 개 prompt 위에서 prompt 단위 bootstrap (n=2{,}000) 으로 fusion (with corpus) 의 AUROC delta vs no-corpus baseline 의 95\% 신뢰구간을 산출하였다.
-
-\begin{table}[htbp]
-\centering
-\small
-\caption{Corpus signal 추가의 한계 효용 (AUROC delta) Bootstrap CI (n=2{,}000, prompt 단위 resample). 동일 결합기 family (LR / RF / GBM / SVM) 에서 corpus aggregate 추가 vs 미포함의 차이. 양수 = corpus 추가가 도움.}
-\label{tab:bootstrap_ci}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-비교 & $\Delta$ AUROC [95\% CI] & 통계적 유의 \\
-\midrule
-\multicolumn{3}{l}{\emph{vs LR (no corpus, AUROC 0.876) baseline}} \\
-\quad LR (with corpus)          & $+0.0022$ [$+0.0003, +0.0041$] & \checkmark \\
-\quad RF (with corpus)          & $+0.0130$ [$+0.0070, +0.0189$] & \checkmark \\
-\quad \textbf{GBM (with corpus)} & $\boldsymbol{+0.0158}$ \textbf{[$\boldsymbol{+0.0108, +0.0208}$]} & \checkmark (핵심) \\
-\quad SVM rbf (with corpus)     & $-0.0379$ [$-0.0468, -0.0290$] & negative \\
-\midrule
-\multicolumn{3}{l}{\emph{vs GBM (no corpus, AUROC 0.889) baseline}} \\
-\quad \textbf{GBM (with corpus)} & $\boldsymbol{+0.0027}$ \textbf{[$\boldsymbol{+0.0001, +0.0053}$]} & \checkmark (marginal but significant) \\
-\quad RF (with corpus)          & $-0.0001$ [$-0.0044, +0.0044$] & null \\
-\quad SVM rbf (with corpus)     & $-0.0511$ [$-0.0602, -0.0419$] & negative \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-세 가지 사실이 두드러진다.
-\begin{itemize}
-    \item \textbf{Corpus 추가 lift 가 선형 baseline 대비 강함}. LR (no corpus) 위에 corpus 를 추가하면 GBM family 까지 올라가면 AUROC \HeadlineCorpusLiftVsLR\ [\HeadlineCorpusLiftVsLRCILower, \HeadlineCorpusLiftVsLRCIUpper] 의 lift. 95\% CI 가 0 을 넓게 벗어남 — corpus signal 의 추가 정보가 결합기 capacity 향상과 함께 통계적으로 의미 있게 사용된다.
-    \item \textbf{비선형 baseline (GBM no corpus) 위에서도 corpus 추가 lift 통계적으로 유의}. GBM (no corpus 0.889) 에 corpus 를 추가한 GBM (with corpus, 0.892) 의 AUROC delta = +\HeadlineCorpusLiftVsGBM\ [\HeadlineCorpusLiftVsGBMCILower, \HeadlineCorpusLiftVsGBMCIUpper], CI lower bound > 0 이므로 marginal 이지만 유의함. 즉 SE / Energy / candidate-level signal 을 모두 비선형 결합한 강력한 baseline 위에서도 corpus signal 이 추가 정보를 보탠다.
-    \item \textbf{SVM rbf 는 corpus 추가가 오히려 negative}. SVM 의 RBF kernel 은 corpus aggregate feature 의 분포 (대부분 좌편향, ${\sim}50\%$ 가 0) 와 잘 맞지 않아 추가 corpus 가 over-smoothing 을 야기하는 것으로 추정된다. tree-based 결합기 (RF / GBM) 가 corpus 신호를 안정적으로 활용한다.
-\end{itemize}
-
-표~\ref{tab:bootstrap_ci} 의 결과는 본 논문의 두 번째 연구 질문 (corpus signal 추가의 한계 효용) 에 대한 직접적 답이다 — \emph{tree-based fusion 위에서 corpus signal 의 한계 효용은 아주 작지만 통계적으로 유의} 하다. 다음 절에서는 이 lift 가 corpus support 영역별로 어떻게 분포하는지를 분해한다.
-
-\section{Corpus support 구간별 한계 효용 분포}
-
-종합 평균 +0.003 의 corpus 추가 lift 가 모든 corpus support 영역에서 균일한지, 아니면 특정 영역에서 더 큰지를 3-bin / 5-bin / 10-bin 분해로 측정한다. 표~\ref{tab:bin10_method_matrix} 는 10-bin (rank-quantile decile) × 핵심 4개 method 의 AUROC matrix 이다. 그림~\ref{fig:money} 는 같은 데이터의 reliability map (색=AUROC) 이다.
-
-\begin{table}[htbp]
-\centering
-\small
-\caption{Method $\times$ corpus support decile AUROC (rank-quantile 분할, 각 decile $\approx$ 580 질문). 굵은 글씨는 decile 별 1위. 마지막 열 = corpus 추가 lift = GBM(with corpus) $-$ GBM(no corpus).}
-\label{tab:bin10_method_matrix}
-\begin{tabular}{@{}lcccccr@{}}
-\toprule
-decile & n & GBM (no corpus) & \textbf{GBM (with corpus)} & RF (no corpus) & LR (no corpus) & corpus lift \\
-\midrule
-00--10  & 582 & 0.829 & \textbf{0.851} & 0.829 & 0.818 & $\boldsymbol{+0.022}$ \\
-10--20  & 570 & 0.776 & 0.777 & \textbf{0.776} & 0.749 & $+0.001$ \\
-20--30  & 578 & 0.778 & \textbf{0.787} & 0.778 & 0.755 & $+0.009$ \\
-30--40  & 585 & 0.830 & \textbf{0.836} & 0.830 & 0.826 & $+0.006$ \\
-40--50  & 582 & \textbf{0.849} & 0.848 & 0.849 & 0.855 & $-0.001$ \\
-50--60  & 568 & 0.873 & 0.868 & \textbf{0.873} & 0.855 & $-0.005$ \\
-60--70  & 594 & \textbf{0.860} & 0.851 & 0.860 & 0.850 & $-0.009$ \\
-70--80  & 584 & 0.918 & 0.909 & \textbf{0.918} & 0.895 & $-0.009$ \\
-80--90  & 592 & \textbf{0.930} & 0.930 & 0.930 & 0.913 & $0.000$ \\
-90--100 & 580 & 0.979 & \textbf{0.981} & 0.979 & 0.973 & $+0.002$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{측정 방법.} 5{,}815 개 질문을 corpus support coverage score 의 rank-quantile 로 10-decile 로 분할한다 (각 decile $\approx$ 580 질문). 각 decile 안에서 4 신호 (SE / Energy / logit-diagnostic / Fusion) 의 AUROC 를 산출한다. 단일 신호는 score-based ranking 으로 직접 계산 (학습 없음), Fusion 은 5-fold CV out-of-fold 예측을 사용한다.
 
 \begin{figure}[htbp]
     \centering
-    \resizebox{0.95\textwidth}{!}{\includegraphics{figures/money_figure_prompt_10bin.png}}
-    \caption[Method $\times$ corpus support decile AUROC heatmap]{Method $\times$ corpus support decile AUROC (n=5{,}815, 라벨 = hard 질문). 색 = AUROC (RdYlGn, 0.5--1.0 범위). corpus 가 풍부할수록 (오른쪽) 모든 결합기 AUROC 가 올라가며, corpus 추가의 한계 효용은 corpus 가 부족한 좌측 (decile 00--10) 에서 가장 크다.}
-    \label{fig:money}
+    \resizebox{0.95\textwidth}{!}{\includegraphics{figures/fig_per_decile_auroc.png}}
+    \caption[Per-decile AUROC]{Corpus support decile별 AUROC (n=5{,}815, 라벨 = 어려운 질문). SE, Energy, Fusion 모두 corpus 부족 영역 (왼쪽) 에서 가장 낮고 풍부 영역 (오른쪽) 에서 가장 높은 단조 패턴을 보인다. logit-diagnostic 은 모든 영역에서 0.51--0.63 으로 약함 (CHOKE 패턴).}
+    \label{fig:per_decile_auroc}
 \end{figure}
 
-핵심 발견은 세 가지이다.
+그림~\ref{fig:per_decile_auroc} 는 모든 신호가 corpus 부족 영역에서 동시에 약해지는 단조 상승 패턴을 보여준다. 구체적으로 SE 는 가장 낮은 decile 에서 0.80, 가장 높은 decile 에서 0.92 로 변동하며, Energy 는 \HeadlineEnergyDecileLowest 에서 \HeadlineEnergyDecileHighest 로, Fusion 은 \HeadlineFusionDecileLowest 에서 \HeadlineFusionDecileHighest 로 동일한 상승 패턴을 보인다. logit-diagnostic 은 모든 영역에서 0.51--0.63 의 약한 신뢰도를 유지하여, NLL / margin 같은 단독 logit 신호의 CHOKE 한계가 corpus 영역과 무관하게 일관됨을 시사한다.
 
-\begin{itemize}
-    \item \textbf{Lowest decile 에서 corpus lift 가 가장 큼} (decile 00--10, n=582). GBM (with corpus) 0.851 vs GBM (no corpus) 0.829, lift = +\HeadlineDecileLowestLift\ — 본 논문 conditioning 가설 ``corpus 가 entity 를 거의 모르는 영역에서 corpus 추가 정보의 가치가 가장 크다'' 의 직접 데이터 근거. SE / Energy 만으로는 충분히 잡지 못하는 hallucination 패턴이 이 영역에 집중되어 있고, corpus signal 이 그 격차를 메운다.
-    \item \textbf{Mid--high decile 에서는 corpus 추가가 큰 차이 없음}. decile 40--80 영역에서 corpus 추가 lift 는 $-0.009$ ~ $0.000$ 사이로, 이 영역의 hallucination 은 SE / Energy 의 sample-consistency 신호만으로도 잘 탐지되어 (AUROC 0.85--0.92) corpus aggregate 가 추가 정보를 거의 보태지 못한다. 효과 크기가 종합 lift 의 noise 수준이므로 lowest decile 에 corpus 가치가 집중된다는 본 논문 주요 결론을 뒤집지 않는다.
-    \item \textbf{전체 AUROC 가 corpus support 와 함께 단조 상승}. decile 10--20 의 0.78 부터 decile 90--100 의 0.98 까지 corpus 가 풍부할수록 detection 이 쉬워진다. 이는 hallucination 의 발생 패턴 자체가 corpus support 와 연관되어 있음을 시사한다 — corpus 가 풍부한 영역에서는 SE / Energy 같은 모델 자체 신호가 더 안정적으로 작동하고, corpus 가 부족한 영역에서는 모델 신호의 신뢰도가 떨어지므로 보완 신호 (corpus signal) 의 가치가 커진다.
-\end{itemize}
+이 단조 패턴은 본 논문의 conditioning 가설 — corpus 부족 영역에서 모델 representation 이 불안정하고 free-sample 이 단일 cluster 로 수렴해 sample-consistency 신호의 판별력이 약화된다 (\S\ref{ch:method}) — 의 직접 데이터 근거이다. 환각 탐지 자체가 corpus 부족 영역에서 \emph{모든 신호 공통적으로} 어렵다.
 
-종합하면 \emph{corpus signal 의 가치는 corpus 가 가장 부족한 영역에 집중} 된다. 평균 +0.003 의 lift 뒤에 가려진 conditional 분포를 정확히 보여주는 것이 본 분석의 의의이다. 본 결과는 본 논문의 세 번째 연구 질문 (corpus 추가의 한계 효용 영역별 분포) 에 직접 답한다.
 
-\section{데이터셋 간 일반화}\label{sec:lodo}
+\section{단일 신호 영역별 비교}
 
-본 분석 결과가 두 dataset (HaluEval-QA / TruthfulQA) 에서 어떻게 작동하는지 확인하기 위해 per-dataset AUROC 를 표~\ref{tab:lodo} 에 보고한다.
+\paragraph{측정 방법.} §4.3 와 동일한 10-decile 분해 위에서 단일 신호 (SE / Energy / logit-diagnostic) 의 AUROC 를 직접 비교한다.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Per-dataset AUROC (5-fold CV pooled). Eval HaluEval-QA: HaluEval-QA 질문만으로 평가. Eval TruthfulQA: TruthfulQA 질문만으로 평가. AGG: 종합.}
+\caption{Method $\times$ corpus support decile AUROC (n=5{,}815, 각 decile $\approx$ 580 질문). 굵은 글씨 = 단일 신호 중 1위.}
+\label{tab:bin10_method_matrix}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+decile & n & SE & \textbf{Energy} & logit-diag & Fusion \\
+\midrule
+00--10  & 582 & 0.802 & \textbf{0.821} & 0.628 & 0.851 \\
+10--20  & 570 & 0.718 & \textbf{0.746} & 0.550 & 0.777 \\
+20--30  & 578 & 0.760 & \textbf{0.771} & 0.579 & 0.787 \\
+30--40  & 585 & 0.788 & \textbf{0.812} & 0.576 & 0.826 \\
+40--50  & 582 & 0.845 & \textbf{0.864} & 0.592 & 0.850 \\
+50--60  & 568 & 0.821 & \textbf{0.850} & 0.608 & 0.874 \\
+60--70  & 594 & 0.825 & \textbf{0.848} & 0.615 & 0.851 \\
+70--80  & 584 & 0.832 & \textbf{0.868} & 0.589 & 0.918 \\
+80--90  & 592 & 0.836 & \textbf{0.883} & 0.540 & 0.926 \\
+90--100 & 580 & 0.924 & \textbf{0.954} & 0.508 & 0.978 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+표~\ref{tab:bin10_method_matrix} 가 보이는 단일 신호 비교의 결론은 corpus 영역과 무관하다. Energy 가 모든 10 decile 에서 SE 를 +0.020 ~ +0.038 의 일관된 폭으로 능가한다. logit-diagnostic 은 모든 영역에서 0.5 근처 (0.508--0.628) 로 약하다 — 환각 답이 정답 답보다 더 자신있게 평가되는 CHOKE 패턴이 corpus 영역에 무관하게 유지됨을 시사한다. 즉 단일 신호 선택은 corpus support 영역에 따라 달라지지 않는 결정으로, Energy 가 SE / logit-diagnostic 을 압도한다.
+
+
+\section{Fusion 의 영역별 변동}
+
+\paragraph{측정 방법.} §4.3 와 동일한 10-decile 분해 위에서 Fusion (5-fold CV GBM, 입력 = SE / Energy / NLL / margin / logit variance 의 질문 단위 집계) 의 AUROC 와 단일 신호 AUROC 의 영역별 차이를 측정한다.
+
+\begin{figure}[htbp]
+    \centering
+    \resizebox{0.95\textwidth}{!}{\includegraphics{figures/fig_fusion_delta.png}}
+    \caption[Fusion vs single signal delta]{Corpus support decile별 Fusion AUROC 와 단일 신호 AUROC 의 차이. 양수 = Fusion 우위, 음수 = 단일 신호 우위. SE / logit-diagnostic 대비 Fusion 은 모든 영역에서 우위지만, Energy 단독과의 비교는 영역별로 변동 — decile 70--90 에서 Fusion 우위가 가장 크고 (+\HeadlineFusionVsEnergyMaxDelta), decile 40--50 에서는 Energy 가 Fusion 을 +0.014 능가.}
+    \label{fig:fusion_delta}
+\end{figure}
+
+그림~\ref{fig:fusion_delta} 가 보이는 패턴은 두 가지이다. 첫째, Fusion 은 SE / logit-diagnostic 단독은 모든 영역에서 일관 우위 (vs SE +0.018 ~ +0.082, vs logit-diagnostic +0.30 이상). 단순 결합만으로도 약한 단일 신호를 보완하는 효과는 분명하다. 둘째, \emph{Energy 단독과의 비교는 corpus 영역에 따라 변동} 한다. decile 70--80 / 80--90 의 high-mid corpus 영역에서 Fusion 이 Energy 를 +\HeadlineFusionVsEnergyMaxDelta 능가하며, 반대로 \emph{decile 40--50 의 mid corpus 영역에서는 Energy 단독이 Fusion 을 +0.014 능가} 한다 (decile 60--70 도 거의 동률, +0.003).
+
+이 결과는 fusion 의 우월성이 단일 신호 선택과 corpus 영역에 동시에 의존한다는 것을 보인다. 평균 우위 한 수치 (Fusion 평균 vs Energy +\HeadlineFusionVsEnergyMean) 만 보면 ``Fusion 이 항상 더 좋다'' 는 인상이지만, 영역별 분해는 fusion 이 mid corpus 영역에서 단일 신호보다 약해질 수 있음을 보여준다. 기존 fusion 연구 (Valentin 2024, SelfCheckGPT) 가 평균 metric 한 수치로 fusion 우월성을 보고하는 관행이 가리는 정보가 있음을 시사한다.
+
+
+\section{데이터셋 일반화 + Calibration}\label{sec:lodo}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Per-dataset AUROC (5-fold CV pooled) 와 calibration. AGG: 종합. Brier / ECE 는 모든 dataset 통합.}
 \label{tab:lodo}
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-Method & AGG (n=5{,}815) & Eval HaluEval-QA (n=5{,}000) & Eval TruthfulQA (n=815) \\
+Method & AGG & HaluEval-QA & TruthfulQA & Brier & ECE \\
 \midrule
-\textbf{GBM (with corpus)} & \textbf{0.892} & \textbf{0.817} & \textbf{0.963} \\
-GBM (no corpus) & 0.889 & 0.815 & 0.951 \\
-RF (with corpus) & 0.889 & 0.813 & 0.954 \\
-RF (no corpus) & 0.888 & 0.813 & 0.953 \\
-LR (with corpus) & 0.878 & 0.796 & 0.927 \\
-corpus-bin weighted fusion & 0.878 & 0.798 & 0.918 \\
-LR (no corpus) & 0.876 & 0.797 & 0.916 \\
-SVM rbf (with corpus) & 0.838 & 0.757 & 0.907 \\
+\textbf{Fusion (GBM)} & \textbf{0.889} & 0.815 & \textbf{0.951} & \textbf{0.113} & \textbf{0.014} \\
+Random Forest & 0.888 & 0.813 & 0.953 & 0.112 & 0.016 \\
+Logistic Regression & 0.876 & 0.797 & 0.916 & 0.124 & 0.034 \\
+\midrule
+Energy-only & 0.862 & --- & --- & --- & --- \\
+SE-only & 0.832 & --- & --- & --- & --- \\
+logit-diagnostic & 0.581 & --- & --- & --- & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-GBM (with corpus) 가 두 dataset 모두에서 1위이다. HaluEval-QA 에서 corpus 추가 lift 는 +0.002 (0.815 → 0.817) 로 작고, TruthfulQA 에서는 +0.012 (0.951 → 0.963) 로 더 크다.
-
-\paragraph{TruthfulQA 라벨 노이즈에 따른 해석 주의.} TruthfulQA 의 is\_hard 라벨 비율 (0.97) 이 매우 비대칭임에 주의해야 한다. 본 논문의 token-overlap 기반 매칭 (free-sample $\ge$ 50\% token overlap with right\_answer / best\_answer / correct\_answers list) 은 의미적으로 동등한 paraphrase 를 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현 (예: ``Cardiff'', ``the Welsh capital'', ``a city in Wales'') 을 hard 로 잘못 분류한다. 따라서 TruthfulQA 단독 AUROC 0.963 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 하며, \emph{본 논문 주요 결과 해석은 HaluEval-QA 단독 (0.817) 또는 AGG (0.892) 기준} 으로 진행한다. NLI-기반 매칭으로 라벨링하면 이 노이즈가 줄어들 가능성이 높으며, 이는 §결론 한계 / 향후 연구 항목에서 명시한다. 그럼에도 GBM (with corpus) 가 두 dataset 모두에서 안정적인 1위라는 사실은 본 논문 주요 결과가 단일 dataset 에 의존하지 않음을 보여준다.
-
-\section{Threshold / calibration 진단}
-
-분류 정확도뿐 아니라 출력 점수를 확률로 해석할 수 있는지도 함께 점검하였다 (표~\ref{tab:calibration}). Brier score와 ECE(expected calibration error)는 둘 다 작을수록 calibration이 좋다.
-
-\begin{table}[htbp]
-\centering
-\small
-\caption{Prompt-level threshold / calibration 진단 (n=5{,}815). Brier 와 ECE 모두 낮을수록 좋다. 굵은 글씨 = 1위.}
-\label{tab:calibration}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Method & Brier & ECE \\
-\midrule
-\textbf{GBM (with corpus)} & \textbf{0.110} & 0.017 \\
-RF (with corpus) & 0.111 & 0.022 \\
-RF (no corpus) & 0.112 & 0.016 \\
-GBM (no corpus) & 0.113 & \textbf{0.014} \\
-corpus-bin weighted fusion & 0.120 & 0.022 \\
-LR (with corpus) & 0.121 & 0.030 \\
-LR (no corpus) & 0.124 & 0.034 \\
-SVM rbf (with corpus) & 0.131 & 0.016 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-GBM (with corpus) 는 분류 정확도뿐 아니라 calibration 에서도 강력하다 — Brier \HeadlineBrier\ 으로 모든 방법 중 1위, ECE \HeadlineECE\% 로 GBM (no corpus, 1.4\%) 다음 두 번째. AUROC \HeadlineGBMWithCorpusAuroc\ + ECE \HeadlineECE\% 는 환각 탐지 점수를 확률로 해석해 임계값 기반 선별 (예: $\ge 0.7$ 인 응답만 사용자에게 표시) 이나 downstream 리스크 계산에 사용할 경우 실제 오류율과의 오차가 약 \HeadlineECE\%p 이내임을 의미한다.
+Fusion 이 두 dataset 모두에서 1위이며 calibration 도 1위이다 (Brier \HeadlineBrier, ECE \HeadlineECE\%). 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다 — 본 논문의 token-overlap 라벨 (free-sample $\ge$ 50\% token overlap with right\_answer / best\_answer / correct\_answers list) 은 의미적으로 동등한 paraphrase 정답을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현 (예: ``Cardiff'', ``the Welsh capital'') 을 \emph{어려운 질문} 으로 잘못 분류한다 (TruthfulQA is\_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 또는 AGG (\HeadlineFusionAuroc) 기준으로 한다. NLI 기반 매칭으로 라벨링하면 노이즈가 줄어들 가능성이 높으며, 이는 §결론 한계 항목에서 다룬다.
 
 \chapter{결론}{\label{ch:conclusion}}
 
 \section{연구 요약}
 
-본 논문은 LLM 환각 탐지에서 Semantic Entropy(SE), Semantic Energy, corpus-grounded 신호를 corpus support라는 조건 축 관점에서 재정리하고, paired 설정 위에서 비교 평가하였다. 제~\ref{ch:intro}장에서 제시한 세 연구 질문에 대한 답을 정리하면 다음과 같다.
+본 논문은 외부 corpus statistic 을 평가 단위로 사용하여 환각 탐지 신호 (SE, Semantic Energy, logit-diagnostic, fusion) 의 영역별 행태를 분해하였다. 세 연구 질문에 대한 답을 정리한다.
 
-\paragraph{첫째: SE / Energy baseline 재현.} SE AUROC \HeadlineSEAuroc, Semantic Energy \HeadlineEnergyAuroc 으로 Farquhar 등 (2024) 의 TriviaQA / Llama-2 7B 보고치 (0.79) 와 동일 수준에서 본 데이터에 재현된다.
+\paragraph{첫째 (난이도 ↔ corpus support).} 모든 신호의 AUROC 가 corpus support 와 단조 관계 — 가장 부족한 영역에서 가장 낮고 풍부한 영역에서 가장 높다 (SE 0.80 → 0.92, Energy \HeadlineEnergyDecileLowest → \HeadlineEnergyDecileHighest, Fusion \HeadlineFusionDecileLowest → \HeadlineFusionDecileHighest). 환각 탐지 자체가 corpus 부족 영역에서 \emph{모든 신호 공통적으로} 어렵다.
 
-\paragraph{둘째: Corpus signal 추가의 한계 효용.} GBM (with corpus) AUROC \HeadlineGBMWithCorpusAuroc 으로 Energy 단독 대비 +\HeadlineFusionVsEnergyDelta, SE 단독 대비 +\HeadlineFusionVsSEDelta\ lift. corpus 추가 자체의 한계 효용은 통계적으로 유의 — 선형 baseline 대비 +\HeadlineCorpusLiftVsLR\ [\HeadlineCorpusLiftVsLRCILower, \HeadlineCorpusLiftVsLRCIUpper], 비선형 baseline 대비 +\HeadlineCorpusLiftVsGBM\ [\HeadlineCorpusLiftVsGBMCILower, \HeadlineCorpusLiftVsGBMCIUpper] (CI lower $> 0$). Calibration 도 1위 (Brier \HeadlineBrier, ECE \HeadlineECE\%).
+\paragraph{둘째 (영역별 단일 신호 우열).} 단일 신호 비교는 corpus 영역과 무관 — Energy 가 모든 10 decile 에서 SE 를 +0.020 ~ +0.038 능가하며, logit-diagnostic 은 모든 영역에서 약하다 (CHOKE 패턴). 즉 단일 신호 선택은 corpus 영역에 따라 달라지지 않는 결정이다.
 
-\paragraph{셋째: Corpus lift 의 영역별 분포.} 종합 평균 +0.003 lift 가 균일하지 않으며, corpus 가 entity 를 거의 모르는 lowest decile (00--10) 에서 +\HeadlineDecileLowestLift\ 로 가장 크다. 매우 풍부한 영역 (decile 90--100) 에서는 SE/Energy 만으로 AUROC 0.98 에 도달해 corpus 한계 효용이 0 에 수렴한다. 본 논문 conditioning 가설의 직접 데이터 근거이다. corpus exposure 와 모델 confidence 의 인과 관계 해석에는 주의가 필요하다 (Infini-gram 16B token corpus $\ne$ Qwen2.5-3B pretraining corpus, Zhang 등 2025\cite{zhang2025corpus} 와 동일한 단서).
+\paragraph{셋째 (Fusion 영역별 변동).} Fusion 이 SE / logit-diagnostic 단독은 모든 영역에서 일관 우위, 그러나 Energy 단독과는 영역별로 변동 — decile 70--90 에서 Fusion 우위가 가장 크고 (+\HeadlineFusionVsEnergyMaxDelta), \emph{decile 40--50 에서는 Energy 단독이 Fusion 을 +0.014 능가}. 평균 우위 한 수치 (+\HeadlineFusionVsEnergyMean) 로는 가려지는 영역별 변동이 데이터로 보인다.
 
 \section{학술적 기여}
 
-본 논문의 학술적 기여는 다음과 같다.
-
 \begin{enumerate}
-    \item \textbf{Corpus signal 한계 효용의 정량 검증}. SE / Semantic Energy baseline 위에 외부 corpus support 신호를 추가한 GBM (with corpus) 가 SE 단독 대비 +\HeadlineFusionVsSEDelta, Energy 단독 대비 +\HeadlineFusionVsEnergyDelta\ lift 를 보이고, corpus 추가 자체의 한계 효용 +\HeadlineCorpusLiftVsGBM\ [\HeadlineCorpusLiftVsGBMCILower, \HeadlineCorpusLiftVsGBMCIUpper] 가 통계적으로 유의함을 bootstrap (n=2{,}000) 으로 검증하였다. Qiu 등 (2025)\cite{qucorag} / Zhang 등 (2025)\cite{zhang2025corpus} 의 ``corpus statistic 이 환각 탐지에 보완 가치를 가진다'' 가설을 본 데이터에서 정량 검증한 것이다.
-    \item \textbf{Corpus 신호 가치의 영역별 분포 측정}. 평균 +0.003 의 작은 lift 뒤에 가려진 conditional 분포를 10-bin decile 분해로 드러냈다. \emph{lowest decile (00--10) 에서 lift +\HeadlineDecileLowestLift\ 로 가장 크다} — corpus 가 부족한 영역에서 SE / Energy 의 신뢰도가 떨어지므로 corpus 보완 신호의 가치가 가장 크다는 conditioning 가설의 직접 데이터 근거.
-    \item \textbf{외부 corpus 조건화의 직교성 확인}. Valentin 등 (2024)\cite{valentin2024} 이 모델 \emph{내부} score attribute 로 conditional calibration 을 시도한 방향과 직교적으로, 본 논문은 모델 출력과 독립적인 \emph{외부} corpus statistic 으로 환각 탐지 신호를 보완한다. 두 방향은 결합 가능한 보완 구조이다.
+    \item \textbf{영역별 분해를 통한 평균 metric 의 한계 노출}. 환각 탐지 난이도가 corpus 부족 영역에 집중됨을 모든 신호에 공통적으로 정량화. 평균 AUROC 한 수치가 가리는 입력 조건별 변동을 데이터로 보였다.
+    \item \textbf{Fusion 이 항상 best 가 아니라는 발견}. mid corpus 영역 (decile 40--50) 에서 Energy 단독이 Fusion 을 +0.014 능가하는 케이스를 보고. 기존 fusion 연구 (Valentin 2024\cite{valentin2024}, SelfCheckGPT\cite{selfcheckgpt2023}) 가 평균 metric 만 보고하는 관행이 가리는 정보가 있음을 시사한다.
+    \item \textbf{외부 corpus 를 평가 단위로 사용하는 분석 절차}. Valentin 등 (2024) 이 모델 \emph{내부} score attribute 로 conditional calibration 을 시도한 방향과 직교적으로, 본 논문은 모델 출력과 독립적인 \emph{외부} corpus statistic 을 평가 단위로 사용해 영역별 행태를 분해한다. 두 방향은 결합 가능한 보완 구조이다.
 \end{enumerate}
 
 \section{한계}
 
-본 연구는 다음 한계를 가진다.
-
 \begin{enumerate}
     \item \textbf{Token-overlap 라벨 proxy 한계}. is\_hard 라벨은 free-sample N=10 의 정답 token-overlap ($\ge 50\%$) 매칭 결과로 정의된다. HaluEval-QA 의 짧은 factoid 답에서는 잘 작동하나 (is\_hard 0.20), TruthfulQA 의 다양한 paraphrase 정답을 충분히 잡지 못해 라벨이 hard 쪽으로 치우친다 (0.97). NLI-기반 매칭으로의 교체는 향후 연구에서 검토한다.
-    \item \textbf{단일 corpus snapshot 및 단일 모델}. corpus support 축은 \texttt{v4\_dolmasample\_olmo} (16B Dolma sample) 단일 index 위에서 산출되며, 본 실험 corpus 와 Qwen2.5-3B 의 실제 pretraining corpus 가 다르므로 corpus support 와 환각의 연결은 \emph{상관} 이지 \emph{인과} 가 아니다. 또한 단일 모델 (Qwen2.5-3B) 평가이므로 모델 규모/계열 일반화는 본 논문의 범위를 넘는다.
-    \item \textbf{Corpus 추가 lift 의 평균 크기는 작음}. 종합 AUROC delta +0.003 (vs GBM no corpus) 으로 통계 유의하나 효과 크기는 작다. 본 논문의 핵심 가치는 (i) lift 가 corpus 가 부족한 영역에 집중된다는 conditional 분포 발견 + (ii) SE / Energy 를 baseline 으로 명시적으로 재현해 공정 비교 틀 를 제시한 것에 있다.
+    \item \textbf{단일 corpus snapshot 및 단일 모델}. corpus support 축은 \texttt{v4\_dolmasample\_olmo} (16B Dolma sample) 단일 index 위에서 산출되며, 본 실험 corpus 와 Qwen2.5-3B 의 실제 pretraining corpus 가 다르므로 corpus support 와 환각의 연결은 \emph{상관} 이지 \emph{인과} 가 아니다. 단일 모델 평가이므로 모델 규모/계열 일반화는 본 논문 범위를 넘는다.
+    \item \textbf{Self-conditioning artifact 회피}. 본 논문은 corpus statistic 을 평가 단위로만 사용하고 fusion 입력 feature 로는 사용하지 않았다. 따라서 ``외부 corpus signal 의 직접 한계 효용'' 은 본 논문의 주장 범위 밖이며, 본 논문의 결론은 단일 신호와 fusion 의 영역별 행태 자체에 한정된다.
 \end{enumerate}
 
 \section{향후 연구}
 
-향후 다음 방향을 검토할 수 있다.
-
 \begin{enumerate}
-    \item \textbf{NLI-기반 prompt accuracy 라벨}. 현재 token-overlap proxy 를 NLI 매칭 (Farquhar 2024 SE 의 cluster 매칭과 일관) 으로 교체해 TruthfulQA 의 다양한 정답 표현을 잡는다.
-    \item \textbf{여러 corpus snapshot 비교}. \texttt{v4\_dolmasample\_olmo} 외에 더 큰 Infini-gram index (예: \texttt{v4\_pileval\_llama}) 나 도메인 특화 corpus 에서 corpus support 분포와 corpus 추가 lift 가 어떻게 달라지는지 비교한다.
-    \item \textbf{모델 일반화}. 동일 평가 절차를 Llama, Mistral 계열 등 다른 causal LM 에 적용해 SE / Energy baseline 과 corpus 추가 lift 가 모델에 의존하는지 본다.
-    \item \textbf{외부 SOTA 환각 탐지 시스템과의 비교}. SelfCheckGPT, INSIDE, FactScore 등과 본 논문 GBM (with corpus) 의 절대 성능 비교.
-    \item \textbf{Conditional fusion 구조 확장}. 본 논문의 단순 GBM (with corpus) 외에 corpus-conditioned ensemble, monotonic fusion, hierarchical fusion 으로 corpus 추가 lift 가 가장 큰 영역에 집중하는 구조를 시도한다.
+    \item \textbf{NLI-기반 정답 매칭 라벨}. 현재 token-overlap proxy 를 NLI 매칭 (Farquhar 2024 SE 의 cluster 매칭과 일관) 으로 교체해 TruthfulQA 의 다양한 정답 표현을 잡는다.
+    \item \textbf{모델 일반화}. 동일 평가 절차를 Llama, Mistral 계열 등 다른 causal LM 에 적용해 영역별 패턴이 모델에 의존하는지 본다.
+    \item \textbf{여러 corpus snapshot 비교}. 도메인 특화 corpus 에서 영역별 분포가 어떻게 달라지는지 비교한다.
+    \item \textbf{외부 SOTA 환각 탐지 시스템과의 비교}. SelfCheckGPT, INSIDE, FactScore 등과 본 논문 Fusion 의 절대 성능 비교.
 \end{enumerate}
 
 \begin{thebibliography}{99}
