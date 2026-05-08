@@ -61,6 +61,36 @@
       "official_urls": [
         "https://arxiv.org/abs/2603.21172"
       ]
+    },
+    {
+      "id": "valentin_cost_effective_2024",
+      "title": "Cost-Effective Hallucination Detection for LLMs",
+      "artifact_type": "pdf",
+      "filename": "valentin_cost_effective_2024.pdf",
+      "status": "arxiv_preprint",
+      "citation_caveat": "arXiv preprint (2024). Three-step pipeline (score → calibrate → threshold). Positioning reference: their calibration is conditional on internal scoring attributes; ours is conditional on external corpus statistics.",
+      "canonical_url": "https://arxiv.org/abs/2407.21424",
+      "source_urls": [
+        "https://arxiv.org/pdf/2407.21424"
+      ],
+      "official_urls": [
+        "https://arxiv.org/abs/2407.21424"
+      ]
+    },
+    {
+      "id": "simhi_choke_2025",
+      "title": "Trust Me, I'm Wrong: LLMs Hallucinate with Certainty Despite Knowing the Answer",
+      "artifact_type": "pdf",
+      "filename": "simhi_choke_2025.pdf",
+      "status": "arxiv_preprint",
+      "citation_caveat": "arXiv preprint (Feb 2025). Identifies CHOKE (Certain Hallucinations Overriding Known Evidence). Use as motivating evidence for SE low-diversity wrong answer limitation that our corpus axis conditioning addresses.",
+      "canonical_url": "https://arxiv.org/abs/2502.12964",
+      "source_urls": [
+        "https://arxiv.org/pdf/2502.12964"
+      ],
+      "official_urls": [
+        "https://arxiv.org/abs/2502.12964"
+      ]
     }
   ]
 }

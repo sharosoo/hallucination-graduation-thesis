@@ -223,8 +223,12 @@ Baseline 9종 + sklearn variants:
 
 ## 7. `literature/` — 참고 논문 + 식 매핑
 
-- 4편 PDF 사본: Farquhar 2024 (Semantic Entropy), Ma 2025 (Semantic Energy),
-  QuCo-RAG 2025 (entity frequency RAG), Phillips 2026 (PC Probe — 사용 안 함, framing reference)
+- 6편 PDF 사본:
+  - **구현 토대**: Farquhar 2024 (Semantic Entropy), Ma 2025 (Semantic Energy),
+    QuCo-RAG 2025 (corpus axis 영감)
+  - **Framing/positioning reference (구현 안 함)**: Phillips 2026 (PC Probe),
+    Valentin et al. 2024 (Cost-Effective Detection — 내부 attribute calibration과 직교),
+    Simhi et al. 2025 (CHOKE — SE 한계의 외부 evidence)
 - `formula_notes.md` — 각 paper의 어느 식이 어느 코드에서 어떻게 구현됐는지 단일 매핑
   문서. 예: Ma 2025 Eq.(11)–(14)가 `experiments/adapters/energy_features.py`의 어느 줄에
   구현되어 있는지 명시.

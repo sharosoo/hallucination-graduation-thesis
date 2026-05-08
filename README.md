@@ -103,7 +103,7 @@ hallucination-graduation-thesis/
   graphify 빌드 디렉터리, 로컬 에이전트 설정.
 - 정책: "텍스트 evidence는 commit, heavy raw data는 ignore + 재실행으로 복구 가능."
 
-## 참고 논문 4편
+## 참고 논문 6편
 
 | 논문 | 본 repo에서 어떻게 쓰는가 |
 |---|---|
@@ -111,6 +111,8 @@ hallucination-graduation-thesis/
 | Ma 2025 (preprint) — *Semantic Energy* | S6 paper-faithful Semantic Energy 식 (Eq.11–14) 그대로 구현. cluster total energy = SUM (Eq.12), U = Σ p(C_k)·E_Bolt(C_k). |
 | QuCo-RAG 2025 — *Query-Corpus uncertainty for RAG* | entity frequency / pair co-occurrence를 *RAG 검색 trigger* 가 아니라 **신뢰도 conditioning 축**으로 재해석. |
 | Phillips 2026 — *PC Probe / selective prediction* | hidden-state probe 없이 외부 corpus + selected-token logit만 쓰는 본 논문 contract와 대비되는 framing reference. baseline에 포함하지 않음. |
+| **Valentin et al. 2024 (arXiv:2407.21424) — *Cost-Effective Hallucination Detection*** | conditional calibration framework. 본 연구와 직교: 그쪽은 *내부* score attribute 조건화, 본 연구는 *외부* corpus statistics 조건화. Black-box compatibility 비교 시 인용. |
+| **Simhi et al. 2025 (arXiv:2502.12964) — *Trust Me, I'm Wrong (CHOKE)*** | 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE의 low-diversity wrong answer 한계의 외부 evidence. corpus-axis conditioning 동기 강화. |
 
 ## 논문 PDF 다시 빌드
 

@@ -288,3 +288,5 @@ uv run python experiments/scripts/run_robustness.py --features experiments/resul
 - Candidate-level Energy/logit diagnostics must use per-token mean length normalization.
 - Corpus features are corpus-support axes and must come from direct count semantics, not retrieval scores.
 - Robustness evaluation is grouped by prompt. Candidate siblings cannot be split across train/test.
+- Valentin et al. 2024 (Cost-Effective Hallucination Detection)와의 차별화: Valentin의 calibration은 *내부* score attribute 조건화이고, 본 연구의 corpus axis는 *외부* corpus statistics 조건화이다. orthogonal — 두 framework는 결합 가능하지만 본 연구는 외부 axis만 다룬다.
+- Simhi et al. 2025 (CHOKE)는 motivating evidence로만 인용한다 — 그쪽의 probing-based 해결책은 hidden-state probe 회피 정책에 따라 채택하지 않는다.

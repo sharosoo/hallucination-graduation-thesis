@@ -142,3 +142,18 @@ Compare:
 - NLL, confidence margin, and logit variance must be named as diagnostics unless tied to a cited paper.
 - Any feature orientation or bin boundary chosen after seeing test results is exploratory.
 - Final claims must distinguish current diagnostic artifacts from paper-faithful final artifacts.
+
+## 7. Related work positioning
+
+| Paper | Role in this thesis |
+| --- | --- |
+| Farquhar 2024 (Nature) — Semantic Entropy | S4 SE 구현 토대 + Eq.(8) cluster probability를 paper-faithful Energy에서 상속 |
+| Ma 2025 — Semantic Energy | S6 paper-faithful Energy 식 (Eq.11–14) 그대로 구현. preprint 인용 caveat 유지 |
+| QuCo-RAG 2025 | corpus statistics를 *retrieval trigger* 가 아닌 **conditioning axis** 로 재해석 (같은 통계, 다른 용도) |
+| Phillips 2026 (PC Probe) | hidden-state probe — **사용 안 함**. black-box compatibility 유지를 위한 framing reference |
+| **Valentin et al. 2024 (Cost-Effective Hallucination Detection)** | conditional calibration framework — *내부* score attribute 조건화. 본 연구의 *외부* corpus statistics 조건화와 직교적. positioning에서 명시 차별화 필요 |
+| **Simhi et al. 2025 (CHOKE)** | 모델이 정답 지식을 가지고도 high-certainty hallucination 생성 — SE의 low-diversity wrong answer 한계의 외부 evidence. corpus-axis conditioning 동기 강화. probing 해결책은 채택 안 함 |
+
+자세한 positioning은 `experiments/literature/evidence_notes/valentin_calibration_vs_corpus_axis.md`,
+`experiments/literature/evidence_notes/simhi_choke_motivates_corpus_axis.md`,
+`experiments/literature/evidence_notes/quco_vs_probe.md` 참조.

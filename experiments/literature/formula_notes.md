@@ -55,3 +55,21 @@ Page Reference: Local implementation note, not an external source-paper formula.
 Section Reference: experiments/PIPELINE.md §S8 and §S9.
 Equation Reference: Global logistic fusion and corpus-bin-aware comparisons are defined in the experiment protocol; report AUROC, AUPRC, paired win rate, paired delta, and prompt-grouped bootstrap CI per bin.
 Notes: The claim is not that corpus-aware fusion universally improves hallucination detection. The claim to test is whether conditioning on corpus-support axes changes metric reliability or makes fusion more interpretable/stable than a single global fusion rule.
+
+## Reference: valentin_cost_effective_2024
+Source ID: valentin_cost_effective_2024
+Paper: Cost-Effective Hallucination Detection for LLMs (Valentin et al. 2024)
+Feature Family: framing reference only — not a feature
+Page Reference: arXiv:2407.21424 abstract + sections describing the calibration step.
+Section Reference: 본 repo positioning은 `experiments/literature/evidence_notes/valentin_calibration_vs_corpus_axis.md` 참조.
+Equation Reference: 식이 아닌 framing reference. Valentin et al.은 score → calibrate → threshold 3-step pipeline에서 calibration을 *input/response 내부 attribute* 에 조건화한다. 본 연구는 같은 conditional 관점을 *외부 corpus statistics* 로 적용한다는 점에서 직교적 (orthogonal). 두 framework은 결합 가능.
+Notes: 본 연구의 contribution을 cost-effective production framework로 잘못 framing하지 않는다. evaluation framework + meta-analysis가 본 연구의 contribution. Valentin et al.은 black-box compatibility 비교 시 인용한다.
+
+## Reference: simhi_choke_2025
+Source ID: simhi_choke_2025
+Paper: Trust Me, I'm Wrong: LLMs Hallucinate with Certainty Despite Knowing the Answer (Simhi et al. 2025)
+Feature Family: framing reference only — motivating evidence, not a feature
+Page Reference: arXiv:2502.12964 abstract + CHOKE definition section.
+Section Reference: 본 repo positioning은 `experiments/literature/evidence_notes/simhi_choke_motivates_corpus_axis.md` 참조.
+Equation Reference: 식이 아닌 motivating evidence. CHOKE (Certain Hallucinations Overriding Known Evidence) 현상은 모델이 정답 지식을 가지고 있어도 high-certainty hallucination을 생성한다는 것을 보여준다. 본 연구의 SE low-diversity wrong answer 한계와 직접 연결되며, 모델 *내부* uncertainty 신호만으로는 이 현상을 잡을 수 없음을 외부 evidence로 입증한다 → 본 연구의 *외부* corpus axis conditioning의 동기 강화.
+Notes: Simhi et al.의 probing-based 해결책은 본 연구가 *채택하지 않는다* (PC Probe와 같은 이유 — hidden-state probe 회피). 현상 보고 부분만 인용한다. "corpus axis가 CHOKE를 해결한다"고 overclaim하지 않는다.

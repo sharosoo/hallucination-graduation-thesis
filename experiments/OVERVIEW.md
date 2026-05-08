@@ -115,3 +115,12 @@ uv run python experiments/scripts/run_pipeline.py --execute --out experiments/re
 - 현재 candidate-level `semantic_energy_boltzmann`은 useful diagnostic일 수 있지만, multi-generation semantic clustering과 cluster-level energy aggregation이 없으면 paper-faithful Semantic Energy라고 쓰지 않는다.
 - Corpus feature는 direct count semantics에서 와야 한다. Elasticsearch/BM25는 retrieval evidence 용도이며 entity frequency/co-occurrence count 대체물이 아니다.
 - Robustness evaluation은 prompt 단위로 묶는다. 같은 prompt에서 나온 두 candidate row가 train/test로 갈라지면 누수다.
+
+## 9. 관련 연구와의 positioning
+
+- **Farquhar 2024 (Nature) Semantic Entropy**: S4 SE 구현 토대. Eq.(8) likelihood cluster probability를 paper-faithful Semantic Energy에서도 그대로 상속.
+- **Ma 2025 Semantic Energy** (preprint): S6 식 (Eq.11–14) 그대로 구현. cluster total energy = SUM, U = Σ p(C_k)·E_Bolt(C_k).
+- **QuCo-RAG 2025**: entity frequency / pair co-occurrence를 *retrieval trigger* 가 아닌 **신뢰도 conditioning 축**으로 재해석. 같은 통계, 다른 용도.
+- **Phillips 2026 PC Probe**: hidden-state probe는 채택하지 않음 (black-box compatibility 유지). framing reference만.
+- **Valentin et al. 2024 (Cost-Effective Detection)**: conditional calibration framework. 본 연구와 직교 — 그쪽은 *내부* score attribute 조건화, 본 연구는 *외부* corpus statistics 조건화. black-box compatibility 비교 시 인용.
+- **Simhi et al. 2025 (CHOKE)**: 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE의 low-diversity wrong answer 한계의 외부 evidence → 외부 corpus axis conditioning 동기 강화.

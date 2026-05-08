@@ -63,6 +63,36 @@
       "local_path": "literature/phillips_pc_probe_2026/phillips_pc_probe_2026.pdf",
       "sha256": "cf7f3601009e247fafa191e5eb3e0c0ddeba6d032f41020d3a06398ba63072d9",
       "size_bytes": 522269
+    },
+    {
+      "id": "valentin_cost_effective_2024",
+      "title": "Cost-Effective Hallucination Detection for LLMs",
+      "artifact_type": "pdf",
+      "canonical_url": "https://arxiv.org/abs/2407.21424",
+      "source_url": "https://arxiv.org/pdf/2407.21424",
+      "official_urls": [
+        "https://arxiv.org/abs/2407.21424"
+      ],
+      "status": "arxiv_preprint",
+      "citation_caveat": "arXiv preprint (2024). Three-step pipeline (score → calibrate → threshold) with multi-scoring framework. Use as positioning reference: their calibration is conditional on input/response *attributes* (internal scoring methods); ours is conditional on *external corpus statistics*.",
+      "local_path": "literature/valentin_cost_effective_2024/valentin_cost_effective_2024.pdf",
+      "sha256": "4fab864172e6d599746fede7c81fee074826ba00e70dda544c17916901be87f8",
+      "size_bytes": 551350
+    },
+    {
+      "id": "simhi_choke_2025",
+      "title": "Trust Me, I'm Wrong: LLMs Hallucinate with Certainty Despite Knowing the Answer",
+      "artifact_type": "pdf",
+      "canonical_url": "https://arxiv.org/abs/2502.12964",
+      "source_url": "https://arxiv.org/pdf/2502.12964",
+      "official_urls": [
+        "https://arxiv.org/abs/2502.12964"
+      ],
+      "status": "arxiv_preprint",
+      "citation_caveat": "arXiv preprint (Feb 2025, revised Aug 2025). Identifies CHOKE (Certain Hallucinations Overriding Known Evidence) where models hallucinate confidently despite having internal knowledge. Use as motivating evidence for the SE low-diversity wrong answer limitation our framework addresses via corpus axis conditioning.",
+      "local_path": "literature/simhi_choke_2025/simhi_choke_2025.pdf",
+      "sha256": "f4b26ea1e7b9f4ee760124027fc93b8637b03ccb1bbc5f6192fe657b08376767",
+      "size_bytes": 1139244
     }
   ]
 }
