@@ -345,7 +345,7 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
 
 본 실험은 Ma 등(2025)\cite{ma2025} 식 (11)--(14)를 그대로 따른 Semantic Energy와, candidate-level Boltzmann-style energy diagnostic을 분리해 보고한다. 전자는 token energy $\tilde{E}(x_t)=-z_\theta(x_t)$, sample energy $E(x^{(i)})=\frac{1}{T_i}\sum_t \tilde{E}(x_t^{(i)})$, cluster total energy $E_{\text{Bolt}}(\mathbb{C}_k)=\sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)})$, 최종 uncertainty $U(\mathbf{x})=\sum_k p(\mathbb{C}_k) E_{\text{Bolt}}(\mathbb{C}_k)$로 계산하며, cluster 확률 $p(\mathbb{C}_k)$는 SE 단계의 likelihood-based cluster probability를 그대로 상속한다.
 
-후자는 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin을 candidate 단위 한 줄로 묶은 진단 지표이다. 정의 단위가 cluster vs candidate로 다르므로 두 신호는 같은 열에 합치지 않는다.
+후자는 teacher-forced 방식으로 후보 답을 채점할 때 얻은 token 단위 $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin을 candidate 단위 한 줄로 묶은 진단 지표이다. 정의 단위가 cluster vs candidate로 다르므로 두 신호는 같은 열에 합치지 않는다.
 
 \chapter{실험}{\label{ch:experiment}}
 
