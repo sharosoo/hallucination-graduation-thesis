@@ -118,6 +118,7 @@ TRAINABLE_FEATURE_ORDER = (
     "corpus_risk_only",
     "corpus_axis_bin",
     "corpus_axis_bin_5",
+    "corpus_axis_bin_10",
 )
 PROMPT_BROADCAST_FEATURES = (
     "semantic_entropy_nli_likelihood",
@@ -512,6 +513,7 @@ def _build_trainable_features(
         "corpus_risk_only": corpus_features.get("corpus_risk_only"),
         "corpus_axis_bin": corpus_features.get("corpus_axis_bin"),
         "corpus_axis_bin_5": corpus_features.get("corpus_axis_bin_5"),
+        "corpus_axis_bin_10": corpus_features.get("corpus_axis_bin_10"),
     }
     ordered = {key: trainable_features.get(key) for key in TRAINABLE_FEATURE_ORDER}
     leakage = sorted(FORBIDDEN_FEATURE_KEYS.intersection(ordered))
