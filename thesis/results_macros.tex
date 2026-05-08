@@ -1,22 +1,23 @@
 % Headline metric macros for thesis prose.
 %
-% Source: thesis-valid run pipeline-20260507T103225Z (paper-faithful N=10 NLI likelihood SE
-% + paper-faithful Semantic Energy + InfinigramLocalEngineBackend on v4_dolmasample_olmo +
-% S0-S9 full pipeline + 10-bin corpus_axis sensitivity).
+% Source: thesis-valid run pipeline-20260507T103225Z, S5-S9 re-run with
+% spaCy en_core_web_lg entity extractor (2026-05-08 round 5 pivot from
+% regex / QuCo). Earlier macro values (regex-era 0.166 / QuCo-era unused)
+% are superseded.
 %
 % 갱신 정책: 매크로만 swap, 본문 prose 손대지 않음. SE/Energy candidate-row aggregate
 % AUROC = 0.5 는 prompt-level broadcast 의 구조적 artifact 이므로 본문에서 결과 수치로
-% 보고하지 않음 — 관련 매크로 (HeadlineSEAuroc, HeadlineEnergyAuroc) 는 본문에서 제거됨.
+% 보고하지 않음.
 %
-% headline 비교축이 paired baseline 의 "global learned fusion with corpus" 에서
-% thesis-valid 의 "corpus-bin weighted fusion" 으로 교체됨 (with-corpus global 은
-% missing_signal 로 unavailable). 이 변경은 본문 prose 의 condition-aware framing
-% 과 일치한다.
+% Headline 비교: corpus-bin weighted fusion vs 선형 global learned fusion (no corpus).
+% spaCy entity extractor 채택 후 corpus signal 정보가 더 잘 보존되어 corpus-bin
+% weighted fusion AUROC 가 0.601 (regex 시기 0.538) 로 상승 → 비선형 sklearn
+% gradient boosting (no corpus, 0.541) 을 +0.060 으로 확실히 능가.
 
-\providecommand{\HeadlineCorpusOnlyAuroc}{0.538}
+\providecommand{\HeadlineCorpusOnlyAuroc}{0.498}
 \providecommand{\HeadlineLearnedFusionNoCorpusAuroc}{0.372}
-\providecommand{\HeadlineLearnedFusionWithCorpusAuroc}{0.538}
-\providecommand{\HeadlineCorpusFusionAurocDelta}{0.166}
-\providecommand{\HeadlineCorpusFusionAurocCILower}{0.157}
-\providecommand{\HeadlineCorpusFusionAurocCIUpper}{0.176}
-\providecommand{\HeadlineCorpusFusionAuprcDelta}{0.096}
+\providecommand{\HeadlineLearnedFusionWithCorpusAuroc}{0.601}
+\providecommand{\HeadlineCorpusFusionAurocDelta}{0.229}
+\providecommand{\HeadlineCorpusFusionAurocCILower}{0.219}
+\providecommand{\HeadlineCorpusFusionAurocCIUpper}{0.239}
+\providecommand{\HeadlineCorpusFusionAuprcDelta}{0.138}
