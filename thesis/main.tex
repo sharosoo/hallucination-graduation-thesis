@@ -379,12 +379,12 @@ decile & n & paired win-rate [95\% CI] & mean delta [95\% CI] \\
 
 세 가지 패턴이 두드러진다.
 \begin{itemize}
-    \item \textbf{Decile 20--50, 70--90 (n=9{,}948, 86\%)}: 6개 decile에서 paired win-rate가 0.5보다 통계적으로 유의미하게 높다 (CI가 0.5를 가로지르지 않음). corpus-bin weighted fusion이 본 데이터의 대부분 영역에서 환각 후보를 정답보다 위험하게 평가한다. 한편 decile 60--70 (n=587, CI [0.432, 0.550])과 decile 90--100 (n=125, CI [0.464, 0.710])은 0.5를 포함하므로 통계적으로 유의미하지 않다. decile 90--100은 표본 수 자체가 작아 결론을 단정 짓기 어려운 영역이다.
+    \item \textbf{Decile 20--50, 70--90 (n=9{,}948, 86\%)}: 6개 decile에서 paired win-rate가 0.5보다 통계적으로 유의미하게 높다 (CI가 0.5를 가로지르지 않음). corpus-bin weighted fusion이 본 데이터의 대부분 영역에서 환각 후보를 정답보다 위험하게 평가한다. 한편 decile 60--70 (n=587, CI [0.432, 0.550])과 decile 90--100 (n=125, CI [0.464, 0.710])은 0.5를 포함하므로 통계적으로 유의미하지 않다. decile 60--70 의 비유의는 표 5.5 / 5.6 에서 corpus-bin weighted fusion (0.493) 과 gradient boosting (0.534), random forest (0.525) 가 모두 0.5 근처에 모이는 \emph{어떤 신호도 분명한 우위를 갖지 못하는 전이 영역}임을 반영하며, decile 90--100 의 비유의는 표본 수(n=125) 자체가 작아 신뢰구간이 넓어진 결과이다.
     \item \textbf{Decile 30--50 sweet spot (n=5{,}082)}: paired win-rate 신뢰구간이 [0.587, 0.658] 까지 올라가며, mean delta도 +0.01 이상 양수로 robust하다. 본 결합기의 핵심 작동 영역이다.
     \item \textbf{Decile 00--10 (n=549)}: paired win-rate 신뢰구간 [0.366, 0.468] 이 \emph{0.5보다 낮은 영역에서} 통계적으로 유의미하게 머무른다. corpus가 거의 모르는 답에서는 corpus-bin weighted fusion 이 오히려 잘못된 방향으로 작동함을 명확히 보여준다 (이 영역에서는 corpus를 쓰지 않는 gradient boosting이 1위라는 §결과와 일치).
 \end{itemize}
 
-종합 수준의 비교에서도 corpus-bin weighted fusion은 corpus 신호를 쓰지 않는 global fusion 대비 AUROC \textbf{+0.166 [+0.157, +0.176]}, AUPRC +0.096 [+0.089, +0.102]로 신뢰구간이 0을 포함하지 않는다. 본 절의 decile별 분해는 그 종합 우위가 \emph{어느 corpus support 구간에서 발생하는지}를 정밀하게 보여준다.
+종합 수준의 비교에서 corpus-bin weighted fusion은 선형 global fusion(logistic regression, AUROC 0.372) 대비 AUROC \textbf{+0.166 [+0.157, +0.176]}, AUPRC +0.096 [+0.089, +0.102]로 신뢰구간이 0을 포함하지 않는다. 한편 비선형 baseline인 sklearn gradient boosting(no corpus, AUROC 0.541)과는 AUROC 차이가 $-0.003$으로 사실상 동급이며, calibration 측면(Brier 0.253, ECE 4.7\%)에서는 gradient boosting(Brier 0.278, ECE 12.1\%)을 명확히 능가한다. 즉 corpus 조건부 구조의 우위는 전체 AUROC 1위에 있는 것이 아니라 (i) decile별 paired 분해에서 다수 구간 통계적 우위, (ii) calibration 지표의 약 2.6배 개선, (iii) 데이터셋 전이 격차 최소(\S\ref{sec:lodo} 참조)에 있다. 본 절의 decile별 분해는 그 조건부 우위가 \emph{어느 corpus support 구간에서 발생하는지}를 정밀하게 보여준다.
 
 \section{Corpus support 구간별 신뢰도 (10-bin 정밀 분해)}
 
@@ -465,7 +465,7 @@ Simhi 등(2025)의 CHOKE 패턴, 즉 모델이 정답 지식을 가지고도 hig
 
 두 증거는 같은 그림을 가리킨다. 모델은 익숙한 entity를 잘못된 관계로 confident하게 조합해 환각을 만든다. logit이나 sample-consistency 기반 detector의 본질적 한계를 외부 corpus 신호로 분리해 낼 수 있음을 의미한다. 본 논문은 Simhi 등이 제안한 hidden-state probing 대신 corpus 축으로 같은 현상을 분리해 낸다.
 
-\section{데이터셋 간 일반화}
+\section{데이터셋 간 일반화}\label{sec:lodo}
 
 한 데이터셋만 학습한 결합기가 다른 데이터셋에서도 우위를 유지하는지 확인하기 위해 \emph{한 데이터셋 빼고 학습 (leave-one-dataset-out)} 분할을 적용한다. 절차는 다음과 같다. 두 데이터셋(HaluEval-QA / TruthfulQA) 중 하나를 \emph{평가 전용}으로 따로 빼고, 나머지 데이터셋으로만 결합기를 학습한 뒤 빠진 데이터셋에서 평가한다. 이를 두 데이터셋에 대해 한 번씩 수행하면 (i) HaluEval-QA로 학습하고 TruthfulQA에서 평가, (ii) TruthfulQA로 학습하고 HaluEval-QA에서 평가, 두 결과가 나온다. 한 결합기가 \emph{학습 데이터셋과 다른 종류의 데이터셋에서도 잘 작동하는지}를 보는 도메인 전이 검증이다.
 
@@ -489,7 +489,7 @@ logit-diagnostic-only & 0.375 & 0.340 & 0.462 \\
 \end{tabular}
 \end{table}
 
-corpus-bin weighted fusion은 두 분할에서 0.536 / 0.556으로 격차가 0.020에 그친다. 반면 gradient boosting은 HaluEval(0.550)과 TruthfulQA(0.523) 격차가 0.027로 더 크고, logit-diagnostic-only는 격차가 0.122로 데이터셋 의존성이 크다. 즉 corpus-bin weighted fusion이 \emph{학습한 데이터셋의 분포에 덜 휘둘리는} 결합기이다.
+corpus-bin weighted fusion은 두 분할에서 0.536 / 0.556으로 격차가 0.020에 그친다. 반면 gradient boosting은 HaluEval(0.550)과 TruthfulQA(0.523) 격차가 0.027로 더 크고, logit-diagnostic-only는 격차가 0.122로 데이터셋 의존성이 크다. logit-diagnostic 의 큰 격차는 CHOKE 패턴 (logit 신호의 방향 역전) 이 두 데이터셋에서 강도가 다르게 나타남을 시사한다 — HaluEval-QA 의 환각 후보가 더 강하게 confident하게 평가되어 logit 신호의 역전이 심하고 (AUROC 0.340), TruthfulQA 는 그 정도가 약하다 (0.462). corpus-bin weighted fusion은 corpus 조건에 따라 신호 가중치를 달리 적용하므로 이 dataset-specific CHOKE 강도 차이에 덜 휘둘린다.
 
 \section{Threshold / calibration 진단}
 
@@ -535,9 +535,9 @@ Simhi 등(2025)\cite{simhi2025choke}의 CHOKE 패턴이 본 데이터에서 두 
 본 논문의 학술적 기여는 다음과 같다.
 
 \begin{enumerate}
-    \item \textbf{조건부 reliability 분석 절차의 통계적 검증}. corpus support bin마다 어떤 신호가 안정적으로 작동하는지 분리 평가하는 절차를 제안하고, corpus-bin weighted fusion이 단일 global fusion 대비 AUROC \HeadlineCorpusFusionAurocDelta\ 향상(95\% 신뢰구간이 모두 양수임)을 보임으로써, 단일 global fusion으로 환원되지 않는 conditional 우위를 통계적으로 검증하였다.
-    \item \textbf{CHOKE 패턴의 두 직교 scope 동시 재현}. Simhi 등(2025)이 보고한 high-certainty hallucination 패턴을 candidate-level(NLL/confidence margin paired win-rate 0.36/0.34)과 corpus-level(entity-pair co-occurrence paired win-rate 0.551)에서 동시에 관측하여, 외부 corpus 신호로 같은 현상을 분리해 낼 수 있음을 실증하였다.
-    \item \textbf{평가 단위 분리의 명시적 적용}. SE는 prompt-level broadcast, Semantic Energy는 cluster-level, logit diagnostic은 candidate-level 신호임을 본문, 표, 그림 전체에 일관되게 적용하여, 단위 혼동에서 비롯된 잘못된 비교를 차단하였다.
+    \item \textbf{CHOKE 패턴의 두 직교 scope 동시 재현}. Simhi 등(2025)\cite{simhi2025choke}이 hidden-state probing으로 보고한 high-certainty hallucination 패턴을 candidate-level(NLL / confidence margin paired win-rate 0.36 / 0.34) 과 corpus-level(entity-pair co-occurrence paired win-rate 0.551) 에서 동시에 재현하였다. \emph{외부 corpus 신호만으로} 같은 현상을 분리해 낼 수 있음을 실증한 첫 시도이다.
+    \item \textbf{Conditional reliability 분석 절차의 통계적 검증}. corpus support bin마다 어떤 신호가 안정적으로 작동하는지 분리 평가하는 절차를 제안하고, corpus-bin weighted fusion이 선형 global fusion 대비 AUROC \HeadlineCorpusFusionAurocDelta\ [+0.157, +0.176] 의 유의미한 우위를 보임을 95\% prompt-grouped bootstrap으로 검증하였다. 전체 AUROC에서는 비선형 gradient boosting과 동급이나, calibration(ECE 4.7\% vs 12.1\%) 측면에서 corpus 조건부 구조의 독립적 가치를 확인하였다.
+    \item \textbf{평가 단위 분리의 명시적 적용}. SE는 prompt-level broadcast, Semantic Energy는 cluster $\to$ prompt 단위 collapse, logit diagnostic은 candidate-level 신호임을 본문, 표, 그림 전체에 일관되게 적용하여, 단위 혼동에서 비롯된 잘못된 비교를 차단하였다.
 \end{enumerate}
 
 \section{한계}
@@ -549,6 +549,7 @@ Simhi 등(2025)\cite{simhi2025choke}의 CHOKE 패턴이 본 데이터에서 두 
     \item \textbf{Corpus 신호의 proxy 성격}. corpus-grounded 신호는 외부 근거 가능성을 나타내는 proxy일 뿐, 모델의 내부 지식을 직접 증명하지 않는다.
     \item \textbf{단일 모델 평가}. 본 실험은 Qwen2.5-3B 한 종류의 causal LM에서만 수행되었고, 모델 규모나 계열에 따른 일반화는 본 논문의 범위를 넘는다.
     \item \textbf{모델 내부 상태 해석 불가}. SE, Semantic Energy, corpus feature 모두 출력에서 계산한 관측 지표이며, 모델의 의도나 내부 원인을 직접 추론하지는 않는다.
+    \item \textbf{Corpus support 구간 간 표본 불균형}. decile 30--40 (n=3{,}465) 과 decile 90--100 (n=125) 의 표본 수 차이가 약 28배에 달한다. 종합 AUROC는 표본이 많은 중간 decile 의 성능에 더 크게 영향을 받으므로, 희귀 구간(decile 00--10, 90--100) 의 신뢰도 추정치는 통계적 불확실성이 크다. 본 논문이 ``sweet spot'' 으로 보고한 decile 30--50 영역도 전체의 약 44\% 를 차지하기 때문에, 종합 결과가 이 영역에 편향될 수 있음을 함께 명시한다. 희귀 corpus support 구간에서의 결론은 추가 표본 확보 후 재검증이 필요하다.
 \end{enumerate}
 
 \section{향후 연구}
