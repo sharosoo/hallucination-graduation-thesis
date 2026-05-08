@@ -1,35 +1,32 @@
-% Source: thesis-valid run pipeline-20260507T103225Z, S5-S9 re-run with
-% spaCy en_core_web_lg entity extractor + rank-quantile corpus binning
-% (2026-05-08 round 6 binning fix). SE-only / Energy-only candidate-row
-% AUROC = 0.5 는 prompt-level broadcast 의 구조적 artifact 이므로 결과
-% 수치로 표 내에 포함하지 않는다. 별도 prompt-level 평가는 본문 §5 에서 다룬다.
+% Source: thesis-valid run pipeline-20260507T103225Z, prompt-level analysis
+% (run_prompt_level_analysis.py, 2026-05-08 round 7 prompt-level reframe).
+% 5,815 prompts (HaluEval-QA 5,000 + TruthfulQA 815). Label: is_hard =
+% (free-sample accuracy < 0.5), token-overlap matching.
 \begin{table}[htbp]
 \centering
 \small
-\caption{종합 baseline 결과 (단일 자동화 실행 산출, spaCy entity extractor + rank-quantile corpus bin). 후보 행 11{,}630개, 학습 라벨은 데이터셋 annotation의 \texttt{is\_hallucination}. learned fusion 계열은 prompt-grouped fold 분리로 평가하여 같은 prompt의 두 후보가 fold를 가로지르지 않게 강제하였다.}
+\caption{Prompt-level 종합 baseline (n=5{,}815). 각 prompt 의 free-sample N=10 의 정답 매칭 비율이 50\% 미만이면 \emph{hard prompt} (is\_hard=1) 로 정의. 점수 신호 단독 (single signal) 과 결합기 (fusion) 를 5-fold CV (KFold, prompt 단위) 위에서 평가. 굵은 글씨는 1위.}
 \label{tab:current_thesis_evidence}
-\begin{tabular}{@{}lcccl@{}}
+\begin{tabular}{@{}lccccl@{}}
 \toprule
-Method & AUROC & AUPRC & F1 & 비고 \\
+Method & AUROC & AUPRC & Brier & ECE & 비고 \\
 \midrule
-\multicolumn{5}{l}{\emph{Single-signal baseline}} \\
-\quad logit-diagnostic-only & 0.375 & 0.423 & 0.659 & 역방향 (CHOKE) \\
-\quad corpus-axis-only & 0.498 & 0.497 & 0.667 & 무작위 수준 (단독 신호 약함) \\
+\multicolumn{6}{l}{\emph{Single-signal baseline}} \\
+\quad logit-diagnostic-only        & 0.581 & 0.416 & --- & --- & 후보 단위 logit 신호 \\
+\quad corpus-axis-only             & 0.634 & 0.546 & --- & --- & corpus support 단독 \\
+\quad Semantic Entropy (SE)         & 0.832 & 0.726 & --- & --- & Farquhar 2024 \\
+\quad Semantic Energy (Boltzmann)   & 0.862 & 0.794 & --- & --- & Ma 2025 \\
 \midrule
-\multicolumn{5}{l}{\emph{Global fusion (no corpus)}} \\
-\quad logistic regression & 0.372 & 0.417 & 0.668 & 선형 \\
-\quad random forest & 0.525 & 0.517 & 0.601 & 비선형 \\
-\quad gradient boosting & 0.541 & 0.521 & 0.616 & 비선형 \\
+\multicolumn{6}{l}{\emph{Global fusion (no corpus)}} \\
+\quad logistic regression          & 0.876 & 0.809 & 0.124 & 0.034 & 선형 \\
+\quad random forest                & 0.888 & 0.836 & 0.112 & 0.016 & 비선형 \\
+\quad gradient boosting            & 0.889 & 0.837 & 0.113 & 0.014 & 비선형 \\
 \midrule
-\multicolumn{5}{l}{\emph{Global fusion (with corpus)}} \\
-\quad random forest & 0.564 & 0.532 & 0.491 & 비선형 \\
-\quad gradient boosting & 0.540 & 0.515 & 0.621 & 비선형 \\
-\quad SVM rbf & 0.569 & 0.544 & 0.647 & 비선형 \\
-\midrule
-\multicolumn{5}{l}{\emph{Corpus-conditioned fusion (제안)}} \\
-\quad corpus-bin feature selection & 0.489 & 0.483 & 0.500 & bin마다 single feature \\
-\quad axis-interaction logistic fusion & 0.440 & 0.458 & 0.430 & axis cross-feature 항 \\
-\quad \textbf{corpus-bin weighted fusion} & \textbf{0.578} & \textbf{0.551} & 0.628 & \textbf{본 논문 제안} \\
+\multicolumn{6}{l}{\emph{Global fusion (with corpus)}} \\
+\quad logistic regression          & 0.878 & 0.816 & 0.121 & 0.030 & 선형 \\
+\quad random forest                & 0.889 & 0.839 & 0.111 & 0.022 & 비선형 \\
+\quad SVM rbf                      & 0.838 & 0.787 & 0.131 & 0.016 & 비선형 \\
+\quad \textbf{gradient boosting}   & \textbf{0.892} & \textbf{0.842} & \textbf{0.110} & 0.017 & \textbf{본 논문 main} \\
 \bottomrule
 \end{tabular}
 \end{table}

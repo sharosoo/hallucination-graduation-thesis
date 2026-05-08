@@ -61,3 +61,4 @@ thesis/*.fdb_latexmk
 # editor/system
 .DS_Store
 .vscode/
+thesis_backup_candidate_row/
