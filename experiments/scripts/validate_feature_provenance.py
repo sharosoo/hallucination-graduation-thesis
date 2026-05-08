@@ -86,6 +86,15 @@ def validate_row(row: dict[str, Any], row_index: int) -> list[str]:
     features = row.get("features")
     if not isinstance(features, dict):
         return problems + [f"row {row_index}: features must be an object"]
+    # Surface excluded rows early: their feature scalars are intentionally
+    # null because no entities/pairs were extracted for the candidate text.
+    # The aggregate count of exclusions is reported separately; per-row
+    # schema gating below does not apply.
+    corpus_axis_for_status = row.get("corpus_axis")
+    if isinstance(corpus_axis_for_status, dict):
+        early_status = corpus_axis_for_status.get("row_status")
+        if isinstance(early_status, str) and early_status.startswith("excluded_"):
+            return problems
     missing_features = sorted(REQUIRED_FEATURES - set(features))
     if missing_features:
         problems.append(f"row {row_index}: missing required features {missing_features}")

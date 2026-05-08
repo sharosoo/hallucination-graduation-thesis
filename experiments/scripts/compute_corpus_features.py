@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -152,6 +153,24 @@ def main() -> int:
     report["schema_version"] = CORPUS_AXIS_SCHEMA_VERSION
     versioned_rows = add_schema_version(rows, CORPUS_AXIS_SCHEMA_VERSION)
     storage = write_feature_artifact(out_path, versioned_rows, report, schema_version=CORPUS_AXIS_SCHEMA_VERSION)
+    # Write per-row entity/pair provenance to a sidecar JSONL so the lean
+    # parquet stays fast for downstream stages while keeping a paper-trail
+    # of which entities/pairs were matched per candidate. Downstream code
+    # never touches this file; it's read on-demand for spot checks.
+    provenance_records = getattr(direct_adapter, "_provenance_records", None)
+    if isinstance(provenance_records, list) and provenance_records:
+        provenance_path = out_path.with_suffix(out_path.suffix + ".provenance.jsonl")
+        provenance_tmp = provenance_path.with_name(f".{provenance_path.name}.tmp-{os.getpid()}")
+        provenance_tmp.parent.mkdir(parents=True, exist_ok=True)
+        with provenance_tmp.open("w", encoding="utf-8") as handle:
+            for record in provenance_records:
+                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        provenance_tmp.replace(provenance_path)
+        report["provenance_sidecar"] = {
+            "path": str(provenance_path),
+            "row_count": len(provenance_records),
+            "schema_note": "Per-candidate entity/pair matches with raw counts. Heavy nested fields not stored in main parquet to keep row-group reads lean.",
+        }
     is_valid, validation_message = _validate_existing(out_path, candidates_path)
     if not is_valid:
         _emit(progress_path, phase="failed_validation", completed=len(rows), total=len(rows), message=validation_message, out_path=out_path)
