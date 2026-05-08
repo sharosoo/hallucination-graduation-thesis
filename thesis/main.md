@@ -106,9 +106,9 @@ Valentin 등(2024)은 환각 탐지 점수를 *입력/응답 attribute에 condit
 
 본 장은 본 논문이 채택하는 *corpus-conditioned 분석 절차* 와 그 이론적 동기를 정리한다.
 
-## 단일 점수 가정의 한계
+## 평균 metric 보고의 한계
 
-SE 와 Energy 같은 sample-consistency 신호는 모든 응답이 단일 의미 cluster 로 수렴하는 *고확신 환각 (CHOKE)* 사례 에서 판별력이 약해지고, NLL / margin 같은 logit 신호는 환각 답이 더 자신있게 평가되는 사례에서 방향이 역전된다 (§<a href="#ch:related" data-reference-type="ref" data-reference="ch:related">[ch:related]</a> CHOKE paragraph). 두 사례는 신호 자체가 무용하다는 뜻이 아니라 *어느 입력 조건에서 어느 신호가 안정적으로 작동하는지를 분리해서 봐야 한다* 는 뜻이며, 본 논문은 그 외부 입력 조건으로 corpus support 를 사용한다.
+기존 환각 탐지 연구는 단일 신호 (SE, Energy, logit-diagnostic) 와 fusion 결합기의 우열을 평균 AUROC 한 수치로 보고한다. 이 관행은 (i) 신호의 신뢰도가 입력 조건에 따라 어떻게 변하는지, (ii) fusion 결합기가 모든 입력 조건에서 단일 신호보다 우수한지를 가린다. 본 논문은 외부 입력 조건 변수로 corpus support 를 채택해 영역별 행태를 분해한다.
 
 ## Corpus support 를 외부 conditional 축으로 사용하는 근거
 
