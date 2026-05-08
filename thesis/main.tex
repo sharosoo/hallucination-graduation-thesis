@@ -241,6 +241,20 @@ Energy는 LLM이 각 토큰을 생성할 때 부여한 \textbf{softmax 전 raw l
 Energy의 문헌적 motivation은 응답 다양성이 작은 사례에서도 토큰 단위 점수가 추가 정보를 줄 수 있다는 것이다. 다만 본 연구의 결과(\S\ref{ch:experiment})는 후보 단위 logit 진단(NLL, confidence margin)이 candidate-row 평가에서 \emph{역방향}(0.5 미만, 환각 답이 더 자신있게 평가되는 CHOKE 패턴)으로 작동함을 보인다. 이는 Energy 계열 신호를 단일 전역 점수로 쓸 수 없음을 뜻하며, 본 연구는 같은 신호를 corpus support 구간별로 분리 평가해 어떤 구간에서 어떤 신호가 안정적으로 작동하는지 살핀다.
 
 
+\section{QuCo-RAG: 외부 corpus 기반 신호}
+
+QuCo-RAG는 Qiu 등(2025)\cite{qucorag}이 retrieval-augmented generation(RAG)의 query-aware corpus grounding 절차에서 사용한 외부 corpus statistic 계열 신호이다. 핵심 아이디어는 입력 query나 후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 entity 쌍이 함께 얼마나 자주 등장하는지(entity-pair co-occurrence)를 corpus 카운트로 측정해, 그 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지''를 정량화하는 것이다.
+
+QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus statistic은 다음 두 측면에서 본 연구와 직접 닿는다.
+
+\begin{itemize}
+    \item \textbf{모델 출력에 의존하지 않는 외부 신호}. corpus 카운트는 모델의 logit, hidden state, 응답 다양성 등과 독립적으로 산출된다. 따라서 모델 신호의 신뢰도를 \emph{직교적으로} 조건화하는 데 쓸 수 있다.
+    \item \textbf{모델 ``익숙함''의 외부 측정}. 같은 entity가 corpus에 얼마나 자주 등장했는지는 모델이 사전 학습 단계에서 그 entity를 얼마나 마주쳤을지에 대한 \emph{간접 지표}이다. 단, 이는 사전 학습 노출의 직접 증거나 hidden-state 신뢰도와 동일한 것이 아니므로, 어디까지나 보조 신호(proxy)로 다뤄야 한다.
+\end{itemize}
+
+본 연구는 QuCo-RAG의 통계 자체를 그대로 사용하되, 그 \emph{용도}를 retrieval trigger가 아니라 \emph{지표 신뢰도를 나누는 외부 조건 변수}로 재해석한다. 즉 corpus 빈도가 작다고 환각 라벨로 쓰지 않고, 빈도가 크다고 정답 라벨로 쓰지 않으며, 어디까지나 \emph{어떤 corpus support 구간에서 어떤 신호가 더 안정적으로 작동하는지}를 평가하기 위한 binning 변수로 사용한다. 이 재해석은 corpus-grounded 신호와 모델-내부 hidden-state 신호를 명확히 구분하는 본 연구의 guardrail과 일치한다.
+
+
 \section{기존 연구의 한계 및 연구 공백}
 
 기존 연구들의 한계를 본 연구의 문제 설정 관점에서 정리하면 다음과 같다.
