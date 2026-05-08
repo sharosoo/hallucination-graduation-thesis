@@ -117,25 +117,26 @@ LLM 환각 탐지 지표 신뢰성 분석:\\%
 
 환각 탐지를 위한 대표적인 불확실성 기반 방법으로 Semantic Entropy(SE)가 있다. SE는 하나의 질문에 대해 여러 응답을 샘플링한 뒤, 자연어 추론(Natural Language Inference, NLI) 모델을 사용하여 의미적으로 클러스터링하고, 클러스터 분포의 엔트로피를 계산한다\cite{farquhar2024}. 반복 샘플링과 응답 간 일관성은 SelfCheckGPT와 같은 선행 연구에서도 환각 탐지를 위한 중요한 단서로 사용되었다\cite{selfcheckgpt2023}. SE가 높으면 모델 응답이 여러 의미로 갈라지므로 의미적 불확실성이 크다는 신호가 된다.
 
-그러나 SE는 응답 간 의미적 다양성에 의존하므로, 모델이 모든 응답에서 같은 의미의 틀린 답변을 반복하면 판별력이 약해진다. 예를 들어 같은 질문을 다섯 번 샘플링했는데 다섯 응답이 모두 동일한 잘못된 인물명이나 수치를 답한다면, 응답들은 의미적으로 완전히 일관되어 하나의 클러스터에 모인다. 이때 SE는 0에 가까워지지만, 낮은 SE가 곧 정답을 의미하지는 않는다. 단지 ``서로 다른 답을 내지 않았다''는 사실만 알려줄 뿐이다. 본 연구는 이처럼 모든 응답이 하나의 의미 클러스터에 속해 SE가 환각 여부를 구분하기 어려워지는 현상을 \textbf{Zero-SE 문제}라고 정의한다.
+그러나 SE에는 알려진 한계가 있다. SE는 응답 간 의미적 다양성에 의존하므로, 모델이 모든 응답에서 같은 의미의 틀린 답변을 반복하면 판별력이 약해진다. 같은 질문을 여러 번 샘플링했는데 모든 응답이 동일한 잘못된 인물명이나 수치로 수렴한다면, 응답들은 하나의 클러스터에 모이고 SE는 0에 가까워진다. 이런 \emph{고확신 환각(high-certainty hallucination)} 사례에서는 SE만으로는 정답 여부를 가리기 어렵다. Simhi 등(2025)은 이러한 사례를 CHOKE라고 부르고, 모델이 정답 지식을 가지고도 높은 확신으로 환각을 만들 수 있음을 실증하였다\cite{simhi2025choke}.
 
-Zero-SE 설정에서는 ``응답들이 서로 같은가''라는 질문과 ``그 같은 응답이 사실인가''라는 질문이 서로 다른 문제로 분리된다. 탐지에서는 먼저 SE가 판별 정보를 주는 상황인지 확인해야 한다. 응답이 여러 의미로 갈라지면 SE를 의미적 불확실성 신호로 사용할 수 있고, 모든 응답이 하나의 의미로 수렴하면 SE만으로는 사실성 판단이 남는다. 본 연구는 이 문제를 현재 실험 범위에서 prompt-level SE와 candidate-level Energy / corpus feature를 같은 paired feature table에서 비교하는 문제로 정리한다. Semantic Energy는 이미 full paired 산출물에 포함되어 있지만, 전체 candidate-row AUROC가 아니라 low-diversity matched-pair 관점에서 해석해야 한다.
+이 한계는 SE만의 문제가 아니다. 후보 답변의 평균 음의 로그 확률(NLL), confidence margin 같은 \emph{후보 단위 logit 진단} 신호도 ``환각 답이 정답보다 더 자신없게 평가될 것''이라는 직관에 기댄다. 그러나 환각 답이 오히려 더 자신있게 평가되는 사례가 흔하다면, 이런 신호는 단일 점수로 전 영역에서 잘 작동한다고 보기 어렵다.
+
+본 연구는 이런 한계를 \emph{외부 corpus 신호}로 조건화하여 해결한다. 후보 답에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 얼마나 자주 함께 등장하는지(entity-pair co-occurrence)를 정량화해, 각 \emph{corpus support 구간}에서 어떤 신호가 신뢰로운지 분리해 평가한다. corpus 빈도는 환각 라벨도 아니고 retrieval trigger도 아니며, 어디까지나 \emph{지표 신뢰성을 나누는 외부 조건 변수}이다.
 
 
 \section{연구 목적}
 
-본 연구의 목적은 다음과 같다:
+본 연구는 LLM 환각 탐지 신호의 신뢰성을 외부 corpus 조건 위에서 평가한다는 관점에서 다음 세 가지 질문을 다룬다.
 
 \begin{enumerate}
-    \item \textbf{실험 증거의 범위 명시}: TruthfulQA와 HaluEval-QA 기반 full paired feature table에서 얻은 결과만 실험 근거로 사용한다.
-    \item \textbf{조건부 신뢰성 검증}: corpus entity frequency와 entity-pair co-occurrence bin에 따라 SE, Semantic Energy, logit diagnostics의 AUROC, AUPRC, paired win-rate가 어떻게 달라지는지 확인한다.
-    \item \textbf{feature 조건 명시}: SE는 N=10 NLI likelihood 방식으로, Semantic Energy는 multi-generation semantic cluster와 selected-token logit energy 집계로 구현해야 함을 분리해 보고한다.
-    \item \textbf{재현성 경로의 고정}: 향후 실험과 재분석은 동일한 paired dataset, feature 정의, prompt 단위 grouping을 기준으로 수행한다.
+    \item \textbf{Corpus support에 따른 신호 신뢰성 변화 측정}. SE, Semantic Energy, logit diagnostic이 corpus support 구간에 따라 AUROC, AUPRC, paired win-rate에서 어떻게 달라지는지 측정한다.
+    \item \textbf{Conditional fusion의 효용 검증}. corpus 신호를 global fusion에 그대로 더하는 방식과, corpus support bin마다 별도 가중치를 학습하는 conditional fusion 중 어느 쪽이 더 신뢰로운지 prompt-grouped bootstrap으로 통계적으로 검정한다.
+    \item \textbf{CHOKE 패턴의 외부 신호 분리}. Simhi 등(2025)\cite{simhi2025choke}이 보고한 high-certainty hallucination 패턴이 candidate-level logit 신호뿐 아니라 외부 corpus 신호(특히 entity-pair co-occurrence)에서도 동시에 관측되는지 확인한다.
 \end{enumerate}
 
 \section{논문 구성}
 
-본 논문은 다음과 같이 구성된다. 제~\ref{ch:related}장에서는 LLM 환각 탐지 관련 연구를 검토한다. 제~\ref{ch:theory}장에서는 SE, Energy, corpus 신호의 역할과 한계를 정리한다. 제~\ref{ch:method}장에서는 corpus 조건 축에 따른 metric reliability 평가 구조를 설명한다. 제~\ref{ch:experiment}장에서는 paired baseline 결과와 평가 단위의 한계를 보고하고, 제~\ref{ch:conclusion}장에서 결론과 향후 연구 방향을 제시한다.
+본 논문은 다음과 같이 구성된다. 제~\ref{ch:related}장에서는 LLM 환각 탐지 관련 연구를 검토한다. 제~\ref{ch:theory}장에서는 SE, Semantic Energy, corpus 신호의 정의와 한계를 정리하고, 본 연구가 corpus support를 조건 축으로 사용하는 이유를 설명한다. 제~\ref{ch:method}장에서는 corpus support 조건부 평가 절차와 평가 단위 분리 원칙을 제시한다. 제~\ref{ch:experiment}장에서는 baseline 결과, prompt-grouped bootstrap 신뢰구간, corpus support bin별 신뢰성, decile 정밀 분해, CHOKE 패턴 재현, leave-one-dataset-out, threshold/calibration 진단을 보고한다. 제~\ref{ch:conclusion}장에서 결론과 향후 연구 방향을 제시한다.
 
 
 \chapter{관련 연구}{\label{ch:related}}
@@ -146,25 +147,26 @@ Zero-SE 설정에서는 ``응답들이 서로 같은가''라는 질문과 ``그 
 
 환각은 LLM이 입력, 문맥, 또는 외부 사실과 맞지 않는 내용을 생성하는 현상으로 다루어진다. Huang 등은 LLM 환각의 원인, 유형, 탐지 과제를 폭넓게 정리하며, 환각 탐지가 LLM 신뢰성 확보를 위한 핵심 문제임을 보인다\cite{huang2025survey}. Maynez 등은 생성 텍스트 평가에서 사실성(factuality)과 충실성(faithfulness)을 구분해 논의했으며\cite{maynez2020faithfulness}, 이 구분은 환각 탐지 문장을 작성할 때 단순한 ``틀림''보다 어떤 기준에서 맞지 않는지 명확히 해야 함을 보여준다.
 
-벤치마크와 평가 연구는 환각 탐지의 대상과 평가 기준을 제공한다. TruthfulQA는 모델이 인간의 오해나 거짓 믿음을 모방하는지를 측정하는 질의응답 벤치마크이다\cite{truthfulqa}. FActScore는 장문 생성에서 원자적 사실 단위의 정밀도를 평가하는 방법을 제안한다\cite{factscore2023}. 이러한 연구들은 환각을 평가하고 분류하는 기준을 제공하지만, 본 연구의 중심인 Zero-SE 설정에서 SE와 Energy를 어떻게 결합할지는 직접 다루지 않는다.
+벤치마크와 평가 연구는 환각 탐지의 대상과 평가 기준을 제공한다. TruthfulQA는 모델이 인간의 오해나 거짓 믿음을 모방하는지를 측정하는 질의응답 벤치마크이다\cite{truthfulqa}. FActScore는 장문 생성에서 원자적 사실 단위의 정밀도를 평가하는 방법을 제안한다\cite{factscore2023}. 이러한 연구들은 환각을 평가하고 분류하는 기준을 제공하지만, 본 연구가 다루는 ``\emph{어느 corpus support 구간에서 어느 신호가 신뢰로운가}''라는 조건부 신뢰성 문제는 직접 다루지 않는다.
 
 \section{불확실성 및 반복 샘플링 기반 탐지}
 
 SelfCheckGPT는 외부 지식 베이스 없이 여러 응답을 샘플링하고 응답 간 일관성을 비교해 환각을 탐지하는 접근을 제안했다\cite{selfcheckgpt2023}. 이 흐름은 하나의 응답만 보는 대신, 같은 질문에 대한 여러 생성 결과의 분산과 일관성을 환각 탐지 신호로 본다. Semantic Entropy도 이 관점과 연결되지만, 응답을 의미 클러스터로 묶고 클러스터 분포의 엔트로피를 사용한다는 점에서 더 명시적인 의미 단위 불확실성 측정 방법이다\cite{farquhar2024}.
 
-표~\ref{tab:method_comparison}은 본 연구에서 비교하는 주요 불확실성 및 점수 기반 방법론들의 차이를 요약한다.
+표~\ref{tab:method_comparison}은 본 연구에서 다루는 신호들의 정의 단위와 한계를 요약한다.
 
 \begin{table}[htbp]
 \centering
-\caption{LLM 환각 탐지 방법론 비교}
+\caption{본 연구에서 비교하는 환각 탐지 신호.}
 \label{tab:method_comparison}
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{@{}llll@{}}
 \toprule
-방법 & 핵심 아이디어 & 장점 & 한계 \\
+신호 & 정의 단위 & 핵심 아이디어 & 한계 \\
 \midrule
-SE & NLI 클러스터링 + Shannon Entropy & 의미적 불확실성 측정 & Zero-SE 문제 \\
-Cleanse & Hidden Embedding 비율 & 클러스터 간 유사도 활용 & White-box only \\
-Energy & Raw Logit 기반 에너지 & Zero-SE 보조 신호 & 다양성 정보 부족 \\
+Semantic Entropy & prompt-level & NLI cluster + Shannon entropy & 단일 cluster 사례 판별 약함 \\
+Semantic Energy & cluster-level & cluster 가중 token logit 합 & cluster 정의 의존, 다양성 가정 \\
+logit diagnostic & candidate-level & NLL, logit variance, margin & CHOKE 사례에서 방향 역전 \\
+corpus support & candidate-level & entity frequency / pair co-occurrence & 외부 corpus snapshot 의존 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -194,11 +196,12 @@ SE의 계산 과정은 다음과 같다:
 
 \subsection{한계점}
 
-SE의 주요 한계점은 다음과 같다:
+SE의 주요 한계점은 다음과 같다.
 \begin{itemize}
-    \item \textbf{Hard Clustering}: 응답들을 이진적으로(동일/다름) 분류하여 세밀한 유사도를 반영하지 못한다.
-    \item \textbf{Zero-SE 문제}: 모든 응답이 하나의 클러스터에 속하면 SE=0이 되어 판별력이 사라진다.
+    \item \textbf{Hard clustering}: 응답을 이진적(동일/다름)으로 묶어 세밀한 유사도를 반영하지 못한다.
+    \item \textbf{단일 cluster 사례에서의 판별력 한계}: 모든 응답이 하나의 cluster로 수렴하면 SE 값이 작아져 prompt 단위 순위 정보가 줄어든다. 이런 사례가 곧 정답을 의미하지는 않지만, SE만으로는 환각/정답을 가리기 어렵다.
     \item \textbf{응답 길이와 클러스터링 의존성}: 긴 응답이나 복잡한 답변에서는 NLI 기반 클러스터링 품질에 따라 결과가 달라질 수 있다.
+    \item \textbf{후보 단위 평가에서의 broadcast}: SE는 prompt 단위 값이므로, 같은 prompt의 두 candidate row(정답/환각)에 같은 값이 복사된다. candidate-row AUROC로는 0.5에 묶여 두 후보 사이 순위를 알려주지 못한다.
 \end{itemize}
 
 
@@ -218,127 +221,87 @@ Energy는 LLM이 각 토큰을 생성할 때 부여한 \textbf{softmax 전 raw l
 
 \begin{table}[htbp]
 \centering
-\caption{SE와 Semantic Energy의 비교}
+\caption{SE와 Semantic Energy의 비교.}
 \label{tab:se_vs_energy}
 \begin{tabular}{@{}lll@{}}
 \toprule
 항목 & SE & Semantic Energy \\
 \midrule
 사용 값 & softmax 후 확률 & softmax 전 logit \\
-측정 대상 & 응답 간 다양성 & 토큰별 확신도 \\
+측정 대상 & 응답 간 다양성 & cluster 단위 토큰 logit 합 \\
 정보 손실 & 정규화로 손실 & logit 크기 보존 \\
-Zero-SE & 판별 정보 부족 & \textbf{보조 신호 제공} \\
+정의 단위 & prompt-level & cluster-level \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Zero-SE 보완}
+\subsection{Energy 신호의 motivation과 본 연구의 평가}
 
-Energy의 중요한 역할은 single-cluster 또는 낮은 다양성 상황에서 토큰 수준 점수 정보를 제공할 수 있다는 문헌적 동기이다. 현재 실험 산출물에는 candidate-level Boltzmann-style energy diagnostic과 logit diagnostics가 포함되어 있다. 그러나 Energy의 목적은 전체 row를 한꺼번에 나열한 aggregate AUROC가 아니라 낮은 다양성 matched pair에서 환각 후보를 정답 후보보다 위험하게 순위화하는지 확인하는 데 있다.
+Energy의 문헌적 motivation은 응답 다양성이 작은 사례에서도 토큰 단위 점수가 추가 정보를 줄 수 있다는 것이다. 다만 본 연구의 결과(\S\ref{ch:experiment})는 후보 단위 logit 진단(NLL, confidence margin)이 candidate-row 평가에서 \emph{역방향}(0.5 미만, 환각 답이 더 자신있게 평가되는 CHOKE 패턴)으로 작동함을 보인다. 이는 Energy 계열 신호를 단일 전역 점수로 쓸 수 없음을 뜻하며, 본 연구는 같은 신호를 corpus support 구간별로 분리 평가해 어떤 구간에서 어떤 신호가 신뢰로운지 살핀다.
 
 
 \section{기존 연구의 한계 및 연구 공백}
 
-기존 연구들의 한계를 정리하면 다음과 같다:
+기존 연구들의 한계를 본 연구의 문제 설정 관점에서 정리하면 다음과 같다.
 
 \begin{enumerate}
-    \item \textbf{환각 분류 및 평가 연구}: 환각의 정의, 사실성, 벤치마크를 제공하지만 Zero-SE 영역의 탐지 신호 결합 문제를 직접 다루지 않는다.
-    \item \textbf{SE 계열 방법}: 반복 샘플링과 의미 클러스터 분포를 활용하지만, 모든 응답이 하나의 의미 클러스터에 모이는 경우 판별 정보가 부족해진다.
-    \item \textbf{Energy 계열 점수}: 토큰 수준 확신도 정보를 제공하지만, 응답 간 의미적 다양성 정보를 직접 활용하지 못한다.
-    \item \textbf{결합 구조의 필요성}: 단일 점수로 모든 환각 유형을 처리하기보다, SE가 유효한 구간과 Zero-SE 구간을 나누어 서로 다른 신호를 적용하는 구조가 필요하다.
+    \item \textbf{환각 분류 및 평가 연구}. 환각의 정의, 사실성 평가, 벤치마크를 제공하지만, ``\emph{어느 입력 조건에서 어느 탐지 신호가 신뢰로운가}'' 라는 조건부 신뢰성 문제는 직접 다루지 않는다.
+    \item \textbf{SE 계열 방법}. 반복 샘플링과 의미 cluster 분포를 활용하지만, 모든 응답이 하나의 cluster로 수렴하는 사례에서는 prompt 단위 정보가 줄어든다. SE 자체가 candidate-row 단위에서는 0.5에 묶인다는 점은 candidate-row 평가에서 별도로 다뤄야 한다.
+    \item \textbf{Energy / logit 계열 신호}. 토큰 단위 확신도 정보를 제공하지만, ``환각 답이 정답보다 더 자신없을 것''이라는 직관에 기댄다. 본 데이터에서는 환각 답이 오히려 더 자신있게 평가되는 CHOKE 사례가 흔해서, 단일 전역 점수로 쓰기 어렵다.
+    \item \textbf{외부 조건에 따른 결합 구조의 필요성}. 단일 글로벌 점수가 모든 데이터에서 가장 좋다는 가정 대신, 외부 조건 축에 따라 신호 신뢰성을 분리 평가하는 구조가 필요하다. 본 연구는 그 외부 조건 축으로 corpus support를 사용한다.
 \end{enumerate}
 
-본 연구는 SE, Energy의 motivation, corpus-grounded 신호의 결합 가능성을 함께 검토하되, 현재 실험에서는 prompt-level SE와 candidate-level Energy를 같은 candidate-row AUROC로 단순 비교할 때 생기는 한계를 명시적으로 다룬다.
-
-\paragraph{High-certainty hallucination (CHOKE).} Simhi 등(2025)은 모델이 정답 지식을 가지고 있으면서도 높은 확신으로 환각을 생성하는 사례를 CHOKE로 정의하고, 이러한 사례가 logit-only나 sample-consistency 기반 detector의 본질적 한계임을 보였다\cite{simhi2025choke}. 본 연구는 Simhi가 제안한 hidden-state probing 대신, corpus support를 conditioning axis로 사용해 같은 현상을 외부 신호로 분리해 낼 수 있는지 검증한다. 실제 본 실험에서 CHOKE 패턴은 candidate-level(NLL/margin의 방향 역전)과 corpus-level(entity-pair co-occurrence의 양의 paired win-rate) 두 직교 scope에서 동시에 재현되며, 자세한 결과는 \S\ref{ch:experiment}에서 보고한다.
+\paragraph{High-certainty hallucination (CHOKE).} Simhi 등(2025)은 모델이 정답 지식을 가지고도 높은 확신으로 환각을 생성하는 사례를 CHOKE로 정의하고, 이런 사례가 logit-only / sample-consistency 기반 detector의 본질적 한계임을 보였다\cite{simhi2025choke}. 본 연구는 Simhi가 제안한 hidden-state probing 대신, corpus support를 조건 축으로 사용해 같은 현상을 외부 신호로 분리해 낼 수 있는지 검증한다. 본 실험에서 CHOKE 패턴은 candidate-level(NLL/margin의 방향 역전)과 corpus-level(entity-pair co-occurrence의 양의 paired win-rate) 두 직교 scope에서 동시에 재현되며, 자세한 결과는 \S\ref{ch:experiment}에서 보고한다.
 
 
 \chapter{이론적 분석}{\label{ch:theory}}
 
-본 장에서는 제안 방법의 이론적 근거를 제시한다.
+본 장에서는 본 논문이 \emph{단일 글로벌 점수}가 아니라 \emph{외부 corpus support 조건에 따라 분리된 신호 신뢰성}을 평가해야 하는 이유를 정리한다.
 
-\section{환각이 드러나는 두 가지 양상}
+\section{단일 전역 점수 가정의 한계}
 
-Zero-SE 문제를 이해하려면, 환각이 반복 샘플링에서 서로 다른 방식으로 나타날 수 있음을 구분할 필요가 있다. 하나는 같은 질문에 대해 서로 다른 답변 후보가 나타나는 경우이다. 어떤 샘플에서는 A라고 답하고, 다른 샘플에서는 B라고 답한다면, 모델의 출력은 여러 의미 후보 사이에서 흔들리는 것처럼 보인다. 본 연구에서는 이런 양상을 혼란형으로 부른다. 다른 하나는 반복 샘플링 결과가 일관되지만, 그 답변 자체가 사실이 아니거나 근거 자료로 지지되지 않는 경우이다. 본 연구에서는 이런 양상을 지어냄형 또는 fabrication-like 사례로 구분한다.
-
-이 구분은 문헌의 표준 분류명을 새로 제안하려는 것이 아니라, 기존 연구가 다룬 두 종류의 탐지 단서를 반복 샘플링 설정에 맞게 정리한 것이다. NLG와 LLM 환각 연구는 사실성(factuality), 충실성(faithfulness), 근거와의 일관성, 외부 지식으로 지지되는지 여부를 구분해 다루며\cite{maynez2020faithfulness}, 사실성 평가 연구도 생성 문장을 원자적 사실 단위로 나누어 각 사실이 근거 자료에 의해 지지되는지를 평가한다\cite{factscore2023}. 따라서 본 연구에서 말하는 혼란과 지어냄은 모델의 숨은 의도나 내적 상태를 단정하는 표현이 아니라, 여러 번 생성한 출력에서 나타나는 응답 분포와 근거성의 차이를 설명하기 위한 구분이다.
-
-반복 샘플링 기반 연구는 같은 질문에 대해 여러 응답을 생성했을 때 응답 간 불일치나 의미적 분산이 환각 탐지 단서가 될 수 있음을 보였다\cite{selfcheckgpt2023,farquhar2024}. 이는 혼란형 패턴과 잘 맞는다. 응답들이 서로 다른 의미 클러스터로 갈라지면 SE는 그 갈라짐을 엔트로피로 요약할 수 있다. 그러나 이러한 접근은 응답들이 모두 같은 의미로 모이는 경우에는 약해진다. 의미적으로 일관된 출력이 항상 사실적으로 옳다는 뜻은 아니기 때문이다. TruthfulQA는 모델이 그럴듯하지만 거짓인 답변을 낼 수 있음을 평가하고\cite{truthfulqa}, FActScore와 HALoGEN은 생성된 개별 사실이 외부 근거로 지지되는지 또는 fabrication에 해당하는지를 따로 검증한다\cite{factscore2023,ravichander2025halogen}. 즉, \textbf{응답 간 일관성}과 \textbf{정답 또는 근거에 대한 정확성}은 분리될 수 있다.
-
-\subsection{혼란형 환각 (Confusion-like Pattern)}
-
-\textbf{정의}: 같은 질문에 대해 서로 다른 의미의 응답 후보들이 경쟁하는 것으로 관측되는 경우이다. 예를 들어 반복 샘플링 결과가 서로 다른 인물명, 날짜, 원인을 답한다면, 모델 출력은 하나의 안정된 의미로 수렴하지 않는다. 이는 SelfCheckGPT가 활용한 샘플 간 불일치/일관성 비교와, Farquhar 등이 semantic entropy로 포착한 의미적 불확실성 신호와 맞닿아 있다\cite{selfcheckgpt2023,farquhar2024}.
-
-\textbf{특성}:
-\begin{itemize}
-    \item 반복 샘플링 시 둘 이상의 의미 클러스터가 형성됨
-    \item 응답 간 의미적 분산이 커서 정답/오답 후보가 함께 나타날 수 있음
-    \item 여러 번 질문 시 \textbf{다양한 응답 패턴}이 관측됨 (상대적으로 높은 SE)
-\end{itemize}
-
-탐지 관점에서 SE는 응답 간 다양성을 요약하므로, 의미적 갈라짐이 존재하는 구간에서 우선적인 신호가 된다. 이 범주에서 SE를 사용하는 이유는 ``환각의 원인''을 아는 데 있지 않고, 샘플 간 의미적 불안정성이 관측된다는 점을 점수화하는 데 있다.
-
-\subsection{지어냄형 환각 (Confabulation/Fabrication-like Pattern)}
-
-\textbf{정의}: 반복 샘플링에서 응답이 거의 하나의 의미 패턴으로 수렴하지만, 그 패턴의 사실성 또는 근거 지지 여부는 별도 신호 없이는 판별하기 어려운 경우이다. 예를 들어 모델이 다섯 번 모두 같은 판례명, 논문 제목, 수치를 말하더라도 그것이 실제로 존재하지 않거나 근거 문서에 없는 내용이면 환각일 수 있다. 이때 핵심은 ``모델이 지어내려 했다''는 의도가 아니라, 일관된 출력이 외부 사실이나 근거 자료로 지지되지 않을 수 있다는 점이다. TruthfulQA는 그럴듯하지만 거짓인 답변을 평가 대상으로 삼고\cite{truthfulqa}, FActScore는 생성된 원자적 사실이 신뢰 가능한 근거에 의해 지지되는지를 평가하며\cite{factscore2023}, HALoGEN은 fabrication을 포함한 LLM 환각 오류 유형을 근거 자료와 대조해 분석한다\cite{ravichander2025halogen}.
-
-\textbf{특성}:
-\begin{itemize}
-    \item 반복 샘플링 시 응답이 단일 의미 클러스터에 가깝게 모임
-    \item 응답들이 서로 비슷하므로 응답 간 다양성만으로는 판별 정보가 줄어듦
-    \item 여러 번 질문 시 \textbf{일관된 답변}이 반복될 수 있으나, 그 답변이 맞는지 틀린지는 사실성 평가나 토큰 수준 확신도 등 다른 신호가 필요함
-\end{itemize}
-
-탐지 관점에서 이 범주에서는 SE가 작아지거나 0이 되어 구분력이 약해질 수 있으므로, Energy와 같은 토큰/로그릿 기반 신호를 보조 후보로 검토할 수 있다. 현재 산출물에는 candidate-level Boltzmann-style energy diagnostic과 logit diagnostics가 포함되어 있으나, 지어냄형 또는 Zero-SE 사례에서의 결론은 low-diversity matched-pair 재분석을 거쳐야 한다. 지어냄형이라는 표현은 문헌상 확립된 단일 taxonomy를 대체하려는 용어가 아니라, ``일관성은 높지만 근거성 판단이 남는'' 사례를 설명하기 위한 분석적 구분이다.
-
-
-\section{SE와 Energy의 상보성}
-
-\subsection{정보 이론적 관점}
-
-SE와 Energy는 서로 다른 정보를 포착한다:
+기존 환각 탐지 연구는 SE, Semantic Energy, logit-기반 점수 등을 \emph{전역 단일 점수}로 사용해 한 번에 모든 데이터에 대해 환각을 가려 내려고 한다. 이 가정은 두 가지 사례에서 깨진다.
 
 \begin{itemize}
-    \item \textbf{SE}: \textit{Inter-response} 다양성 --- 응답들이 의미적으로 얼마나 다른가?
-    \item \textbf{Energy}: \textit{Intra-token} 확신도 --- 각 토큰 생성 시 모델이 얼마나 확신하는가?
+    \item \textbf{단일 cluster 사례}. 모든 N개의 응답이 의미적으로 같은 답으로 수렴하면 SE는 작아져 prompt 단위 정보가 줄어든다. 이때 같은 prompt의 정답 후보와 환각 후보 사이 순위는 SE만으로는 결정할 수 없다.
+    \item \textbf{고확신 환각 (CHOKE) 사례}. Simhi 등(2025)\cite{simhi2025choke}이 보고한 대로, 환각 답이 정답 답보다 모델 입장에서 \emph{더 자신있게} 평가되는 사례가 흔하다. NLL이 작거나 confidence margin이 큰 사례를 ``정답일 것''이라고 가정하는 logit-based detector는 이 영역에서 방향이 역전된다.
 \end{itemize}
 
-두 신호는 같은 환각 사례의 서로 다른 측면을 본다. 모든 응답이 동일해도(SE=0), 각 토큰의 logit 분포는 여전히 달라질 수 있으므로 응답 간 다양성과 토큰 수준 확신도는 상보적으로 활용될 수 있다.
+두 사례는 신호 자체가 무용하다는 뜻이 아니라, \emph{어느 입력 조건에서 어느 신호가 신뢰로운지를 분리해서 봐야 한다}는 뜻이다. 본 논문은 그 외부 입력 조건으로 corpus support를 사용한다.
 
-\subsection{상보성의 수학적 표현}
+\section{Corpus support를 조건 축으로 사용하는 근거}
 
-SE의 정의에서, $SE = 0$이 되는 조건은 모든 응답이 단일 클러스터에 속할 때이다:
-\begin{equation}
-    SE = -\sum_{c \in C} p(c) \log p(c) = 0 \iff |C| = 1
-\end{equation}
-
-이 식은 \textbf{언제 SE가 더 이상 응답 간 구분 정보를 제공하지 못하는가}를 보여준다. $|C|=1$이면 모든 샘플이 하나의 의미 클러스터에 모이므로, SE 값은 구조적으로 0이 되고 같은 구간 안에서는 추가적인 순위화 정보가 거의 남지 않는다. 반대로 $|C|\geq 2$이면 응답 간 의미적 갈라짐이 존재하므로 SE가 본래 의도한 불확실성 신호를 제공한다.
-
-기존 초안은 이 조건에서 Energy로 라우팅하는 hard cascade를 제안했다. 현재 실험 산출물에서는 candidate-level Boltzmann-style energy diagnostic이 available이지만, 주 candidate-row AUROC는 이 조건부 라우팅 가설을 직접 검정하지 않는다. 따라서 이 논문에서 $|C|=1$ 조건은 Energy 성공을 보인 규칙이 아니라, 현재 feature table을 사용해 low-diversity matched-pair 재분석을 수행해야 하는 분석 조건으로 사용한다.
-
-\section{Internal Logit과 Confabulation의 관계}
-
-앞 절의 구분을 따르면, Energy는 응답 간 다양성이 사라진 구간에서 생성 토큰의 확신도 패턴을 관찰할 수 있는 후보 신호이다. 즉 Energy는 답의 사실성을 직접 검증하는 지표가 아니라, 겉보기에는 같은 답을 반복하는 사례 안에서도 토큰 선택 과정이 얼마나 불안정하거나 낮은 확신을 보이는지 살필 가능성을 제공한다. 현재 논문에서는 이 가능성을 aggregate row-level AUROC로 단정하지 않고, low-diversity matched-pair 분석에서 검증해야 할 조건부 신호로 둔다.
-
-\subsection{Logit 크기와 지식의 관계}
-
-LLM의 logit은 다음 토큰에 대한 상대적 선호를 반영하며, Energy는 이러한 토큰 수준 점수를 집계한 값이다. 따라서 같은 의미의 응답이 반복되는 Zero-SE 구간에서도, 토큰 선택 과정의 확신도 차이는 여전히 남을 수 있다.
+후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 함께 얼마나 자주 등장하는지(entity-pair co-occurrence)는, 모델이 ``익숙한'' entity를 다루고 있는지를 외부 자료로 측정한 지표이다. corpus support를 조건 축으로 쓰는 근거는 다음과 같다.
 
 \begin{itemize}
-    \item \textbf{높은 토큰 확신도}: 특정 표현이 비교적 안정적으로 선택되는 경우
-    \item \textbf{낮은 토큰 확신도}: 여러 후보 토큰 사이에서 점수가 분산되는 경우
+    \item \textbf{모델 출력에 의존하지 않는 외부 신호}. corpus support는 모델의 logit, hidden state, 응답 다양성과 독립적으로 산출된다. 따라서 같은 모델 신호가 어느 외부 조건에서 신뢰로운지를 \emph{직교적으로} 평가할 수 있다.
+    \item \textbf{CHOKE와의 자연스러운 연결}. CHOKE는 ``익숙한 entity를 잘못 결합해 생기는 고확신 환각''이라는 직관과 닿아 있다. 모델 입장에서 ``익숙함''을 외부 corpus 빈도로 측정하면, CHOKE 사례가 corpus support의 어떤 영역에 분포하는지 데이터로 확인할 수 있다.
+    \item \textbf{환각 라벨이나 retrieval trigger와의 분리}. corpus 빈도가 작다고 해서 곧 환각이라는 뜻은 아니고, corpus 빈도가 크다고 해서 곧 정답이라는 뜻도 아니다. corpus support는 \emph{지표 신뢰성을 조건화}하는 변수일 뿐이다.
 \end{itemize}
 
-\subsection{Confabulation에서의 Logit 패턴}
+\section{평가 단위 차이가 만드는 해석 함정}
 
-본 논문에서 지어냄으로 부르는 행동 범주에서는 다음과 같은 패턴을 기대할 수 있다:
+본 논문이 다루는 신호들은 정의 단위가 모두 다르다.
+
+\begin{itemize}
+    \item Semantic Entropy는 \textbf{prompt 단위} 신호이다. 같은 prompt의 두 candidate row(정답/환각)에 같은 값이 복사된다.
+    \item 원논문 정의의 Semantic Energy는 \textbf{cluster 단위} 신호이다. cluster 확률로 가중 집계된 토큰 logit 합을 사용한다.
+    \item NLL, logit variance, confidence margin, entity frequency / pair co-occurrence는 \textbf{candidate 단위} 신호이다. 후보마다 값이 다르다.
+\end{itemize}
+
+세 단위를 같은 candidate-row AUROC 표에 합치면, prompt 단위 신호는 구조적으로 0.5에 묶이고 cluster 단위 신호도 정의에 맞지 않는 평가를 받는다. 이 점을 먼저 명시하지 않으면 ``SE가 무용하다''거나 ``Energy가 좋다''는 식의 잘못된 결론으로 이어질 수 있다. 본 논문은 이 단위 차이를 본문, 표, 그림 전체에 일관되게 명시한다.
+
+\section{본 논문의 분석 방향}
+
+위 세 가지 관찰을 합치면 본 논문의 분석 방향이 자연스럽게 도출된다.
+
 \begin{enumerate}
-    \item 반복 샘플링 결과는 비슷하지만, 각 토큰 단계에서는 경쟁 후보 간 점수 차이가 크지 않을 수 있음
-    \item 그 결과 응답 간 다양성(SE)만으로는 보이지 않던 차이가 토큰 수준 점수(Energy)에서 드러날 수 있음
-    \item 따라서 평균 logit이 낮거나 에너지가 높은 사례는 Zero-SE 내부에서 추가 경고 신호로 해석될 수 있음
+    \item 후보 단위 신호(NLL, logit variance, margin, entity frequency / pair co-occurrence)와 prompt/cluster 단위 신호(SE, Semantic Energy)를 \emph{단위별로 분리해서} 보고한다.
+    \item 후보 단위 신호 위에서 corpus support 구간(3-bin 기본, 5/10-bin sensitivity)별로 ``어떤 신호가 신뢰로운가''를 측정한다.
+    \item corpus 신호를 단순히 global fusion에 더하는 방식과, corpus support bin마다 가중치를 다르게 학습하는 conditional fusion 방식을 정량 비교하고, prompt-grouped bootstrap으로 통계적 유의성을 검정한다.
 \end{enumerate}
 
-따라서 Energy는 SE=0인 상황에서도 보조 판별 신호로 기능할 수 있다. 이러한 해석은 관측 가능한 출력 분포와 점수 패턴에 대한 설명이며, 모델 내부 상태에 대한 논의는 한계 장에서 별도로 다룬다.
+이러한 분석 방향은 ``하나의 글로벌 점수가 모든 영역에서 가장 좋다''는 식의 단일 우열 비교 대신, ``어느 corpus support 영역에서 어느 신호가 가장 신뢰로운가''를 보여주는 \emph{reliability map}을 산출한다. 실험 결과는 \S\ref{ch:experiment}에서 보고한다.
 
 
 \chapter{제안 방법}{\label{ch:method}}
