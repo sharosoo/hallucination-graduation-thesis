@@ -1052,7 +1052,21 @@ def _feature_selection_fold(
         for row, score in zip(test_bin_rows, test_bin_scores, strict=True):
             row.setdefault("_tmp_feature_selection_score", score)
         provenance["bins"].append(bin_record)
-    ordered_scores = [float(row.pop("_tmp_feature_selection_score")) for row in test_rows]
+    # Rows whose bin_id falls outside ``_expected_bins`` (e.g. excluded
+    # corpus rows with ``corpus_axis_bin=None``) never get a per-bin score
+    # attached. Treat them as zero corpus-axis signal so they pass through
+    # to the global threshold without crashing the fold; record their count
+    # in provenance for transparency.
+    unscored_count = 0
+    ordered_scores: list[float] = []
+    for row in test_rows:
+        if "_tmp_feature_selection_score" in row:
+            ordered_scores.append(float(row.pop("_tmp_feature_selection_score")))
+        else:
+            ordered_scores.append(0.0)
+            unscored_count += 1
+    if unscored_count:
+        provenance["unscored_rows_outside_expected_bins"] = unscored_count
     global_threshold, _ = _select_threshold(all_train_labels, all_train_scores)
     return ordered_scores, global_threshold, provenance, {"fold": fold_name, "flat_importance": flat_importance, "bins": provenance["bins"]}
 
@@ -1110,7 +1124,19 @@ def _corpus_bin_weighted_fold(
         for row, score in zip(test_bin_rows, test_bin_scores, strict=True):
             row.setdefault("_tmp_weighted_score", score)
         provenance["bins"].append(bin_record)
-    ordered_scores = [float(row.pop("_tmp_weighted_score")) for row in test_rows]
+    # Same out-of-expected-bins handling as _feature_selection_fold: rows
+    # whose bin_id is None (or otherwise outside ``_expected_bins``) get a
+    # neutral 0.0 corpus-axis weighted score and are tallied in provenance.
+    unscored_count = 0
+    ordered_scores: list[float] = []
+    for row in test_rows:
+        if "_tmp_weighted_score" in row:
+            ordered_scores.append(float(row.pop("_tmp_weighted_score")))
+        else:
+            ordered_scores.append(0.0)
+            unscored_count += 1
+    if unscored_count:
+        provenance["unscored_rows_outside_expected_bins"] = unscored_count
     threshold, _ = _select_threshold(all_train_labels, all_train_scores)
     return ordered_scores, threshold, provenance, {"fold": fold_name, "flat_importance": flat_importance, "bins": provenance["bins"]}
 
