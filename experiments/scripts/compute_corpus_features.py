@@ -37,12 +37,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", help="Replace existing output instead of refusing overwrite.")
     parser.add_argument(
         "--entity-extractor",
-        choices=("regex", "quco"),
-        default="regex",
+        choices=("regex", "quco", "spacy"),
+        default="spacy",
         help=(
-            "Entity extractor backend. 'regex' (default) = legacy "
-            "phrase_candidates heuristic. 'quco' = ZhishanQ/QuCo-extractor-0.5B "
-            "(Qwen2.5-0.5B-Instruct fine-tuned, knowledge triplet output)."
+            "Entity extractor backend. 'spacy' (default, recommended) = "
+            "spaCy en_core_web_lg NER with PERSON/ORG/GPE/LOC/DATE/EVENT "
+            "filter. 'regex' = legacy phrase_candidates heuristic. 'quco' = "
+            "ZhishanQ/QuCo-extractor-0.5B (knowledge triplet, weak on "
+            "short factoid answers — see CODE_GUIDE.md)."
         ),
     )
     parser.add_argument(
@@ -54,6 +56,21 @@ def parse_args() -> argparse.Namespace:
         "--entity-extractor-device",
         default=None,
         help="Override device for QuCo extractor (e.g. 'cuda:0', 'cpu').",
+    )
+    parser.add_argument(
+        "--entity-extractor-batch-size",
+        type=int,
+        default=32,
+        help="Prompts per QuCo generation batch (default 32).",
+    )
+    parser.add_argument(
+        "--entity-extractor-cache",
+        default=None,
+        help=(
+            "Optional JSONL cache path for QuCo entity extraction results. "
+            "Persists (text, role) -> entities across runs. Re-runs hit cached "
+            "rows and only call inference for new texts (kill-restart safe)."
+        ),
     )
     return parser.parse_args()
 
@@ -67,6 +84,13 @@ def _build_entity_extractor(args: argparse.Namespace) -> Any:
         return QucoEntityExtractor(
             model_ref=args.entity_extractor_model_ref,
             device=args.entity_extractor_device,
+            batch_size=args.entity_extractor_batch_size,
+            cache_path=args.entity_extractor_cache,
+        )
+    if args.entity_extractor == "spacy":
+        from experiments.adapters.entity_extractor_spacy import SpacyEntityExtractor
+        return SpacyEntityExtractor(
+            batch_size=args.entity_extractor_batch_size,
         )
     raise ValueError(f"Unknown entity extractor: {args.entity_extractor}")
 

@@ -653,9 +653,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Write manifest without executing commands")
     parser.add_argument(
         "--entity-extractor",
-        choices=("regex", "quco"),
-        default="regex",
-        help="Entity extractor backend used in S5 (default: regex; recommended new runs: quco).",
+        choices=("regex", "quco", "spacy"),
+        default="spacy",
+        help="Entity extractor backend used in S5 (default: spacy; alternatives: regex, quco).",
     )
     parser.add_argument(
         "--entity-extractor-model-ref",

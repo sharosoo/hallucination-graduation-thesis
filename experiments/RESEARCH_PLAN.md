@@ -199,3 +199,35 @@ QuCo-RAG 의 공개 distilled 모델로 교체할 수 있도록 했다.
   상관 관계로만 해석한다 (Zhang et al. 2025 의 동일 caveat 인용).
 
 자세한 결정 근거는 `experiments/literature/evidence_notes/quco_extractor_adoption.md`.
+
+## 9. Entity 추출 backend 최종 선택 — spaCy en_core_web_lg (2026-05)
+
+§8 NER pivot 시 후보로 검토했던 두 모델 중 실험을 통해 spaCy 를 default 로
+확정.
+
+- **QuCo-extractor-0.5B 검증 실패**: ZhishanQ/QuCo-extractor-0.5B 는 sentence-
+  triplet `(head, relation, tail)` 추출을 위해 distill 된 모델이라, HaluEval-QA
+  / TruthfulQA 의 짧은 factoid 답 (`"Delhi"`, `"1941"`, `"Great Britain"`,
+  `"April 2, 2011"`) 에서 100% empty triplet 을 출력했다. 1-word 답 100%, 2-word
+  multi-word entity 100%, 3-4 word date / 이름 95% 가 비어 사실상 candidate-side
+  의 corpus signal 이 무력화됨. 모델은 본 use-case 와 train 분포가 다르다.
+- **spaCy en_core_web_lg 채택**: PERSON / ORG / GPE / LOC / DATE / EVENT 등
+  12 개 entity 타입 필터, noun-chunk fallback, 정규화한 candidate 자체를 atomic
+  entity 로 추가하는 final fallback. 동일 sample 에서 empty 0%, 1.4 ms/text
+  (CPU-only), QuCo 대비 ~150x 빠르고 23K inference 전체가 수십 초.
+- **재실행 영향**: §8 pivot 과 동일 — S5 → S7 → S8 → S9 만 재실행. S2/S4/S6
+  재사용. 새 provenance 필드 `entity_extractor_version="spacy_en_core_web_lg_v1"`,
+  `entity_extractor_model_ref="en_core_web_lg"`, `entity_extractor_keep_labels`
+  를 corpus_features.parquet 에 첨부.
+- **본 논문 framing 영향**: QuCo-RAG 와의 관계 정리 변경. QuCo-RAG 는 \emph{
+  corpus statistics 를 retrieval trigger 로 쓴다} 는 framing motivation 으로
+  계속 인용 (관련 연구 §). 단 그들의 entity 추출 모델 (QuCo-extractor-0.5B)
+  은 짧은 답 분포 차이로 본 데이터셋에 부적합해 spaCy 로 대체했음을 본문 한
+  문장으로 명시.
+- **Caveat 보존**: spaCy NER 이 "Polish-Russian War" 같은 hyphenated entity 를
+  1 token 으로 잡지 못하는 등 NER 자체 한계 존재. 본 연구는 spaCy 출력 자체
+  는 ground truth 가 아니라 corpus support proxy 의 조작 단계이며, 결과는
+  proxy noise 까지 포함한 robust 한 통계 (paired bootstrap CI) 로 해석한다.
+
+자세한 결정 근거 + smoke test 결과는
+`experiments/literature/evidence_notes/spacy_extractor_adoption.md`.

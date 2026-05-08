@@ -179,9 +179,10 @@ uv run python experiments/scripts/validate_feature_provenance.py experiments/res
 - 모듈: `experiments/scripts/compute_corpus_features.py`, corpus count adapter, entity extractor adapter (`experiments/adapters/entity_extractor_{regex,quco}.py`)
 - 출력: `experiments/results/corpus_features.parquet`
 - 계산:
-  - candidate answer text 에서 entity 를 추출한다 — 두 backend 중 선택:
-    - `regex` (legacy default): 따옴표 감싼 3+ 자 / 1-4 단어 capitalized n-gram / stopword 가 아닌 5+ 자 lower-case token 후보를 정규화 + 중복 제거. NER 도구 없이 동작 가능.
-    - `quco` (권장): `ZhishanQ/QuCo-extractor-0.5B` (Qwen2.5-0.5B-Instruct fine-tuned, GPT-4o-mini 에서 distill 된 QuCo-RAG 공개 모델) 로 knowledge triplet `(head, relation, tail)` 을 추출한 뒤 head / tail 을 entity 로 사용. relation 은 lexical variability 때문에 사용하지 않음 (QuCo-RAG paper §3.3 와 동일 결정).
+  - candidate answer text 에서 entity 를 추출한다 — 세 backend 중 선택:
+    - `spacy` (**기본, 권장**): spaCy `en_core_web_lg` NER, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK_OF_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 필터. 짧은 factoid 답 (`"Delhi"`, `"1941"`) 도 NER 로 잡고, NER 누락 시 noun-chunk fallback, 그래도 비면 정규화한 텍스트 자체를 entity 로 추가 (HaluEval-QA / TruthfulQA 처럼 답이 곧 entity 인 경우 대응). CPU-only, ~1.4 ms/text.
+    - `regex` (legacy, archived): 따옴표 감싼 3+ 자 / 1-4 단어 capitalized n-gram / stopword 가 아닌 5+ 자 lower-case token 후보를 정규화 + 중복 제거. 짧은 entity 누락 + 일반 명사 false positive. 새 run 에서는 사용하지 않음.
+    - `quco` (실험적, archived): `ZhishanQ/QuCo-extractor-0.5B` (QuCo-RAG 공개 distilled 모델). knowledge triplet `(head, relation, tail)` 출력에서 head / tail 사용. **본 데이터셋에서 짧은 factoid 답 (`"Delhi"` 등) 의 100% 가 empty triplet → 사용하지 않음.** 어댑터는 보존.
   - Infini-gram-compatible count backend 또는 고정 corpus snapshot 에서 entity frequency 와 `head AND tail` co-occurrence 를 조회한다.
   - raw counts, log-transformed continuous axis scores, low/zero flags, bin ids, corpus provenance, **entity_extractor provenance** (`entity_extractor_version`, `entity_extractor_model_ref`, `entity_extractor_prompt_template`) 를 저장한다.
 

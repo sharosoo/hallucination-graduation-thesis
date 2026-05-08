@@ -94,12 +94,15 @@ Corpus feature meanings follow the QuCo-RAG-style reference pattern: entity freq
 
 ### Entity extractor backends
 
-Entity extraction is pluggable via `EntityExtractorPort` (see `experiments/ports/entity_extractor.py`). Two adapters are provided.
+Entity extraction is pluggable via `EntityExtractorPort` (see `experiments/ports/entity_extractor.py`). Three adapters are provided.
 
-- `regex` (default, legacy): `phrase_candidates` heuristic. Quote-wrapped phrases (3+ chars), 1–4 word capitalized n-grams, and non-stopword tokens of length ≥5. No NER dependency.
-- `quco` (recommended for new runs): `ZhishanQ/QuCo-extractor-0.5B` (Qwen2.5-0.5B-Instruct fine-tuned, distilled from GPT-4o-mini, released by the QuCo-RAG authors). Emits knowledge triplets `(head, relation, tail)`; we keep `head` and `tail` as entities and discard `relation` text (same choice as QuCo-RAG paper §3.3 — relational predicates have high lexical variability).
+- `spacy` (**default, recommended**): spaCy `en_core_web_lg` NER, filtered to PERSON / ORG / GPE / LOC / DATE / EVENT / WORK_OF_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW. Falls back to noun chunks for short texts that the NER pipeline misses, and finally to the cleaned text itself for atomic candidates (e.g. `"Delhi"`). CPU-only, ~1.4 ms/text. Empirically 0% empty rate on TruthfulQA + HaluEval-QA candidate texts.
+- `regex` (legacy, archived): `phrase_candidates` heuristic. Quote-wrapped phrases (3+ chars), 1–4 word capitalized n-grams, and non-stopword tokens of length ≥5. No NER dependency. Misses short atomic entities, includes noisy verbs/common-nouns. Kept for reproducing pre-2026-05 artifacts.
+- `quco` (experimental, archived): `ZhishanQ/QuCo-extractor-0.5B` knowledge triplet model (distilled from GPT-4o-mini by the QuCo-RAG authors). Designed for full-sentence triplet extraction; on our short factoid answers (`"Delhi"`, `"1941"`, `"Great Britain"`) it returns 100% empty triplets, so we do not use it. Adapter retained for reference.
 
-Selection is via the `--entity-extractor {regex,quco}` flag on `compute_corpus_features.py` and `run_pipeline.py`. The selected backend's provenance (version, model ref, prompt template) is recorded in `corpus_features.parquet`. Switching extractor only requires re-running S5 → S7 → S8 → S9; S2/S4/S6 artifacts are entity-independent and can be reused.
+Selection is via the `--entity-extractor {spacy,regex,quco}` flag on `compute_corpus_features.py` and `run_pipeline.py`. The selected backend's provenance (version, model ref, label filter) is recorded in `corpus_features.parquet`'s report. Switching extractor only requires re-running S5 → S7 → S8 → S9; S2/S4/S6 artifacts are entity-independent and can be reused.
+
+For background on why spaCy was chosen over QuCo-extractor-0.5B (which is the entity extractor used by the QuCo-RAG paper that inspired our corpus axis), see `experiments/literature/evidence_notes/spacy_extractor_adoption.md`.
 
 ## 5. Baseline contract
 

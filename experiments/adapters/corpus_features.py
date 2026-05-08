@@ -461,7 +461,58 @@ class CorpusFeatureAdapter:
         self.backend = build_corpus_count_backend(candidates_path)
         self.analysis_bins, self.analysis_bin_specs = read_analysis_bin_config(dataset_config_path)
         self.entity_extractor = entity_extractor or _get_default_entity_extractor()
+        self._prefetch_entities()
         self._maybe_warmup_backend()
+
+    def _prefetch_entities(self) -> None:
+        """Run a single batched extraction over (question, answer) for all rows.
+
+        Stores the result in ``self._entity_cache`` keyed by ``(text, role)``.
+        Batched extractors (``QucoEntityExtractor``) realise their full speedup
+        here; the regex extractor is a no-op-ish (per-text call) but still
+        benefits from one-pass deduplication.
+        """
+        self._entity_cache: dict[tuple[str, str], list[str]] = {}
+        extract_many = getattr(self.entity_extractor, "extract_many", None)
+        # Collect unique (text, role) pairs across all rows.
+        seen: set[tuple[str, str]] = set()
+        texts: list[str] = []
+        roles: list[str] = []
+        for source_row in self.rows:
+            q = str(source_row.get("question", "")).strip()
+            a = str(source_row.get(SOURCE_TEXT_FIELD, "")).strip()
+            for text, role in ((q, "question"), (a, "declarative")):
+                if not text or (text, role) in seen:
+                    continue
+                seen.add((text, role))
+                texts.append(text)
+                roles.append(role)
+        if not texts:
+            return
+        if callable(extract_many):
+            results = extract_many(texts, roles)
+            for text, role, entities in zip(texts, roles, results):
+                self._entity_cache[(text, role)] = list(entities)
+        else:
+            for text, role in zip(texts, roles):
+                self._entity_cache[(text, role)] = self.entity_extractor.extract(
+                    text, role=role
+                )
+
+    def _cached_combine_entities(
+        self,
+        source_row: dict[str, Any],
+    ) -> tuple[list[str], list[str], list[str]]:
+        """Per-row entity assembly that pulls from ``self._entity_cache``."""
+        q = str(source_row.get("question", "")).strip()
+        a = str(source_row.get(SOURCE_TEXT_FIELD, "")).strip()
+        question_entities = self._entity_cache.get((q, "question"), []) if q else []
+        answer_entities = self._entity_cache.get((a, "declarative"), []) if a else []
+        ordered: list[str] = []
+        for entity in list(question_entities) + list(answer_entities):
+            if entity and entity not in ordered:
+                ordered.append(entity)
+        return question_entities, answer_entities, ordered[:MAX_ENTITY_COUNT]
 
     def _maybe_warmup_backend(self) -> None:
         warmup_fn = getattr(self.backend, "warmup", None)
@@ -470,7 +521,7 @@ class CorpusFeatureAdapter:
         all_entities: set[str] = set()
         all_pairs: set[str] = set()
         for source_row in self.rows:
-            _, _, entities = combine_entities(source_row, extractor=self.entity_extractor)
+            _, _, entities = self._cached_combine_entities(source_row)
             unique = sorted(set(entities))
             for entity in unique:
                 if entity:
@@ -507,7 +558,7 @@ class CorpusFeatureAdapter:
         return rows, report
 
     def _build_row(self, run_id: str, source_row: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-        question_entities, answer_entities, entities = combine_entities(source_row, extractor=self.entity_extractor)
+        question_entities, answer_entities, entities = self._cached_combine_entities(source_row)
         pair_terms = [pair_key(left, right) for left, right in combinations(sorted(set(entities)), 2)]
         entity_results = {entity: self.backend.count_entity(entity) for entity in entities}
         pair_results = {pair: self.backend.count_pair(pair[0], pair[1]) for pair in pair_terms}

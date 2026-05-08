@@ -33,15 +33,24 @@ experiments/
 
 - Port: `experiments/ports/entity_extractor.py::EntityExtractorPort`
 - Adapters:
+  - `experiments/adapters/entity_extractor_spacy.py::SpacyEntityExtractor`
+    (**default, recommended**) — spaCy `en_core_web_lg` NER, PERSON / ORG /
+    GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT /
+    LANGUAGE / LAW 필터, noun-chunk + 텍스트-자체 fallback. CPU-only,
+    1.4 ms/text.
   - `experiments/adapters/entity_extractor_regex.py::RegexEntityExtractor`
-    (legacy default, regex heuristic)
+    (legacy, archived) — regex heuristic. 짧은 entity 일부 누락, 일반
+    명사 false positive. 새 run 에서는 사용하지 않음.
   - `experiments/adapters/entity_extractor_quco.py::QucoEntityExtractor`
-    (`ZhishanQ/QuCo-extractor-0.5B` knowledge triplet model)
+    (실험적, archived) — `ZhishanQ/QuCo-extractor-0.5B` knowledge triplet
+    모델. 짧은 factoid 답변 (`"Delhi"`, `"1941"`) 에서 100% empty triplet
+    을 출력하여 우리 데이터셋에 부적합. 어댑터 보존, 실험 미사용.
 - Consumer: `experiments/adapters/corpus_features.py::CorpusFeatureAdapter`
-  (S5 stage). `combine_entities(row, extractor=...)` 가 port 호출.
+  (S5 stage). `combine_entities(row, extractor=...)` 또는
+  `_cached_combine_entities(row)` 가 port 호출.
 - CLI: `experiments/scripts/compute_corpus_features.py
-  --entity-extractor {regex,quco}` and `experiments/scripts/run_pipeline.py
-  --entity-extractor {regex,quco}`.
+  --entity-extractor {spacy,regex,quco}` (default `spacy`). 같은 옵션이
+  `experiments/scripts/run_pipeline.py` 에도 있음.
 - Provenance: 새 extractor 추가 시 `describe()` 가 `entity_extractor_version`,
   `entity_extractor_kind`, `entity_extractor_model_ref`,
   `entity_extractor_prompt_template` 필드를 반환해야 함.

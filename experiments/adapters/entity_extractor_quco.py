@@ -109,6 +109,7 @@ entities:"""
 DEFAULT_MODEL_REF = "ZhishanQ/QuCo-extractor-0.5B"
 DEFAULT_PROMPT_TEMPLATE_VERSION = "quco_entity_extraction_v1"
 MAX_NEW_TOKENS = 256
+DEFAULT_BATCH_SIZE = 32
 
 
 @dataclass
@@ -124,13 +125,22 @@ class QucoEntityExtractor(EntityExtractorPort):
         available else ``cpu``.
     max_new_tokens:
         Per-sentence generation cap.
+    batch_size:
+        Number of prompts per generation call. Larger = faster on GPU.
+    cache_path:
+        Optional JSONL path. If set, results are cached by ``(text, role)``
+        and persisted across runs — kill-restart resumes from cached rows.
     """
 
     model_ref: str = DEFAULT_MODEL_REF
     device: str | None = None
     max_new_tokens: int = MAX_NEW_TOKENS
+    batch_size: int = DEFAULT_BATCH_SIZE
+    cache_path: str | None = None
     _model: Any = field(default=None, repr=False, init=False)
     _tokenizer: Any = field(default=None, repr=False, init=False)
+    _cache: dict[tuple[str, str], list[str]] = field(default_factory=dict, repr=False, init=False)
+    _cache_loaded: bool = field(default=False, repr=False, init=False)
 
     version: str = "quco_extractor_0_5b_v1"
     prompt_template_version: str = DEFAULT_PROMPT_TEMPLATE_VERSION
@@ -140,14 +150,105 @@ class QucoEntityExtractor(EntityExtractorPort):
     # ------------------------------------------------------------------ #
 
     def extract(self, text: str, *, role: EntityRole = "declarative") -> list[str]:
-        text = (text or "").strip()
-        if not text:
-            return []
-        prompt = self._format_prompt(text, role)
-        completion = self._generate(prompt)
-        triplets = self._parse_triplets(completion)
-        entities = self._triplets_to_entities(triplets, role=role)
-        return _normalize_unique(entities)
+        results = self.extract_many([text], [role])
+        return results[0]
+
+    def extract_many(
+        self,
+        texts: list[str],
+        roles: list[EntityRole],
+    ) -> list[list[str]]:
+        """Batched extraction with on-disk cache and fallback chain.
+
+        Fallback chain (for declarative role only — question role is single-pass):
+        1. Try the declarative prompt (extracts knowledge triplets).
+        2. If empty AND text is short (<=8 words), try the question prompt
+           (extracts standalone entities — better for short noun-phrase answers
+           like "Delhi", "1941", "The Mock Turtle").
+        3. If still empty AND text is short, treat the normalized text itself
+           as a single entity (final fallback for atomic answers).
+        """
+        if len(texts) != len(roles):
+            raise ValueError("texts and roles must have the same length")
+        self._load_cache()
+
+        # Pass 1: try the requested role for every (text, role) pair.
+        primary = self._lookup_or_run(list(zip(texts, roles)))
+
+        # Pass 2: declarative-empty + short → re-try with question prompt.
+        retry_idx: list[int] = []
+        retry_keys: list[tuple[str, str]] = []
+        for i, (raw_text, role) in enumerate(zip(texts, roles)):
+            if role != "declarative":
+                continue
+            if primary[i]:
+                continue
+            text = (raw_text or "").strip()
+            if not text:
+                continue
+            if len(text.split()) > 8:
+                continue
+            retry_idx.append(i)
+            retry_keys.append((text, "question"))
+        if retry_keys:
+            secondary = self._lookup_or_run(retry_keys)
+            for j, i in enumerate(retry_idx):
+                if secondary[j]:
+                    primary[i] = secondary[j]
+
+        # Pass 3: still empty + short → treat normalized text as single entity.
+        for i, (raw_text, role) in enumerate(zip(texts, roles)):
+            if primary[i]:
+                continue
+            text = (raw_text or "").strip()
+            if not text or len(text.split()) > 8:
+                continue
+            fallback = _normalize_unique([text])
+            if fallback:
+                primary[i] = fallback
+
+        return primary
+
+    def _lookup_or_run(
+        self,
+        items: list[tuple[str, EntityRole]],
+    ) -> list[list[str]]:
+        """Cache-aware batched run for a list of (text, role) pairs."""
+        results: list[list[str] | None] = [None] * len(items)
+        unique_prompts: list[tuple[str, EntityRole]] = []
+        unique_idx: dict[tuple[str, str], int] = {}
+        for i, (raw_text, role) in enumerate(items):
+            text = (raw_text or "").strip()
+            if not text:
+                results[i] = []
+                continue
+            key = (text, role)
+            if key in self._cache:
+                results[i] = self._cache[key]
+                continue
+            if key not in unique_idx:
+                unique_idx[key] = len(unique_prompts)
+                unique_prompts.append(key)
+        if unique_prompts:
+            self._ensure_loaded()
+            new_records: list[tuple[tuple[str, str], list[str]]] = []
+            for start in range(0, len(unique_prompts), self.batch_size):
+                batch = unique_prompts[start:start + self.batch_size]
+                completions = self._generate_batch(batch)
+                for (text, role), completion in zip(batch, completions):
+                    triplets = self._parse_triplets(completion)
+                    entities_raw = self._triplets_to_entities(triplets, role=role)
+                    entities = _normalize_unique(entities_raw)
+                    self._cache[(text, role)] = entities
+                    new_records.append(((text, role), entities))
+            if new_records:
+                self._append_cache(new_records)
+        for i, (raw_text, role) in enumerate(items):
+            if results[i] is not None:
+                continue
+            text = (raw_text or "").strip()
+            results[i] = self._cache.get((text, role), [])
+        return [r if r is not None else [] for r in results]
 
     def describe(self) -> dict[str, str]:
         return {
@@ -186,25 +287,94 @@ class QucoEntityExtractor(EntityExtractorPort):
         self._model.eval()
         self.device = device
 
-    def _generate(self, prompt: str) -> str:
+    def _generate_batch(self, batch: list[tuple[str, EntityRole]]) -> list[str]:
+        """Batched chat-template inference. Returns raw text per input."""
         self._ensure_loaded()
-        import torch  # local — guaranteed by _ensure_loaded
+        import torch
 
-        chat = [{"role": "user", "content": prompt}]
-        prompt_text = self._tokenizer.apply_chat_template(
-            chat, tokenize=False, add_generation_prompt=True
-        )
-        inputs = self._tokenizer(prompt_text, return_tensors="pt").to(self.device)
+        chat_prompts = []
+        for text, role in batch:
+            prompt = self._format_prompt(text, role)
+            chat = [{"role": "user", "content": prompt}]
+            chat_prompts.append(
+                self._tokenizer.apply_chat_template(
+                    chat, tokenize=False, add_generation_prompt=True
+                )
+            )
+        if self._tokenizer.pad_token_id is None:
+            self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
+        # Left-pad for decoder-only batched generation so that the new tokens
+        # for each row are aligned at the end.
+        prev_padding_side = self._tokenizer.padding_side
+        self._tokenizer.padding_side = "left"
+        try:
+            inputs = self._tokenizer(
+                chat_prompts,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=2048,
+            ).to(self.device)
+        finally:
+            self._tokenizer.padding_side = prev_padding_side
         with torch.no_grad():
             output = self._model.generate(
                 **inputs,
                 max_new_tokens=self.max_new_tokens,
                 do_sample=False,
-                temperature=1.0,
-                pad_token_id=self._tokenizer.eos_token_id,
+                pad_token_id=self._tokenizer.pad_token_id,
             )
-        gen_tokens = output[0][inputs["input_ids"].shape[1]:]
-        return self._tokenizer.decode(gen_tokens, skip_special_tokens=True).strip()
+        prompt_len = inputs["input_ids"].shape[1]
+        gen_tokens = output[:, prompt_len:]
+        return [
+            self._tokenizer.decode(row, skip_special_tokens=True).strip()
+            for row in gen_tokens
+        ]
+
+    # ------------------------------------------------------------------ #
+    # Cache (JSONL on disk, keyed by (text, role)).
+    # ------------------------------------------------------------------ #
+
+    def _load_cache(self) -> None:
+        if self._cache_loaded:
+            return
+        self._cache_loaded = True
+        if not self.cache_path:
+            return
+        from pathlib import Path
+        path = Path(self.cache_path)
+        if not path.exists():
+            return
+        with path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                    text = record["text"]
+                    role = record["role"]
+                    entities = record["entities"]
+                    if isinstance(entities, list):
+                        self._cache[(text, role)] = [str(e) for e in entities]
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    continue
+
+    def _append_cache(self, records: list[tuple[tuple[str, str], list[str]]]) -> None:
+        if not self.cache_path:
+            return
+        from pathlib import Path
+        path = Path(self.cache_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            for (text, role), entities in records:
+                fh.write(
+                    json.dumps(
+                        {"text": text, "role": role, "entities": entities},
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
 
     @staticmethod
     def _parse_triplets(raw: str) -> list[list[str]]:
@@ -262,8 +432,11 @@ class QucoEntityExtractor(EntityExtractorPort):
 # --------------------------------------------------------------------------- #
 
 
+_LEADING_ARTICLES = ("a ", "an ", "the ")
+
+
 def _normalize_unique(entities: list[str]) -> list[str]:
-    """Lower-case, strip punctuation noise, drop duplicates while preserving order."""
+    """Lower-case, strip punctuation noise, drop leading articles, dedupe."""
     seen: set[str] = set()
     out: list[str] = []
     for raw in entities:
@@ -271,6 +444,11 @@ def _normalize_unique(entities: list[str]) -> list[str]:
             continue
         norm = re.sub(r"\s+", " ", raw.strip().lower())
         norm = re.sub(r"[^a-z0-9'\- ]+", "", norm).strip()
+        # Strip leading articles (Infini-gram queries are sensitive to surface form).
+        for article in _LEADING_ARTICLES:
+            if norm.startswith(article):
+                norm = norm[len(article):]
+                break
         if not norm or norm in seen:
             continue
         seen.add(norm)
