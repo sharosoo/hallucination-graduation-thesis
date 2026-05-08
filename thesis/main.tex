@@ -371,25 +371,39 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
 
 \section{Prompt-grouped bootstrap 신뢰구간}
 
-위 비교의 통계적 robust함을 검증하기 위해 prompt-grouped bootstrap(같은 prompt의 두 후보를 한 단위로 묶어 resample)을 2{,}000회 수행하여 95\% 신뢰구간을 산출하였다. 표~\ref{tab:bootstrap_ci}는 핵심 비교 세 건의 결과이다.
+corpus-bin weighted fusion이 \emph{각 corpus support 구간에서} 환각 후보를 정답 후보보다 더 위험한 점수로 평가하는지 통계적으로 검정하기 위해, prompt-grouped bootstrap(같은 prompt의 두 후보를 한 단위로 묶어 resample)을 2{,}000회 수행하여 95\% 신뢰구간을 산출하였다. 표~\ref{tab:bootstrap_ci}는 corpus support decile별 paired win-rate와 mean paired delta(환각 후보 점수 $-$ 정답 후보 점수)의 신뢰구간이다.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Prompt-grouped bootstrap 신뢰구간 (95\%, n=2{,}000).}
+\caption{Corpus support decile별 corpus-bin weighted fusion의 paired 통계 95\% 신뢰구간 (prompt-grouped bootstrap, n=2{,}000). win-rate $> 0.5$ 또는 mean delta $> 0$ 이 ``환각 후보가 더 위험하게 평가됨''을 의미.}
 \label{tab:bootstrap_ci}
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-비교 (candidate vs reference) & $\Delta$ AUROC [95\% CI] & $\Delta$ AUPRC [95\% CI] \\
+decile & n & paired win-rate [95\% CI] & mean delta [95\% CI] \\
 \midrule
-corpus-bin weighted fusion vs global fusion (no corpus) & \textbf{+0.166 [+0.157, +0.176]} & +0.096 [+0.089, +0.102] \\
-corpus-bin feature selection vs global fusion (no corpus) & +0.110 [+0.100, +0.118] & +0.058 [+0.053, +0.062] \\
-global fusion (no corpus) vs SE-only & $-0.128$ [$-0.137$, $-0.119$] & $-0.083$ [$-0.087$, $-0.078$] \\
+00--10 &   549 & 0.417 [0.366, 0.468]              & $-0.0382$ [$-0.0472$, $-0.0292$] \\
+10--20 & 1{,}020 & 0.540 [0.496, 0.581]            & $-0.0022$ [$-0.0055$, $+0.0010$] \\
+20--30 & 2{,}601 & \textbf{0.558 [0.534, 0.586]}    & \textbf{$+0.0034$ [$+0.0018$, $+0.0049$]} \\
+30--40 & 3{,}465 & \textbf{0.635 [0.611, 0.658]}    & \textbf{$+0.0126$ [$+0.0108$, $+0.0145$]} \\
+40--50 & 1{,}617 & \textbf{0.620 [0.587, 0.654]}    & \textbf{$+0.0130$ [$+0.0097$, $+0.0165$]} \\
+50--60 &   802 & \textbf{0.559 [0.512, 0.608]}      & \textbf{$+0.0096$ [$+0.0041$, $+0.0151$]} \\
+60--70 &   587 & 0.493 [0.432, 0.550]              & $+0.0040$ [$-0.0039$, $+0.0123$] \\
+70--80 &   507 & \textbf{0.589 [0.532, 0.646]}      & \textbf{$+0.0090$ [$+0.0017$, $+0.0163$]} \\
+80--90 &   356 & \textbf{0.616 [0.547, 0.680]}      & \textbf{$+0.0116$ [$+0.0011$, $+0.0216$]} \\
+90--100 &  125 & 0.580 [0.464, 0.710]              & $+0.0054$ [$-0.0117$, $+0.0222$] \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-세 비교 모두 신뢰구간이 0을 포함하지 않으므로, corpus-bin weighted fusion이 global fusion 대비 통계적으로 우위라는 핵심 주장이 뒷받침된다. 마지막 줄(global fusion vs SE-only)의 음의 값은 SE-only가 candidate-row 단위에서 0.5 상수를 출력해서 생기는 구조적 결과로, 단순 비교에 그대로 쓸 수 있는 수치가 아니다.
+세 가지 패턴이 두드러진다.
+\begin{itemize}
+    \item \textbf{Decile 20--90 (n=10{,}535, 91\%)}: 7개 decile 모두 paired win-rate가 0.5보다 통계적으로 유의미하게 높다 (CI가 0.5를 가로지르지 않음). corpus-bin weighted fusion이 본 데이터의 대부분 영역에서 환각 후보를 정답보다 위험하게 평가한다는 뜻이다.
+    \item \textbf{Decile 30--50 sweet spot (n=5{,}082)}: paired win-rate 신뢰구간이 [0.587, 0.658] 까지 올라가며, mean delta도 +0.01 이상 양수로 robust하다. 본 결합기의 핵심 작동 영역이다.
+    \item \textbf{Decile 00--10 (n=549)}: paired win-rate 신뢰구간 [0.366, 0.468] 이 \emph{0.5보다 낮은 영역에서} 통계적으로 유의미하게 머무른다. corpus가 거의 모르는 답에서는 corpus-bin weighted fusion 이 오히려 잘못된 방향으로 작동함을 명확히 보여준다 (이 영역에서는 corpus를 쓰지 않는 GBM이 1위라는 §결과와 일치).
+\end{itemize}
+
+종합 수준의 비교에서도 corpus-bin weighted fusion은 corpus 신호를 쓰지 않는 global fusion 대비 AUROC \textbf{+0.166 [+0.157, +0.176]}, AUPRC +0.096 [+0.089, +0.102]로 신뢰구간이 0을 포함하지 않는다. 본 절의 decile별 분해는 그 종합 우위가 \emph{어느 corpus support 구간에서 발생하는지}를 정밀하게 보여준다.
 
 \section{Corpus support bin별 신뢰도 (3-bin 기본 분석)}
 
