@@ -6,7 +6,7 @@
 
 \subsection{데이터셋 구성}
 
-실험에는 TruthfulQA와 HaluEval-QA 두 데이터셋을 사용하였다. 두 데이터셋 모두 질문마다 정답 후보와 잘못된(혹은 환각) 후보를 명시적으로 제공하므로 paired 평가에 적합하다. TruthfulQA에서는 각 질문의 \texttt{correct\_answers}와 \texttt{incorrect\_answers}에서 하나의 정답 후보와 하나의 오답 후보를 결정론적으로 선택하였다. HaluEval-QA에서는 데이터셋이 제공하는 \texttt{right\_answer}와 \texttt{hallucinated\_answer}를 그대로 사용하였다.
+실험에는 TruthfulQA\cite{truthfulqa}와 HaluEval-QA\cite{halueval2023} 두 데이터셋을 사용하였다. 두 데이터셋 모두 질문마다 정답 후보와 잘못된(혹은 환각) 후보를 명시적으로 제공하므로 paired 평가에 적합하다. TruthfulQA에서는 각 질문의 \texttt{correct\_answers}와 \texttt{incorrect\_answers}에서 하나의 정답 후보와 하나의 오답 후보를 결정론적으로 선택하였다. HaluEval-QA에서는 데이터셋이 제공하는 \texttt{right\_answer}와 \texttt{hallucinated\_answer}를 그대로 사용하였다.
 
 각 질문은 하나의 prompt 단위로 다루며, 한 prompt에서 정확히 두 개의 candidate row를 만든다. 하나는 정답 후보, 다른 하나는 환각 후보이다. 최종 실험 데이터는 prompt 5,815개, candidate row 11,630개로 구성된다. HaluEval-QA가 prompt 5,000개와 row 10,000개, TruthfulQA가 정제 후 prompt 815개와 row 1,630개를 제공한다.
 
@@ -75,7 +75,7 @@ U(\mathbf{x}) &= \sum_{k=1}^{K} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) 
 한편 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin은 candidate-level Boltzmann-style energy diagnostic으로 별도 보존하며, Semantic Energy와 같은 열에 합치지 않는다.
 
 \paragraph{Corpus-grounded feature.}
-후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지, 그리고 두 entity가 얼마나 자주 함께 등장하는지를 측정해 corpus support 신호를 만든다. 본 실험은 외부 corpus로 16B token 규모의 web-scale 인덱스를 사용한다. 한 후보 답변에 대해 (i) 추출된 entity의 등장 횟수(entity frequency), (ii) 두 entity가 함께 등장한 횟수(entity-pair co-occurrence), (iii) 이 두 값을 분위로 나눈 corpus support 구간 label(낮음/중간/높음 3-bin과 더 세분화된 5-bin / 10-bin sensitivity)을 산출한다.
+후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지, 그리고 두 entity가 얼마나 자주 함께 등장하는지를 측정해 corpus support 신호를 만든다. corpus 카운트 backend로는 Liu 등(2024)이 제안한 Infini-gram\cite{infinigram2024}을 사용하며, 본 실험은 외부 corpus로 16B token 규모의 web-scale 인덱스를 사용한다. 한 후보 답변에 대해 (i) 추출된 entity의 등장 횟수(entity frequency), (ii) 두 entity가 함께 등장한 횟수(entity-pair co-occurrence), (iii) 이 두 값을 분위로 나눈 corpus support 구간 label(낮음/중간/높음 3-bin과 더 세분화된 5-bin / 10-bin sensitivity)을 산출한다.
 
 이 신호는 외부 자료에서 후보 답변이 지지될 가능성을 \emph{간접적으로} 나타내는 proxy이며, 모델의 hidden-state나 환각 여부 라벨을 사용하지 않는다. 낮은 frequency나 zero co-occurrence 자체는 환각 라벨이 아니라, 어디까지나 \emph{지표 신뢰도를 조건화하는 binning 변수}이다.
 
