@@ -94,9 +94,9 @@ LLM 환각 탐지 지표 신뢰성 분석:\\%
 
 \keyword{대규모 언어모델, 환각 탐지, Semantic Entropy, Semantic Energy, corpus support axis, metric reliability}
 \begin{abstract}
-본 논문은 LLM 환각 탐지 지표의 신뢰도가 corpus support에 따라 어떻게 달라지는지 분석한다. 여기서 corpus support는 후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 얼마나 자주 함께 등장하는지(entity-pair co-occurrence)를 정량화한 외부 신호이다. TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 prompt, 11{,}630개 candidate row의 paired 설정 위에서 Semantic Entropy(N=10, NLI cluster + likelihood), Semantic Energy, candidate-level logit diagnostics(NLL, logit variance, confidence margin), 그리고 Infini-gram 기반 corpus support 지표를 비교 평가하였다.
+본 논문은 LLM 환각 탐지 지표의 신뢰도가 corpus support에 따라 어떻게 달라지는지 분석한다. 여기서 corpus support 는 후보 답변에 등장하는 entity 의 corpus 내 frequency 와 두 entity 사이의 co-occurrence 를 정량화한 외부 신호이다. TruthfulQA와 HaluEval-QA에서 구성한 5{,}815개 prompt, 11{,}630개 candidate row의 paired 설정 위에서 Semantic Entropy(N=10, NLI cluster + likelihood), Semantic Energy, candidate-level logit diagnostics(NLL, logit variance, confidence margin), 그리고 Infini-gram 기반 corpus support 지표를 비교 평가하였다.
 
-핵심 결과는 다음과 같다. corpus feature를 단일 \emph{선형} global fusion에 그대로 더하면 오히려 성능이 떨어진다. 그러나 corpus support bin마다 별도 가중치를 학습하는 corpus-bin weighted fusion은 같은 선형 global fusion 대비 AUROC가 +0.166 향상되며 2{,}000회 prompt-grouped bootstrap의 95\% 신뢰구간이 0보다 위에 있다. 종합 AUROC만 비교하면 비선형 결합기인 sklearn gradient boosting(no corpus, AUROC 0.541)과 corpus-bin weighted fusion(0.538)은 거의 동급이지만, corpus support를 decile로 분해하면 차이가 분명해진다. 30--50분위에서 corpus-bin weighted fusion이 모든 방법 중 1위, 가장 낮은 0--10분위에서는 gradient boosting만이 1위이며, 20--50분위에서는 logit diagnostic의 paired win-rate가 0.28--0.36까지 떨어지는 강한 역전이 동시에 관측된다. 이는 Simhi 등(2025)이 보고한 CHOKE 패턴이 본 데이터에서 심화된 형태로 재현된 것이다. 어느 신호의 신뢰도가 높은지가 corpus support에 따라 비단조적으로 바뀌므로 \emph{단일 global 점수로 환원되지 않는 conditional reliability 구조}가 데이터로 확인된다. 또한 corpus-bin weighted fusion은 calibration 측면에서도 1위이다 (Brier 0.253, ECE 4.7\%; 다른 방법 대비 ECE 1/2--1/4 수준).
+핵심 결과는 다음과 같다. corpus feature 를 단일 선형 global fusion 에 그대로 더하면 오히려 성능이 떨어진다 (logistic regression, AUROC 0.372 — 무작위 0.5 이하의 역방향 결합기). corpus support bin 마다 별도 가중치를 학습하는 corpus-bin weighted fusion 은 이 역방향 선형 baseline 대비 AUROC +0.166 [+0.157, +0.176] 의 유의미한 회복을 보이지만, 실질적 경쟁 baseline 인 비선형 sklearn gradient boosting (no corpus, AUROC 0.541) 과는 종합 AUROC 가 사실상 동급 (0.538, 차이 $-0.003$) 이다. 본 논문 제안 결합기의 독립적 가치는 (i) decile 정밀 분해에서 30--50분위 sweet spot 1위, 20--50분위 logit diagnostic 의 paired win-rate 0.28--0.36 강한 역전 (Simhi 등(2025)\cite{simhi2025choke}의 CHOKE 패턴 심화 재현), (ii) calibration 지표 (Brier 0.253, ECE 4.7\%; gradient boosting 의 ECE 12.1\% 대비 약 2.6배 개선), (iii) 데이터셋 전이 격차 최소 (0.020 vs gradient boosting 0.027) 의 conditional / 보정 측면에 있다. 어느 신호의 신뢰도가 높은가는 corpus support 에 따라 비단조적 패턴을 보이며, 이는 단일 global 점수로 환원되지 않는 conditional reliability 구조가 데이터로 확인됨을 의미한다.
 \end{abstract}
 
 \tableofcontents
@@ -121,7 +121,7 @@ LLM 환각 탐지 지표 신뢰성 분석:\\%
 
 이 한계는 SE만의 문제가 아니다. 후보 답변의 평균 음의 로그 확률(NLL), confidence margin 같은 \emph{후보 단위 logit 진단} 신호도 ``환각 답이 정답보다 더 자신없게 평가될 것''이라는 직관에 기댄다. 그러나 환각 답이 오히려 더 자신있게 평가되는 사례가 흔하다면, 이런 신호는 단일 점수로 전 영역에서 잘 작동한다고 보기 어렵다.
 
-본 연구는 이런 한계를 \emph{외부 corpus 신호}로 조건화하여 해결한다. 후보 답에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 얼마나 자주 함께 등장하는지(entity-pair co-occurrence)를 정량화해, 각 \emph{corpus support 구간}에서 어떤 신호가 안정적으로 작동하는지 분리해 평가한다. corpus 빈도는 환각 라벨도 아니고 retrieval trigger도 아니며, 어디까지나 \emph{지표 신뢰성을 나누는 외부 조건 변수}이다.
+본 연구는 이런 한계를 \emph{외부 corpus 신호} 로 조건화하여 해결한다. 후보 답의 entity frequency 와 entity-pair co-occurrence 를 외부 corpus 에서 측정한 뒤, 각 \emph{corpus support 구간} 에서 어떤 신호가 안정적으로 작동하는지 분리해 평가한다. corpus 빈도는 환각 라벨도 아니고 retrieval trigger도 아니며, 어디까지나 \emph{지표 신뢰성을 나누는 외부 조건 변수}이다.
 
 
 \section{연구 목적}
@@ -243,13 +243,13 @@ Energy의 문헌적 motivation은 응답 다양성이 작은 사례에서도 토
 
 \section{QuCo-RAG: 외부 corpus 기반 신호}
 
-QuCo-RAG는 Qiu 등(2025)\cite{qucorag}이 retrieval-augmented generation(RAG)의 query-aware corpus grounding 절차에서 사용한 외부 corpus statistic 계열 신호이다. 핵심 아이디어는 입력 query나 후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 entity 쌍이 함께 얼마나 자주 등장하는지(entity-pair co-occurrence)를 corpus 카운트로 측정해, 그 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지''를 정량화하는 것이다.
+QuCo-RAG는 Qiu 등(2025)\cite{qucorag}이 retrieval-augmented generation(RAG) 의 query-aware corpus grounding 절차에서 사용한 외부 corpus statistic 계열 신호이다. 핵심 아이디어는 입력 query 나 후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 를 corpus count 로 측정해, 그 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지'' 를 정량화하는 것이다.
 
 QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus statistic은 다음 두 측면에서 본 연구와 직접 닿는다.
 
 \begin{itemize}
     \item \textbf{모델 출력에 의존하지 않는 외부 신호}. corpus 카운트는 모델의 logit, hidden state, 응답 다양성 등과 독립적으로 산출된다. 따라서 모델 신호의 신뢰도를 \emph{직교적으로} 조건화하는 데 쓸 수 있다.
-    \item \textbf{모델 ``익숙함''의 외부 측정}. 같은 entity가 corpus에 얼마나 자주 등장했는지는 모델이 사전 학습 단계에서 그 entity를 얼마나 마주쳤을지에 대한 \emph{간접 지표}이다. 단, 이는 사전 학습 노출의 직접 증거나 hidden-state 신뢰도와 동일한 것이 아니므로, 어디까지나 보조 신호(proxy)로 다뤄야 한다.
+    \item \textbf{모델 ``익숙함'' 의 외부 측정}. entity 의 corpus frequency 는 모델이 사전 학습 단계에서 그 entity 를 얼마나 마주쳤을지에 대한 \emph{간접 지표} 이다. 다만 이는 사전 학습 노출의 직접 증거나 hidden-state 신뢰도와 동일한 것이 아니므로 어디까지나 proxy 로 다뤄야 한다.
 \end{itemize}
 
 본 연구는 QuCo-RAG의 통계 자체를 그대로 사용하되, 그 \emph{용도}를 retrieval trigger가 아니라 \emph{지표 신뢰도를 나누는 외부 조건 변수}로 재해석한다. 즉 corpus 빈도가 작다고 환각 라벨로 쓰지 않고, 빈도가 크다고 정답 라벨로 쓰지 않으며, 어디까지나 \emph{어떤 corpus support 구간에서 어떤 신호가 더 안정적으로 작동하는지}를 평가하기 위한 binning 변수로 사용한다. 이 재해석은 corpus-grounded 신호와 모델-내부 hidden-state 신호를 명확히 구분하는 본 연구의 guardrail과 일치한다.
@@ -265,6 +265,16 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
     \item \textbf{Energy / logit 계열 신호}. 토큰 단위 확신도 정보를 제공하지만, ``환각 답이 정답보다 더 자신없을 것''이라는 직관에 기댄다. 본 데이터에서는 환각 답이 오히려 더 자신있게 평가되는 CHOKE 사례가 흔해서, 단일 전역 점수로 쓰기 어렵다.
     \item \textbf{외부 조건에 따른 결합 구조의 필요성}. 단일 글로벌 점수가 모든 데이터에서 가장 좋다는 가정 대신, 외부 조건 축에 따라 신호 신뢰성을 분리 평가하는 구조가 필요하다. 본 연구는 그 외부 조건 축으로 corpus support를 사용한다.
 \end{enumerate}
+
+\paragraph{Pretraining corpus coverage 기반 직접 탐지 (Zhang 등 2025).} Zhang 등(2025)\cite{zhang2025corpus}은 본 연구와 독립적으로 유사한 직관에서 출발한 연구를 수행하였다. 이들은 RedPajama 1.3조 토큰 pretraining corpus 위에 suffix array 를 구축하고, prompt 와 생성 답변의 n-gram 빈도($1 \le n \le 5$)를 환각 탐지 신호로 평가하였다. 핵심 결과는 ``occurrence 기반 feature 는 log-probability 보다 약한 단독 신호이지만 함께 쓸 경우 특정 artifact 패턴 탐지에 보완적 가치가 있다''는 것이다. 본 연구와의 차별점은 세 층위에 있다.
+
+\begin{itemize}
+    \item \textbf{신호의 역할}. Zhang 등은 corpus n-gram 통계를 환각 탐지 신호 \emph{자체} 로 평가하는 반면, 본 연구는 corpus 빈도를 탐지 신호로 사용하지 않고 \emph{어느 corpus support 구간에서 어느 신호의 신뢰도가 높은가} 를 나누는 조건 축으로 재해석한다. corpus 빈도가 낮다고 환각 라벨로, 높다고 정답 라벨로 쓰지 않는다.
+    \item \textbf{신호의 단위}. Zhang 등은 token surface 수준의 n-gram lexical coverage 를 측정하나, 본 연구는 entity frequency 와 entity-pair co-occurrence 라는 \emph{관계 수준} 의 신호를 사용한다. 동일 entity 가 등장하더라도 entity 간 관계가 corpus 에 얼마나 공출현하는지를 측정함으로써, ``익숙한 entity 를 잘못된 관계로 조합하는'' CHOKE 패턴과 직접 연결된다.
+    \item \textbf{평가 패러다임}. Zhang 등은 단일 생성 답변의 이진 분류로 평가하는 반면, 본 연구는 같은 prompt 의 정답 후보와 환각 후보를 paired 로 비교하는 matched-pair 설정을 사용한다. 이 설정은 CHOKE 패턴(환각 답이 정답 답보다 더 높은 확신으로 평가됨) 을 paired win-rate 로 직접 검출할 수 있게 한다.
+\end{itemize}
+
+Zhang 등이 명시한 ``결과는 상관관계이며 인과 관계를 확립하지 않는다''는 caveat 은 본 연구의 corpus-level 해석에도 동일하게 적용된다 — corpus 카운트 backend 의 외부 corpus snapshot 이 모델의 실제 pretraining corpus 와 다를 수 있으므로, corpus support 와 환각의 연결은 \emph{상관} 이지 \emph{인과} 가 아니다.
 
 \paragraph{High-certainty hallucination (CHOKE).} Simhi 등(2025)은 모델이 정답 지식을 가지고도 높은 확신으로 환각을 생성하는 사례를 CHOKE로 정의하고, 이런 사례가 logit-only / sample-consistency 기반 detector의 본질적 한계임을 보였다\cite{simhi2025choke}. 본 연구는 Simhi가 제안한 hidden-state probing 대신, corpus support를 조건 축으로 사용해 같은 현상을 외부 신호로 분리해 낼 수 있는지 검증한다. 본 실험에서 CHOKE 패턴은 candidate-level(NLL/margin의 방향 역전)과 corpus-level(entity-pair co-occurrence의 양의 paired win-rate) 두 직교 scope에서 동시에 재현되며, 자세한 결과는 \S\ref{ch:experiment}에서 보고한다.
 
@@ -290,7 +300,7 @@ QuCo-RAG의 원래 사용 맥락은 retrieval grounding이지만, 같은 corpus 
 
 \section{Corpus support를 조건 축으로 사용하는 근거}
 
-후보 답변에 등장하는 entity가 외부 corpus에 얼마나 자주 등장하는지(entity frequency), 그리고 두 entity가 함께 얼마나 자주 등장하는지(entity-pair co-occurrence)는, 모델이 ``익숙한'' entity를 다루고 있는지를 외부 자료로 측정한 지표이다. corpus support를 조건 축으로 쓰는 근거는 다음과 같다.
+후보 답변의 entity frequency 와 entity-pair co-occurrence 는, 모델이 ``익숙한'' entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. corpus support 를 조건 축으로 쓰는 근거는 다음과 같다.
 
 \begin{itemize}
     \item \textbf{모델 출력에 의존하지 않는 외부 신호}. corpus support는 모델의 logit, hidden state, 응답 다양성과 독립적으로 산출된다. 따라서 같은 모델 신호가 어느 외부 조건에서 안정적인지를 \emph{직교적으로} 평가할 수 있다.
@@ -379,12 +389,12 @@ decile & n & paired win-rate [95\% CI] & mean delta [95\% CI] \\
 
 세 가지 패턴이 두드러진다.
 \begin{itemize}
-    \item \textbf{Decile 20--50, 70--90 (n=9{,}948, 86\%)}: 6개 decile에서 paired win-rate가 0.5보다 통계적으로 유의미하게 높다 (CI가 0.5를 가로지르지 않음). corpus-bin weighted fusion이 본 데이터의 대부분 영역에서 환각 후보를 정답보다 위험하게 평가한다. 한편 decile 60--70 (n=587, CI [0.432, 0.550])과 decile 90--100 (n=125, CI [0.464, 0.710])은 0.5를 포함하므로 통계적으로 유의미하지 않다. decile 60--70 의 비유의는 표 5.5 / 5.6 에서 corpus-bin weighted fusion (0.493) 과 gradient boosting (0.534), random forest (0.525) 가 모두 0.5 근처에 모이는 \emph{어떤 신호도 분명한 우위를 갖지 못하는 전이 영역}임을 반영하며, decile 90--100 의 비유의는 표본 수(n=125) 자체가 작아 신뢰구간이 넓어진 결과이다.
+    \item \textbf{Decile 20--50, 70--90 (n=9{,}948, 86\%)}: 6개 decile에서 paired win-rate가 0.5보다 통계적으로 유의미하게 높다 (CI가 0.5를 가로지르지 않음). corpus-bin weighted fusion이 본 데이터의 대부분 영역에서 환각 후보를 정답보다 위험하게 평가한다. 한편 decile 60--70 (n=587, CI [0.432, 0.550])과 decile 90--100 (n=125, CI [0.464, 0.710])은 0.5를 포함하므로 통계적으로 유의미하지 않다. decile 60--70 의 비유의는 표~\ref{tab:bin10_method_matrix}와 표~\ref{tab:bin10_winrate}에서 corpus-bin weighted fusion (0.493), gradient boosting (0.534), random forest (0.525) 가 모두 0.5 근처에 모이는 \emph{어떤 신호도 분명한 우위를 갖지 못하는 전이 영역}임을 반영하며, decile 90--100 의 비유의는 표본 수(n=125) 자체가 작아 신뢰구간이 넓어진 결과이다.
     \item \textbf{Decile 30--50 sweet spot (n=5{,}082)}: paired win-rate 신뢰구간이 [0.587, 0.658] 까지 올라가며, mean delta도 +0.01 이상 양수로 robust하다. 본 결합기의 핵심 작동 영역이다.
     \item \textbf{Decile 00--10 (n=549)}: paired win-rate 신뢰구간 [0.366, 0.468] 이 \emph{0.5보다 낮은 영역에서} 통계적으로 유의미하게 머무른다. corpus가 거의 모르는 답에서는 corpus-bin weighted fusion 이 오히려 잘못된 방향으로 작동함을 명확히 보여준다 (이 영역에서는 corpus를 쓰지 않는 gradient boosting이 1위라는 §결과와 일치).
 \end{itemize}
 
-종합 수준의 비교에서 corpus-bin weighted fusion은 선형 global fusion(logistic regression, AUROC 0.372) 대비 AUROC \textbf{+0.166 [+0.157, +0.176]}, AUPRC +0.096 [+0.089, +0.102]로 신뢰구간이 0을 포함하지 않는다. 한편 비선형 baseline인 sklearn gradient boosting(no corpus, AUROC 0.541)과는 AUROC 차이가 $-0.003$으로 사실상 동급이며, calibration 측면(Brier 0.253, ECE 4.7\%)에서는 gradient boosting(Brier 0.278, ECE 12.1\%)을 명확히 능가한다. 즉 corpus 조건부 구조의 우위는 전체 AUROC 1위에 있는 것이 아니라 (i) decile별 paired 분해에서 다수 구간 통계적 우위, (ii) calibration 지표의 약 2.6배 개선, (iii) 데이터셋 전이 격차 최소(\S\ref{sec:lodo} 참조)에 있다. 본 절의 decile별 분해는 그 조건부 우위가 \emph{어느 corpus support 구간에서 발생하는지}를 정밀하게 보여준다.
+종합 수준의 비교에서 corpus-bin weighted fusion 은 선형 global fusion (logistic regression, AUROC 0.372 — 무작위 0.5 이하의 역방향 결합기) 대비 AUROC \textbf{+0.166 [+0.157, +0.176]}, AUPRC +0.096 [+0.089, +0.102] 로 신뢰구간이 0을 포함하지 않는다. 다만 이 비교는 \emph{역방향으로 작동하는 baseline} 을 기준으로 한다는 점에 유의해야 한다. 실질적 경쟁 baseline 인 비선형 sklearn gradient boosting (no corpus, AUROC 0.541) 과는 AUROC 차이가 $-0.003$ 으로 사실상 동급이다. 본 논문 제안의 우위는 전체 AUROC 1위에 있는 것이 아니라 (i) decile 별 paired 분해에서 다수 구간 통계적 우위 (본 절 표~\ref{tab:bootstrap_ci}), (ii) calibration 지표의 약 2.6배 개선 (Brier 0.253 vs 0.278, ECE 4.7\% vs 12.1\%), (iii) 데이터셋 전이 격차 최소 (\S\ref{sec:lodo}) 의 conditional / 보정 측면에 있다. 본 절의 decile 별 분해는 그 조건부 우위가 \emph{어느 corpus support 구간에서 발생하는지} 를 정밀하게 보여준다.
 
 \section{Corpus support 구간별 신뢰도 (10-bin 정밀 분해)}
 
@@ -460,7 +470,7 @@ Simhi 등(2025)의 CHOKE 패턴, 즉 모델이 정답 지식을 가지고도 hig
 
 \begin{itemize}
     \item \textbf{Candidate-level 증거}. 환각 답이 정답 답보다 NLL이 작고(paired win-rate 0.36), confidence margin이 크다(win-rate 0.34, n$\approx$5{,}200, ties 제외). 두 신호 모두 ``정답이 더 자신있는 답이어야 한다''는 직관과 반대 방향이며, 환각 답이 모델 입장에서 더 자신있는 답으로 평가된다는 뜻이다.
-    \item \textbf{Corpus-level 증거}. 후보 답에서 추출한 entity-pair co-occurrence 축에서 환각 후보가 정답 후보보다 큰 값을 가질 paired win-rate가 0.551이다(n=2{,}499). 즉 환각 답이 corpus에 더 자주 함께 등장하는 entity pair를 사용한다.
+    \item \textbf{Corpus-level 증거}. 후보 답에서 추출한 entity-pair co-occurrence 축에서 환각 후보가 정답 후보보다 큰 값을 가질 paired win-rate 가 0.551 이다(n=2{,}499). 즉 환각 답이 corpus 에서 co-occurrence 가 더 큰 entity pair 를 사용한다. 이 효과 크기는 candidate-level 증거(NLL win-rate 0.36, margin 0.34) 보다 현저히 작으므로 단독 신호보다는 \emph{corroborating evidence} 로 해석한다.
 \end{itemize}
 
 두 증거는 같은 그림을 가리킨다. 모델은 익숙한 entity를 잘못된 관계로 confident하게 조합해 환각을 만든다. logit이나 sample-consistency 기반 detector의 본질적 한계를 외부 corpus 신호로 분리해 낼 수 있음을 의미한다. 본 논문은 Simhi 등이 제안한 hidden-state probing 대신 corpus 축으로 같은 현상을 분리해 낸다.
@@ -469,16 +479,16 @@ Simhi 등(2025)의 CHOKE 패턴, 즉 모델이 정답 지식을 가지고도 hig
 
 한 데이터셋만 학습한 결합기가 다른 데이터셋에서도 우위를 유지하는지 확인하기 위해 \emph{한 데이터셋 빼고 학습 (leave-one-dataset-out)} 분할을 적용한다. 절차는 다음과 같다. 두 데이터셋(HaluEval-QA / TruthfulQA) 중 하나를 \emph{평가 전용}으로 따로 빼고, 나머지 데이터셋으로만 결합기를 학습한 뒤 빠진 데이터셋에서 평가한다. 이를 두 데이터셋에 대해 한 번씩 수행하면 (i) HaluEval-QA로 학습하고 TruthfulQA에서 평가, (ii) TruthfulQA로 학습하고 HaluEval-QA에서 평가, 두 결과가 나온다. 한 결합기가 \emph{학습 데이터셋과 다른 종류의 데이터셋에서도 잘 작동하는지}를 보는 도메인 전이 검증이다.
 
-표~\ref{tab:lodo}는 그 결과이다. ``HaluEval-QA only''는 HaluEval-QA만 학습 데이터로 사용해 적합한 결합기의 평가 결과(평가 데이터에는 두 데이터셋 모두 포함됨)이고, ``TruthfulQA only''도 같은 방식이다. AGG는 학습/평가 모두 두 데이터셋을 합쳐 사용한 종합 결과이다.
+표~\ref{tab:lodo}는 그 결과이다. 표 헤더 ``Eval HaluEval-QA''는 \emph{HaluEval-QA를 평가 전용으로 따로 빼고} TruthfulQA만으로 결합기를 학습한 뒤 빠진 HaluEval-QA(n=10{,}000) 에서 평가한 결과이다. 마찬가지로 ``Eval TruthfulQA''는 HaluEval-QA만으로 학습하고 TruthfulQA(n=1{,}630) 에서 평가한 결과이다. AGG는 학습 / 평가 모두 두 데이터셋을 합쳐 사용한 종합 결과(prompt 단위 fold 분리) 이다.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{데이터셋 간 일반화 (leave-one-dataset-out) AUROC. AGG: 두 데이터셋을 모두 학습/평가에 포함한 종합 결과. ``HaluEval-QA only'' / ``TruthfulQA only'': 해당 데이터셋만으로 학습한 결합기의 평가 결과. 두 분할 사이 격차가 작을수록 데이터셋 전이에 robust.}
+\caption{데이터셋 간 일반화 (leave-one-dataset-out) AUROC. AGG: 두 데이터셋을 모두 학습 / 평가에 포함한 종합 결과 (prompt 단위 fold 분리). ``Eval HaluEval-QA'' / ``Eval TruthfulQA'': 해당 데이터셋을 평가 전용으로 빼고 \emph{나머지 한 데이터셋만으로} 학습한 결합기의 결과. 두 분할 사이 격차가 작을수록 데이터셋 전이에 robust.}
 \label{tab:lodo}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Method & AGG & HaluEval-QA only & TruthfulQA only \\
+Method & AGG & Eval HaluEval-QA & Eval TruthfulQA \\
 \midrule
 \textbf{corpus-bin weighted fusion} & \textbf{0.538} & \textbf{0.536} & \textbf{0.556} \\
 gradient boosting (no corpus) & 0.541 & 0.550 & 0.523 \\
@@ -513,7 +523,7 @@ global fusion (no corpus) & 0.279 & 0.196 \\
 \end{tabular}
 \end{table}
 
-corpus-bin weighted fusion은 분류 정확도뿐 아니라 calibration에서도 1위이다(Brier 0.253, ECE 4.7\%). 다른 방법 대비 ECE가 1/2--1/4 수준으로 작아, 점수를 확률로 해석해 후속 의사결정에 쓰는 상황에 가장 적합하다.
+corpus-bin weighted fusion 은 분류 정확도뿐 아니라 calibration 에서도 1위이다 (Brier 0.253, ECE 4.7\%). 다른 방법 대비 ECE 가 1/2--1/4 수준으로 작다. 다만 calibration 우위의 실용적 의미는 downstream use case 에 따라 달라진다 — 본 실험의 모든 방법의 AUROC 는 0.5--0.54 범위로 discriminability 자체가 제한적이므로, 탐지 점수를 단순 순위(ranking) 로 쓰는 응용에서는 calibration 의 직접적 이점이 작다. 반면 점수를 확률로 해석해 임계값 기반 선별 (예: 점수 $\ge 0.7$ 인 응답만 사용자에게 표시) 이나 downstream 리스크 계산에 사용하는 경우, calibration 이 좋은 점수는 실제 오류율과의 일치도가 높아 의사결정 품질이 개선된다. 본 실험의 ECE 4.7\% 는 실제 오류율과의 오차가 약 4.7\%p 이내임을 의미한다. 단, AUROC 0.54 수준의 탐지기를 실제 배포할 경우 false positive / negative 율이 높다는 근본적 한계는 calibration 개선만으로 해소되지 않으며, 이는 본 연구의 주요 한계점 중 하나이다.
 
 \chapter{결론}{\label{ch:conclusion}}
 
@@ -522,20 +532,20 @@ corpus-bin weighted fusion은 분류 정확도뿐 아니라 calibration에서도
 본 논문은 LLM 환각 탐지에서 Semantic Entropy(SE), Semantic Energy, corpus-grounded 신호를 corpus support라는 조건 축 관점에서 재정리하고, paired 설정 위에서 비교 평가하였다. 제~\ref{ch:intro}장에서 제시한 세 연구 질문에 대한 답을 정리하면 다음과 같다.
 
 \paragraph{RQ1: Corpus support에 따른 신호 신뢰성 변화 측정.}
-SE / Semantic Energy / logit diagnostic의 신뢰도는 corpus support 구간에 따라 \emph{비단조적으로 변한다}. logit diagnostic의 paired win-rate는 중간 decile(20--50)에서 0.28--0.36까지 떨어져 환각 답이 정답보다 더 자신있게 평가되는 CHOKE 방향 역전이 가장 심하고, 동일 영역에서 corpus-bin weighted fusion은 win-rate 0.62--0.64로 가장 강하게 작동한다. SE / Semantic Energy 자체는 prompt 또는 cluster 단위 신호이므로 candidate-row AUROC로 직접 비교할 수 없으며, 이를 별도 평가 단위로 분리하지 않으면 신호 가치가 가려진다.
+SE / Semantic Energy / logit diagnostic 의 신뢰도는 corpus support 구간에 따라 단조롭지 않은 패턴을 보인다. logit diagnostic 의 paired win-rate 는 중간 decile (20--50) 에서 0.28--0.36까지 떨어져 CHOKE 방향 역전이 가장 심하고, 동일 영역에서 corpus-bin weighted fusion 은 win-rate 0.62--0.64 로 가장 강하게 작동한다. 다만 decile 60--70 의 일시적 dip 후 70--80 회복 패턴은 해당 decile 의 신뢰구간이 0.5 를 포함하는 비유의 영역을 포함하므로, 잔차 noise 와 실제 구조적 비단조성을 구별하려면 독립 데이터셋 검증이 필요하다. 현재 데이터에서 확인 가능한 사실은 ``corpus support 가 높을수록 탐지 신호가 단조롭게 개선되지는 않는다'' 는 점이다. SE / Semantic Energy 자체는 prompt 또는 cluster 단위 신호이므로 candidate-row AUROC 로 직접 비교할 수 없으며, 이를 별도 평가 단위로 분리하지 않으면 신호 가치가 가려진다.
 
 \paragraph{RQ2: Conditional fusion의 효용 검증.}
-선형 global fusion(말뭉치 신호 미사용, AUROC 0.372) 대비 corpus-bin weighted fusion(0.538)은 AUROC가 \HeadlineCorpusFusionAurocDelta\ 향상되며 95\% prompt-grouped bootstrap 신뢰구간 [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper]가 0보다 위에 있다(AUPRC 차이도 양수, 절대값 \HeadlineCorpusFusionAuprcDelta). 다만 \emph{비선형} global fusion인 sklearn gradient boosting(0.541)과는 종합 AUROC가 사실상 동급이다. 본 논문 제안 결합기의 우위는 (i) decile 30--80의 6개 구간에서 paired win-rate 1위, (ii) 데이터셋 전이 시 격차 가장 작음(0.020 vs gradient boosting 0.027), (iii) calibration 1위(Brier 0.253, ECE 4.7\% — gradient boosting의 1/2.6 수준) 라는 conditional / 보정 측면에 있다.
+선형 global fusion (logistic regression, AUROC 0.372) 은 무작위 0.5 이하의 \emph{역방향} 결합기이다. corpus-bin weighted fusion (0.538) 은 이 역방향 baseline 대비 AUROC \HeadlineCorpusFusionAurocDelta\ [\HeadlineCorpusFusionAurocCILower, \HeadlineCorpusFusionAurocCIUpper] 의 유의미한 회복을 달성한다 (AUPRC 차이도 양수, 절대값 \HeadlineCorpusFusionAuprcDelta). 그러나 실질적 경쟁 baseline 인 비선형 sklearn gradient boosting (no corpus, AUROC 0.541) 과는 종합 AUROC 가 사실상 동급 (차이 $-0.003$) 이다. 본 논문 제안 결합기의 독립적 가치는 종합 AUROC 우위가 아니라 (i) decile 30--80 의 6 개 구간에서 paired win-rate 1위, (ii) 데이터셋 전이 격차 최소 (0.020 vs gradient boosting 0.027), (iii) calibration 1위 (Brier 0.253, ECE 4.7\% — gradient boosting 의 1/2.6 수준) 라는 conditional / 보정 측면에 있다.
 
 \paragraph{RQ3: CHOKE 패턴의 외부 신호 분리.}
-Simhi 등(2025)\cite{simhi2025choke}의 CHOKE 패턴이 본 데이터에서 두 직교 scope에서 동시 재현되었다. candidate-level에서는 NLL paired win-rate 0.36, confidence margin 0.34로 환각 답이 더 자신있게 평가됨이 일관 관측되고, corpus-level에서는 entity-pair co-occurrence paired win-rate 0.551로 환각 답이 corpus에 더 자주 함께 등장하는 entity pair를 사용한다. 두 증거는 ``모델은 익숙한 entity를 잘못된 관계로 confident하게 조합해 환각을 만든다''는 같은 그림을 가리키며, 외부 corpus 신호가 logit-only / sample-consistency 기반 detector의 본질적 한계를 분리해 낼 수 있음을 보여준다.
+Simhi 등(2025)\cite{simhi2025choke}의 CHOKE 패턴이 본 데이터에서 두 직교 scope에서 동시 재현되었다. candidate-level 에서는 NLL paired win-rate 0.36, confidence margin 0.34 로 환각 답이 더 자신있게 평가됨이 일관 관측되고, corpus-level 에서는 entity-pair co-occurrence paired win-rate 0.551 로 환각 답이 corpus 에서 co-occurrence 가 더 큰 entity pair 를 사용한다는 \emph{상관 관계} 가 관측된다. 두 증거를 종합하면 corpus 에서 고-co-occurrence entity pair 가 환각 답변에 더 자주 사용된다는 패턴이 외부 corpus 신호로 분리 가능함을 보여준다. 이는 모델이 corpus 노출 빈도가 높은 entity 조합을 더 confident 하게 생성하는 경향과 일관되나, 본 실험 corpus(Infini-gram 16B token) 와 모델의 실제 pretraining 데이터가 다르므로 \emph{인과 관계} 로 해석하는 데는 주의가 필요하다 (Zhang 등(2025)\cite{zhang2025corpus} 에서도 동일한 caveat 명시).
 
 \section{학술적 기여}
 
 본 논문의 학술적 기여는 다음과 같다.
 
 \begin{enumerate}
-    \item \textbf{CHOKE 패턴의 두 직교 scope 동시 재현}. Simhi 등(2025)\cite{simhi2025choke}이 hidden-state probing으로 보고한 high-certainty hallucination 패턴을 candidate-level(NLL / confidence margin paired win-rate 0.36 / 0.34) 과 corpus-level(entity-pair co-occurrence paired win-rate 0.551) 에서 동시에 재현하였다. \emph{외부 corpus 신호만으로} 같은 현상을 분리해 낼 수 있음을 실증한 첫 시도이다.
+    \item \textbf{CHOKE 패턴의 두 직교 scope 동시 재현}. Simhi 등(2025)\cite{simhi2025choke}이 hidden-state probing으로 보고한 high-certainty hallucination 패턴을 candidate-level(NLL / confidence margin paired win-rate 0.36 / 0.34) 과 corpus-level(entity-pair co-occurrence paired win-rate 0.551) 에서 동시에 재현하였다. 저자들이 검토한 범위에서, entity frequency / co-occurrence 를 직접 탐지 신호가 아닌 \emph{조건 축}으로 재해석하고 CHOKE 패턴을 candidate-level 과 corpus-level 두 scope 에서 동시 정량 검증한 연구는 보고되지 않았다. 다만 Zhang 등(2025)\cite{zhang2025corpus}은 독립적으로 pretraining corpus 의 n-gram 통계가 환각 탐지에 보완 신호를 제공함을 보였으며, 본 연구와의 구체적 차이는 \S\ref{ch:related}에 정리하였다.
     \item \textbf{Conditional reliability 분석 절차의 통계적 검증}. corpus support bin마다 어떤 신호가 안정적으로 작동하는지 분리 평가하는 절차를 제안하고, corpus-bin weighted fusion이 선형 global fusion 대비 AUROC \HeadlineCorpusFusionAurocDelta\ [+0.157, +0.176] 의 유의미한 우위를 보임을 95\% prompt-grouped bootstrap으로 검증하였다. 전체 AUROC에서는 비선형 gradient boosting과 동급이나, calibration(ECE 4.7\% vs 12.1\%) 측면에서 corpus 조건부 구조의 독립적 가치를 확인하였다.
     \item \textbf{평가 단위 분리의 명시적 적용}. SE는 prompt-level broadcast, Semantic Energy는 cluster $\to$ prompt 단위 collapse, logit diagnostic은 candidate-level 신호임을 본문, 표, 그림 전체에 일관되게 적용하여, 단위 혼동에서 비롯된 잘못된 비교를 차단하였다.
 \end{enumerate}
@@ -639,6 +649,11 @@ W. Zhao et al.,
 S. Valentin et al.,
 ``Cost-Effective Hallucination Detection for LLMs,''
 \textit{arXiv preprint arXiv:2407.21424}, 2024.
+
+\bibitem{zhang2025corpus}
+Y. Zhang et al.,
+``Probing Hallucination via Pretraining-corpus Coverage: A Suffix-Array N-gram Study,''
+\textit{arXiv preprint arXiv:2511.17946}, 2025.
 
 \end{thebibliography}
 
