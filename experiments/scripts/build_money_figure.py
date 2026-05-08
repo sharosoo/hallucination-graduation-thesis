@@ -296,7 +296,7 @@ def main() -> int:
         [[v if v is not None else np.nan for v in row] for row in candidate_matrix],
         dtype=float,
     )
-    im_a = ax_a.imshow(arr_a, cmap="RdBu_r", vmin=0.3, vmax=0.7, aspect="auto")
+    im_a = ax_a.imshow(arr_a, cmap="coolwarm", vmin=0.3, vmax=0.7, aspect="auto")
     ax_a.set_yticks(range(len(CANDIDATE_LEVEL_SIGNALS)))
     ax_a.set_yticklabels([label for _, label in CANDIDATE_LEVEL_SIGNALS])
     ax_a.set_xticks(range(len(bins)))
@@ -315,11 +315,12 @@ def main() -> int:
                 ax_a.text(
                     j,
                     i,
-                    f"{v:.3f}\nn={n}",
+                    f"{v:.2f}\nn={n}",
                     ha="center",
                     va="center",
-                    fontsize=7,
-                    color="white" if abs(v - 0.5) > 0.08 else "black",
+                    fontsize=8,
+                    fontweight="bold",
+                    color="white" if abs(v - 0.5) > 0.12 else "black",
                 )
     plt.colorbar(im_a, cax=cax_a).set_label("paired win-rate", fontsize=8)
 
@@ -328,7 +329,7 @@ def main() -> int:
         [[v if v is not None else np.nan for v in row] for row in prompt_matrix_z],
         dtype=float,
     )
-    im_b = ax_b.imshow(arr_b, cmap="viridis", aspect="auto")
+    im_b = ax_b.imshow(arr_b, cmap="cividis", aspect="auto")
     ax_b.set_yticks(range(len(PROMPT_LEVEL_SIGNALS)))
     ax_b.set_yticklabels([label for _, label in PROMPT_LEVEL_SIGNALS])
     ax_b.set_xticks(range(len(bins)))
@@ -350,7 +351,8 @@ def main() -> int:
                     f"μ={raw_v:.2f}\nn={n}",
                     ha="center",
                     va="center",
-                    fontsize=7,
+                    fontsize=8,
+                    fontweight="bold",
                     color="white",
                 )
     plt.colorbar(im_b, cax=cax_b).set_label("z-score (per signal)", fontsize=8)
