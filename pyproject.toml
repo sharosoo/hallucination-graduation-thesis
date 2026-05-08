@@ -19,6 +19,11 @@ generation = [
   "torch>=2.4.0",
   "transformers>=4.45.0",
 ]
+figures = [
+  "matplotlib>=3.8.0",
+  "numpy>=1.26.0",
+  "pyarrow>=17.0.0",
+]
 
 [tool.setuptools.packages.find]
 include = ["experiments*"]

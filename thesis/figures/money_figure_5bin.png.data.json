@@ -1,0 +1,241 @@
+{
+  "bin_field": "corpus_axis_bin_5",
+  "bins": [
+    "very_low_support",
+    "low_support",
+    "mid_support",
+    "high_support",
+    "very_high_support"
+  ],
+  "candidate_signals": [
+    {
+      "feature_key": "mean_negative_log_probability",
+      "label": "NLL (mean)",
+      "win_rate": [
+        0.31635802469135804,
+        0.387459224356651,
+        0.4034729315628192,
+        0.4123456790123457,
+        0.38461538461538464
+      ],
+      "n_nontied": [
+        648,
+        2759,
+        979,
+        405,
+        169
+      ]
+    },
+    {
+      "feature_key": "confidence_margin",
+      "label": "confidence margin",
+      "win_rate": [
+        0.3498452012383901,
+        0.30679752817157396,
+        0.32205128205128203,
+        0.38154613466334164,
+        0.5301204819277109
+      ],
+      "n_nontied": [
+        646,
+        2751,
+        975,
+        401,
+        166
+      ]
+    },
+    {
+      "feature_key": "logit_variance",
+      "label": "logit variance",
+      "win_rate": [
+        0.6269349845201239,
+        0.6648491457651763,
+        0.680327868852459,
+        0.5810473815461347,
+        0.4397590361445783
+      ],
+      "n_nontied": [
+        646,
+        2751,
+        976,
+        401,
+        166
+      ]
+    },
+    {
+      "feature_key": "entity_pair_cooccurrence_axis",
+      "label": "pair co-occurrence axis",
+      "win_rate": [
+        0.5421052631578948,
+        0.5543345543345544,
+        0.5364238410596026,
+        0.47863247863247865,
+        0.4732142857142857
+      ],
+      "n_nontied": [
+        190,
+        819,
+        302,
+        234,
+        112
+      ]
+    }
+  ],
+  "prompt_signals": [
+    {
+      "feature_key": "semantic_entropy_nli_likelihood",
+      "label": "Semantic Entropy",
+      "bin_mean": [
+        0.7392893987204644,
+        0.6210077376822649,
+        0.7555836639086362,
+        1.0951165704589116,
+        1.3411823309512727
+      ],
+      "bin_mean_zscore": [
+        -0.6407795061129424,
+        -1.0836307821197717,
+        -0.5797731246769806,
+        0.6914516754510533,
+        1.6127317374586414
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    },
+    {
+      "feature_key": "semantic_entropy_cluster_count",
+      "label": "SE cluster count",
+      "bin_mean": [
+        3.9732868757259,
+        3.5278336686787393,
+        4.146067415730337,
+        5.968692449355433,
+        7.466911764705882
+      ],
+      "bin_mean_zscore": [
+        -0.7042299510726386,
+        -1.0049201093192377,
+        -0.5875995012432214,
+        0.6427102172968021,
+        1.6540393443382941
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    },
+    {
+      "feature_key": "semantic_energy_cluster_uncertainty",
+      "label": "Semantic Energy",
+      "bin_mean": [
+        -125.97164447626301,
+        -141.2657980965875,
+        -126.1822617327231,
+        -87.09568296080106,
+        -51.91095411252531
+      ],
+      "bin_mean_zscore": [
+        -0.5967380676515571,
+        -1.0650962469179661,
+        -0.6031878730612955,
+        0.5937740067411172,
+        1.6712481808897022
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    },
+    {
+      "feature_key": "semantic_energy_sample_energy",
+      "label": "Energy (sample mean)",
+      "bin_mean": [
+        -22.08580768094035,
+        -22.45370198483043,
+        -21.89037046049869,
+        -19.96912186475978,
+        -18.420270886508952
+      ],
+      "bin_mean_zscore": [
+        -0.7304479132135582,
+        -0.9699656125348893,
+        -0.6032084509360243,
+        0.6476210362560627,
+        1.6560009404284044
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    },
+    {
+      "feature_key": "semantic_energy_boltzmann_diagnostic",
+      "label": "Boltzmann diagnostic",
+      "bin_mean": [
+        -22.72656393141476,
+        -23.299220590031503,
+        -23.149661626425782,
+        -22.57185078339256,
+        -22.248173772807306
+      ],
+      "bin_mean_zscore": [
+        0.1893748890917777,
+        -1.305819900925979,
+        -0.915324514521351,
+        0.5933277452915287,
+        1.4384417810640329
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    },
+    {
+      "feature_key": "entity_frequency_axis",
+      "label": "entity frequency axis",
+      "bin_mean": [
+        0.009669538908246227,
+        0.03521889034205231,
+        0.23832379256698358,
+        0.6064894990791897,
+        0.8113676139705882
+      ],
+      "bin_mean_zscore": [
+        -1.0395178450432108,
+        -0.9591685409114945,
+        -0.3204307004698679,
+        0.8374013642719258,
+        1.4817157221526476
+      ],
+      "n_prompts": [
+        861,
+        2982,
+        1157,
+        543,
+        272
+      ]
+    }
+  ],
+  "notes": [
+    "Panel A cells: paired win-rate of hallucinated vs correct candidate within the same prompt, ties excluded.",
+    "Panel B cells: prompt-level bin mean z-scored within each signal row to share a single colormap.",
+    "SE / Energy / energy_diagnostic / entity_frequency_axis are prompt-level (broadcast); their candidate-row paired win-rate is structurally undefined and reported instead via Panel B."
+  ]
+}
