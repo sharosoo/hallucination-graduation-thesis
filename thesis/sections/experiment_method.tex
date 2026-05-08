@@ -26,9 +26,9 @@ HaluEval-QA & 5,000 & 10,000 & right/hallucinated answer \\
 \end{tabular}
 \end{table}
 
-\subsection{정답성 라벨링}
+\subsection{환각 여부 라벨링}
 
-정답성 라벨은 모델 출력이나 후처리 judge에서 오지 않는다. 각 candidate row의 주 라벨은 데이터셋 annotation이 제공하는 \texttt{is\_hallucination} 이진 값이며, 이 값이 최종 환각 탐지 평가의 기준이다. 즉 본 연구는 데이터셋 annotation을 ground truth로 받아들이고, 모델 출력 자체에서 라벨을 유도하지 않는다. 이때 Semantic Entropy는 prompt 단위 값이므로 같은 질문의 정답 후보와 환각 후보가 같은 SE 값을 공유한다.
+환각 여부 라벨은 모델 출력이나 후처리 judge에서 오지 않는다. 각 candidate row의 주 라벨은 데이터셋 annotation이 제공하는 \texttt{is\_hallucination} 이진 값이며, 이 값이 최종 환각 탐지 평가의 기준이다. 즉 본 연구는 데이터셋 annotation을 ground truth로 받아들이고, 모델 출력 자체에서 라벨을 유도하지 않는다. 이때 Semantic Entropy는 prompt 단위 값이므로 같은 질문의 정답 후보와 환각 후보가 같은 SE 값을 공유한다.
 
 \subsection{모델 scoring 절차}
 
@@ -63,7 +63,7 @@ U(\mathbf{x}) &= \sum_{k=1}^{K} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) 
 한편 teacher-forced candidate scoring에서 얻은 token-level $-\log Z$의 평균, NLL의 평균, logit variance, confidence margin은 candidate-level Boltzmann-style energy diagnostic으로 별도 보존하며, Semantic Energy와 같은 열에 합치지 않는다.
 
 \paragraph{Corpus-grounded feature.}
-Corpus feature는 후보 답변 텍스트에서 entity를 추출한 뒤 Infini-gram-compatible count backend로 entity frequency와 entity-pair co-occurrence를 query하여, raw count, log-transformed continuous score, 그리고 3-bin / 5-bin / 10-bin corpus support label(\texttt{corpus\_axis\_bin}, \texttt{\_5}, \texttt{\_10})을 함께 기록한다. 본 실험의 기본 backend는 \texttt{InfinigramLocalEngineBackend} 위의 \texttt{v4\_dolmasample\_olmo} index(16B Dolma sample tokens, OLMo tokenizer)이며, \texttt{s3://infini-gram-lite/index/v4\_dolmasample\_olmo/}에서 미리 로컬 디스크로 동기화한 뒤 \texttt{InfiniGramEngine.count\_cnf} AND query로 pair count를 얻는다. 공개 REST API(\texttt{https://api.infini-gram.io/})는 같은 cache schema의 fallback으로 둔다. 이 feature는 외부 corpus에서 후보 답변의 지지 가능성을 간접적으로 나타내는 proxy이며, 모델의 hidden-state나 정답성 라벨을 사용하지 않는다. 낮은 frequency와 zero co-occurrence는 환각 라벨이 아니라 지표 신뢰도를 조건화하는 binning 변수이다.
+Corpus feature는 후보 답변 텍스트에서 entity를 추출한 뒤 Infini-gram-compatible count backend로 entity frequency와 entity-pair co-occurrence를 query하여, raw count, log-transformed continuous score, 그리고 3-bin / 5-bin / 10-bin corpus support label(\texttt{corpus\_axis\_bin}, \texttt{\_5}, \texttt{\_10})을 함께 기록한다. 본 실험의 기본 backend는 \texttt{InfinigramLocalEngineBackend} 위의 \texttt{v4\_dolmasample\_olmo} index(16B Dolma sample tokens, OLMo tokenizer)이며, \texttt{s3://infini-gram-lite/index/v4\_dolmasample\_olmo/}에서 미리 로컬 디스크로 동기화한 뒤 \texttt{InfiniGramEngine.count\_cnf} AND query로 pair count를 얻는다. 공개 REST API(\texttt{https://api.infini-gram.io/})는 같은 cache schema의 fallback으로 둔다. 이 feature는 외부 corpus에서 후보 답변의 지지 가능성을 간접적으로 나타내는 proxy이며, 모델의 hidden-state나 환각 여부 라벨을 사용하지 않는다. 낮은 frequency와 zero co-occurrence는 환각 라벨이 아니라 지표 신뢰도를 조건화하는 binning 변수이다.
 
 \subsection{실험 단계}
 
@@ -71,7 +71,7 @@ Corpus feature는 후보 답변 텍스트에서 entity를 추출한 뒤 Infini-g
 
 \begin{enumerate}
     \item \textbf{Paired 데이터셋 구성}. TruthfulQA와 HaluEval-QA에서 prompt별 정답 후보와 환각 후보를 구성한다.
-    \item \textbf{모델 출력 수집}. 각 prompt에 대해 N=10 답변을 free sampling하고, 각 후보 답변을 teacher-forced full-logit으로 scoring한다. 정답성 라벨은 데이터셋 annotation만 사용해 확정한다.
+    \item \textbf{모델 출력 수집}. 각 prompt에 대해 N=10 답변을 free sampling하고, 각 후보 답변을 teacher-forced full-logit으로 scoring한다. 환각 여부 라벨은 데이터셋 annotation만 사용해 확정한다.
     \item \textbf{Semantic Entropy 계산}. prompt-level N=10 표본을 NLI semantic cluster로 묶고 likelihood-based SE와 cluster metadata를 계산한다.
     \item \textbf{Corpus support 축 계산}. 후보 답변에서 entity frequency와 entity-pair co-occurrence를 continuous score와 bin label(3-bin / 5-bin / 10-bin)로 계산한다.
     \item \textbf{Semantic Energy 계산}. 생성된 답변의 semantic cluster와 selected-token logit에서 Semantic Energy를 계산하고, candidate-level logit diagnostic은 별도로 계산한다.
