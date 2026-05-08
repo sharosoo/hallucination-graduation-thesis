@@ -196,13 +196,14 @@ SE의 계산 과정은 다음과 같다:
 
 \subsection{한계점}
 
-SE의 주요 한계점은 다음과 같다.
+SE 자체의 주요 한계점은 다음과 같다.
 \begin{itemize}
     \item \textbf{Hard clustering}: 응답을 이진적(동일/다름)으로 묶어 세밀한 유사도를 반영하지 못한다.
     \item \textbf{단일 cluster 사례에서의 판별력 한계}: 모든 응답이 하나의 cluster로 수렴하면 SE 값이 작아져 prompt 단위 순위 정보가 줄어든다. 이런 사례가 곧 정답을 의미하지는 않지만, SE만으로는 환각/정답을 가리기 어렵다.
     \item \textbf{응답 길이와 클러스터링 의존성}: 긴 응답이나 복잡한 답변에서는 NLI 기반 클러스터링 품질에 따라 결과가 달라질 수 있다.
-    \item \textbf{후보 단위 평가에서의 broadcast}: SE는 prompt 단위 값이므로, 같은 prompt의 두 candidate row(정답/환각)에 같은 값이 복사된다. candidate-row AUROC로는 0.5에 묶여 두 후보 사이 순위를 알려주지 못한다.
 \end{itemize}
+
+한편 SE는 정의상 prompt 단위 값이므로, 본 연구가 사용하는 paired 평가 설정에서 같은 prompt의 두 candidate row(정답/환각)에 동일 값이 복사된다. 이는 SE 자체의 한계라기보다 \emph{paired candidate-row 평가에 prompt-level 신호를 적용한 구조적 결과}이며, 본 논문은 이 점을 \S\ref{ch:experiment}에서 분리해 다룬다.
 
 
 \section{Semantic Energy}
@@ -246,7 +247,7 @@ Energy의 문헌적 motivation은 응답 다양성이 작은 사례에서도 토
 
 \begin{enumerate}
     \item \textbf{환각 분류 및 평가 연구}. 환각의 정의, 사실성 평가, 벤치마크를 제공하지만, ``\emph{어느 입력 조건에서 어느 탐지 신호의 신뢰도가 높은가}'' 라는 조건부 신뢰성 문제는 직접 다루지 않는다.
-    \item \textbf{SE 계열 방법}. 반복 샘플링과 의미 cluster 분포를 활용하지만, 모든 응답이 하나의 cluster로 수렴하는 사례에서는 prompt 단위 정보가 줄어든다. SE 자체가 candidate-row 단위에서는 0.5에 묶인다는 점은 candidate-row 평가에서 별도로 다뤄야 한다.
+    \item \textbf{SE 계열 방법}. 반복 샘플링과 의미 cluster 분포를 활용하지만, 모든 응답이 하나의 cluster로 수렴하는 사례에서는 prompt 단위 정보가 줄어든다.
     \item \textbf{Energy / logit 계열 신호}. 토큰 단위 확신도 정보를 제공하지만, ``환각 답이 정답보다 더 자신없을 것''이라는 직관에 기댄다. 본 데이터에서는 환각 답이 오히려 더 자신있게 평가되는 CHOKE 사례가 흔해서, 단일 전역 점수로 쓰기 어렵다.
     \item \textbf{외부 조건에 따른 결합 구조의 필요성}. 단일 글로벌 점수가 모든 데이터에서 가장 좋다는 가정 대신, 외부 조건 축에 따라 신호 신뢰성을 분리 평가하는 구조가 필요하다. 본 연구는 그 외부 조건 축으로 corpus support를 사용한다.
 \end{enumerate}
