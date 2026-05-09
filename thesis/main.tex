@@ -125,7 +125,7 @@ LLM 환각 탐지에서 Semantic Entropy (SE\cite{farquhar2024}), Semantic Energ
 본 논문은 다음 세 질문을 다룬다.
 
 \begin{enumerate}
-    \item \textbf{난이도 ↔ corpus support 관계}. SE, Semantic Energy, logit-diagnostic, fusion 의 AUROC 가 corpus support 영역 (10-decile) 에 따라 어떻게 변하는가? 모든 신호가 공통 패턴을 보이는가, 아니면 신호별로 다른가?
+    \item \textbf{탐지 난이도와 corpus support 의 관계}. 본 논문에서 \emph{탐지 난이도} 는 한 영역 안에서 탐지기의 AUROC 가 낮은 정도를 가리킨다 (AUROC 가 낮을수록 어려운 질문과 쉬운 질문을 가르기 어려움). SE, Semantic Energy, logit-diagnostic, fusion 의 AUROC 가 corpus support 영역 (10-decile) 에 따라 어떻게 변하는가? 모든 신호가 공통 패턴을 보이는가, 아니면 신호별로 다른가?
     \item \textbf{영역별 단일 신호 우열}. 단일 신호 비교 (SE / Energy / logit-diagnostic) 의 결론이 corpus support 영역에 따라 달라지는가, 아니면 일관된가?
     \item \textbf{Fusion 의 영역별 변동}. Fusion 결합기가 단일 신호보다 항상 우수한가, 아니면 어떤 영역에서는 단일 신호가 더 좋은 케이스가 있는가?
 \end{enumerate}
@@ -343,7 +343,7 @@ Fusion 이 두 데이터셋 모두에서 1위이며 calibration 도 1위 (Brier 
 \section{학술적 기여}
 
 \begin{enumerate}
-    \item \textbf{영역별 분해를 통한 평균 metric 의 한계 노출}. 환각 탐지 난이도가 corpus 부족 영역에 집중됨을 모든 신호에 공통적으로 정량화. 평균 AUROC 한 수치가 가리는 입력 조건별 변동을 데이터로 보였다.
+    \item \textbf{영역별 분해를 통한 평균 metric 의 한계 노출}. sample-consistency 계열 신호의 탐지 난이도 (영역별 AUROC 가 낮은 정도) 가 corpus 부족 영역에 집중됨을 정량화. 평균 AUROC 한 수치가 가리는 입력 조건별 변동을 데이터로 보였다.
     \item \textbf{Fusion 우위 폭의 corpus 영역별 변동}. Fusion 이 Energy 단독을 평균 +\HeadlineFusionVsEnergyMean 능가하나, decile 70--80 에서 +\HeadlineFusionVsEnergyMaxDelta 까지 벌어지고 decile 40--50 에서는 오히려 0.014 줄어드는 변동을 보고하였다. 기존 fusion 연구 (Valentin 2024\cite{valentin2024}, SelfCheckGPT\cite{selfcheckgpt2023}) 가 평균 metric 만 보고하는 관행이 가리는 변동이 있음을 시사한다.
     \item \textbf{외부 corpus 를 평가 단위로 사용하는 분석 절차}. Valentin 등 (2024) 이 모델 \emph{내부} score attribute 로 conditional calibration 을 시도한 방향과 직교적으로, 본 논문은 모델 출력과 독립적인 \emph{외부} corpus statistic 을 평가 단위로 사용해 영역별 행태를 분해한다. 두 방향은 결합 가능한 보완 구조이다.
 \end{enumerate}
