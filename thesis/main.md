@@ -142,7 +142,7 @@ corpus statistic 은 단계 (2) 의 평가 단위로만 사용하고 단계 (4) 
 
 ### 데이터셋 구성
 
-TruthfulQA 와 HaluEval-QA 두 데이터셋을 사용한다. TruthfulQA 는 `correct_answers` / `incorrect_answers` 에서 결정론적으로 한 쌍씩, HaluEval-QA 는 제공되는 `right_answer` / `hallucinated_answer` 를 그대로 사용한다. 각 질문마다 정확히 두 후보 답 (정답 + 환각) 을 두며, 최종 데이터는 5,815 개 질문 + 11,630 개 후보 답이다 (TruthfulQA 815 / 1,630, HaluEval-QA 5,000 / 10,000).
+TruthfulQA 와 HaluEval-QA 두 데이터셋을 사용한다. TruthfulQA 는 정답 후보 list 와 오답 후보 list 에서 결정론적으로 한 쌍씩 선택하고, HaluEval-QA 는 제공되는 정답 답과 환각 답을 그대로 사용한다. 각 질문마다 정확히 두 후보 답 (정답 + 환각) 을 두며, 최종 데이터는 5,815 개 질문 + 11,630 개 후보 답이다 (TruthfulQA 815 질문 / 1,630 후보, HaluEval-QA 5,000 질문 / 10,000 후보).
 
 ### 모델 출력 수집
 
