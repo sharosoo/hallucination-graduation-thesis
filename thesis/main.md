@@ -110,13 +110,13 @@ Valentin 등 (2024) 은 환각 탐지 점수를 *입력 / 응답 attribute 에 c
 
 ## Corpus support 를 외부 conditional 축으로 사용하는 근거
 
-질문에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 는 모델이 “익숙한” entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025) 의 QuCo-RAG 가 entity frequency 와 co-occurrence 를 retrieval grounding 신호로 활용하였고, Zhang 등 (2025) 은 pretraining corpus 의 n-gram coverage 가 환각 탐지 신호와 비단조적으로 연관됨을 보고하였다. 두 결과의 공통 시사점은 corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다는 점이다.
+질문에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 는 모델이 “익숙한” entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025) 의 QuCo-RAG 가 entity frequency 와 co-occurrence 를 retrieval grounding 신호로 활용하였고, Zhang 등 (2025) 은 pretraining corpus 의 n-gram coverage 가 환각 탐지 신호와 비단조적으로 연관됨을 보고하였다. Zhao 등 (2024) 의 WildHallucinations 는 Wikipedia 페이지가 없는 entity 에 대해 LLM 환각률이 증가한다고 관찰하였다. 세 결과의 공통 시사점은 corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다는 점이며, 본 논문은 이 시사점을 차용해 corpus support 를 *탐지 신호의 영역별 행태를 분해하는 외부 평가 축* 으로 사용한다.
 
-본 논문은 이 가설을 차용하되 corpus statistic 을 *탐지기 입력 feature 로 사용하지 않고* 평가 단위 (외부 conditional 축) 로만 사용한다. 그 이유는 두 가지다. 첫째, 평가 단위 (corpus support decile bin) 와 입력 feature (corpus aggregate) 가 같은 source 에서 나오면 self-conditioning artifact 가 발생할 수 있다. 둘째, 본 논문의 질문 (단일 신호 / fusion 의 영역별 행태) 은 corpus 를 입력으로 쓰지 않고도 답할 수 있다. corpus 부족 영역에서 모델 자체 신호 (SE / Energy / logit-diagnostic) 가 어떻게 행동하는지를 직접 측정한다.
+corpus support 를 *탐지기 입력 feature 가 아니라 평가 단위로만* 쓰는 이유는 평가 단위 (corpus support decile) 와 입력 feature (corpus aggregate) 가 같은 source 에서 나올 경우 self-conditioning artifact 가 발생하기 때문이다. 본 논문은 corpus 부족 영역에서 모델 자체 신호 (SE / Energy / logit-diagnostic) 와 fusion 의 AUROC 가 어떻게 변하는지를 직접 측정하는 것을 목표로 한다.
 
-##### Conditioning 가설의 메커니즘.
+##### 왜 corpus 부족 영역에서 모델 신호가 약해질 수 있는가.
 
-corpus 부족 영역에서 모델 자체 신호의 신뢰도가 약화될 것이라는 가설은 다음 사슬로 동기 부여된다. 먼저 Zhao 등 (2024) 의 WildHallucinations 는 Wikipedia 페이지가 없는 entity 에 대해 LLM 환각률이 증가한다고 보고하였다 — corpus exposure 부족이 모델 representation 불안정으로 이어지고 환각률이 올라간다는 관찰이다. 이렇게 발생한 환각이 모델 입장에서 “확신 있게 일관된” 답으로 나오는 경우가 많은 것이 Simhi 등 (2025) 의 CHOKE 패턴인데, corpus 부족 영역에서 free-sample 이 단일 cluster 로 수렴하면 SE / Energy 의 sample-consistency 판별력이 구조적으로 약화된다. 따라서 corpus 부족 영역에서 모델 자체 신호의 AUROC 가 낮을 것으로 예측할 수 있다. 본 논문은 이를 영역별 AUROC 분해로 직접 측정한다 (§<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a>).
+위 선행 연구를 잇는 가설 사슬이 가능하다 — corpus exposure 부족 → 모델 representation 불안정 → 환각률 증가 → free-sample 이 단일 cluster 로 수렴할 가능성 증가 → SE / Energy 의 sample-consistency 판별력 약화. 이 사슬은 Simhi 등 (2025) 의 CHOKE 패턴 (모델이 정답을 알면서도 일관된 오답을 확신 있게 생성) 과도 일관된다. 다만 본 논문은 representation 안정성이나 cluster 수렴 빈도를 직접 측정하지 않으므로 이 사슬은 결과 해석을 돕는 *가설 차원* 으로만 다루며, 영역별 AUROC 분해는 그 가설과 부합 / 불부합 관찰의 형태로 §<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a> 에서 보고한다.
 
 ## 본 논문의 분석 절차
 
