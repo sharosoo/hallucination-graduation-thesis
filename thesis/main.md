@@ -110,7 +110,7 @@ Valentin 등 (2024) 은 환각 탐지 점수를 *입력 / 응답 attribute 에 c
 
 ## Corpus support 를 외부 conditional 축으로 사용하는 근거
 
-질문에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 는 모델이 “익숙한” entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025) 의 QuCo-RAG 가 entity frequency 와 co-occurrence 를 retrieval grounding 신호로 활용하였고, Zhang 등 (2025) 은 pretraining corpus 의 n-gram coverage 가 환각 탐지 신호와 비단조적으로 연관됨을 보고하였다. Zhao 등 (2024) 의 WildHallucinations 는 Wikipedia 페이지가 없는 entity 에 대해 LLM 환각률이 증가한다고 관찰하였다. 세 결과의 공통 시사점은 corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다는 점이며, 본 논문은 이 시사점을 차용해 corpus support 를 *탐지 신호의 영역별 행태를 분해하는 외부 평가 축* 으로 사용한다.
+질문과 후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 는 모델이 “익숙한” entity 를 다루고 있는지를 외부 자료로 측정한 지표이다. Qiu 등 (2025) 의 QuCo-RAG 가 entity frequency 와 co-occurrence 를 retrieval grounding 신호로 활용하였고, Zhang 등 (2025) 은 pretraining corpus 의 n-gram coverage 가 환각 탐지 신호와 비단조적으로 연관됨을 보고하였다. Zhao 등 (2024) 의 WildHallucinations 는 Wikipedia 페이지가 없는 entity 에 대해 LLM 환각률이 증가한다고 관찰하였다. 세 결과의 공통 시사점은 corpus exposure 가 모델 출력의 신뢰도 분포를 형성한다는 점이며, 본 논문은 이 시사점을 차용해 corpus support 를 *탐지 신호의 영역별 행태를 분해하는 외부 평가 축* 으로 사용한다.
 
 corpus support 를 *탐지기 입력 feature 가 아니라 평가 단위로만* 쓰는 이유는 평가 단위 (corpus support decile) 와 입력 feature (corpus aggregate) 가 같은 source 에서 나올 경우 self-conditioning artifact 가 발생하기 때문이다. 본 논문은 corpus 부족 영역에서 모델 자체 신호 (SE / Energy / logit-diagnostic) 와 fusion 의 AUROC 가 어떻게 변하는지를 직접 측정하는 것을 목표로 한다.
 
@@ -173,7 +173,19 @@ U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \tex
 
 ##### Corpus-grounded feature.
 
-후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 로 corpus support 신호를 만든다. Entity 추출은 *spaCy `en_core_web_lg` NER* 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK_OF_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 noun-chunk fallback, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거 + 후보당 최대 8 개로 잘라낸다. corpus count backend 는 Liu 등 (2024) 의 Infini-gram 의 `v4_dolmasample_olmo` 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용하며, entity-pair co-occurrence 는 `count_cnf` AND query 로 산출한다. 두 값을 결합한 coverage score 위에서 *rank-quantile 균등 분할* 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다 — fixed-cutoff 가 spaCy NER 채택 후 좌편향 분포 (약 58% 가 0) 에서 표본 쏠림 문제를 보이기 때문이다.
+질문과 후보 답변에서 추출한 entity 들의 corpus 내 frequency 와 entity-pair co-occurrence 를 결합해 corpus support 신호를 만든다. Entity 추출은 spaCy `en_core_web_lg` NER 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK_OF_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 spaCy noun-chunk 를 fallback 으로 사용하고, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거를 거치며 후보당 최대 8 개로 잘라낸다.
+
+corpus count backend 는 Liu 등 (2024) 의 Infini-gram 의 `v4_dolmasample_olmo` 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용한다. 한 질문의 entity 집합 $`E`$ 와 entity-pair 집합 $`P`$ 에 대해 다음을 산출한다.
+``` math
+\begin{align*}
+f_{\min} &= \min_{e \in E} \mathrm{freq}(e), \qquad
+f_{\text{axis}} = \frac{\log(1 + f_{\min})}{\log(1 + 10^6)} \\
+p_{\text{mean}} &= \frac{1}{|P|} \sum_{(e_i, e_j) \in P} \mathrm{cooc}(e_i, e_j), \qquad
+p_{\text{axis}} = \frac{\log(1 + p_{\text{mean}})}{\log(1 + 10^5)} \\
+\text{coverage} &= \tfrac{1}{2}\,(f_{\text{axis}} + p_{\text{axis}})
+\end{align*}
+```
+여기서 $`\mathrm{freq}(\cdot)`$ 와 $`\mathrm{cooc}(\cdot, \cdot)`$ 는 각각 Infini-gram 의 단일 entity count 와 `count_cnf` AND query 결과이다. coverage score 위에서 *rank-quantile 균등 분할* 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다. rank-quantile 분할을 사용한 이유는 spaCy NER 채택 후 entity_frequency 분포가 좌편향 (약 58% 가 0) 이라 fixed-cutoff (예: 0.1 절대 임계값) 분할 시 표본 쏠림 문제가 발생하기 때문이다.
 
 본 논문에서 corpus support 신호는 *Fusion 입력 feature 로 사용하지 않고* 영역별 평가 단위 (rank-quantile decile 분할) 로만 사용된다. 이는 평가 단위와 입력 feature 가 같은 source 에서 나오면 self-conditioning artifact 가 발생할 수 있기 때문이다 (§<a href="#ch:method" data-reference-type="ref" data-reference="ch:method">[ch:method]</a>).
 
@@ -249,7 +261,7 @@ U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \tex
 <td style="text-align: left;"><strong>gradient boosting</strong></td>
 <td style="text-align: center;"><strong>0.889</strong></td>
 <td style="text-align: center;"><strong>0.837</strong></td>
-<td style="text-align: center;"><strong>0.113</strong></td>
+<td style="text-align: center;">0.113</td>
 <td style="text-align: center;"><strong>0.014</strong></td>
 </tr>
 </tbody>
@@ -267,12 +279,12 @@ U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \tex
 
 <figure id="fig:per_decile_auroc" data-latex-placement="htbp">
 
-<figcaption>Corpus support decile 별 AUROC (n=5<span>,</span>815, 라벨 = 어려운 질문). sample-consistency 계열 (SE, Energy, Fusion) 은 corpus 부족 영역 (왼쪽) 에서 가장 낮고 풍부 영역 (오른쪽) 에서 가장 높은 단조 패턴을 보인다. logit-diagnostic 은 모든 영역에서 0.508–0.628 로 약하다 (“환각 답이 정답보다 덜 자신있을 것” 이라는 직관 위반이 corpus 영역에 무관하게 일관됨).</figcaption>
+<figcaption>Corpus support decile 별 AUROC (n=5<span>,</span>815, 라벨 = 어려운 질문). sample-consistency 계열 (SE, Energy, Fusion) 은 corpus 부족 영역 (왼쪽) 에서 가장 낮고 풍부 영역 (오른쪽) 에서 가장 높은 전반적 상승 경향을 보인다. logit-diagnostic 은 모든 영역에서 0.508–0.628 로 약하다 (“환각 답이 정답보다 덜 자신있을 것” 이라는 직관 위반이 corpus 영역에 무관하게 일관됨).</figcaption>
 </figure>
 
-그림 <a href="#fig:per_decile_auroc" data-reference-type="ref" data-reference="fig:per_decile_auroc">4.1</a> 는 sample-consistency 계열 (SE / Energy / Fusion) 이 corpus 부족 영역에서 동시에 약해지는 단조 상승 패턴을 보여준다. 구체적으로 SE 는 가장 낮은 decile 에서 0.80, 가장 높은 decile 에서 0.92 로 변동하며, Energy 는 0.821에서 0.954로, Fusion 은 0.851에서 0.978로 동일한 상승 패턴을 보인다. 반면 logit-diagnostic 은 모든 영역에서 0.508–0.628 의 약한 판별력에 머무르며 단조 상승 패턴을 따르지 않는다 — “환각 답이 정답보다 덜 자신있을 것” 이라는 직관이 corpus 영역에 무관하게 일관되게 깨지는 결과이다.
+그림 <a href="#fig:per_decile_auroc" data-reference-type="ref" data-reference="fig:per_decile_auroc">4.1</a> 는 sample-consistency 계열 (SE / Energy / Fusion) 이 corpus 부족 영역에서 동시에 약해지는 전반적 상승 패턴을 보여준다. 구체적으로 SE 는 가장 낮은 decile 에서 0.80, 가장 높은 decile 에서 0.92 로 변동하며, Energy 는 0.821에서 0.954로, Fusion 은 0.851에서 0.978로 동일한 상승 패턴을 보인다. 반면 logit-diagnostic 은 모든 영역에서 0.508–0.628 의 약한 판별력에 머무르며 전반적 상승 패턴을 따르지 않는다 — “환각 답이 정답보다 덜 자신있을 것” 이라는 직관이 corpus 영역에 무관하게 일관되게 깨지는 결과이다.
 
-sample-consistency 계열의 단조 패턴은 본 논문의 가설 — corpus 부족 영역에서 모델 representation 이 불안정하고 free-sample 이 단일 cluster 로 수렴해 sample-consistency 신호의 판별력이 약화된다 (§<a href="#ch:method" data-reference-type="ref" data-reference="ch:method">[ch:method]</a>) — 과 부합하는 관찰이다. 다만 본 논문은 cluster 수렴 빈도나 representation 안정성을 직접 측정하지 않았으므로 이 메커니즘은 가설 차원의 해석으로 다룬다.
+sample-consistency 계열의 상승 경향은 본 논문의 가설 — corpus 부족 영역에서 모델 representation 이 불안정하고 free-sample 이 단일 cluster 로 수렴해 sample-consistency 신호의 판별력이 약화된다 (§<a href="#ch:method" data-reference-type="ref" data-reference="ch:method">[ch:method]</a>) — 과 부합하는 관찰이다. 다만 본 논문은 cluster 수렴 빈도나 representation 안정성을 직접 측정하지 않았으므로 이 메커니즘은 가설 차원의 해석으로 다룬다. 또한 본 논문의 *is_hard* 라벨이 free-sample 매칭률 기반 proxy 이므로, “corpus 부족 영역에서 환각 탐지가 어렵다” 보다는 “corpus 부족 영역에서 sample-consistency 계열 신호의 hard question proxy 판별력이 낮다” 로 해석을 한정한다.
 
 ## 단일 신호 영역별 비교
 
@@ -309,7 +321,7 @@ Method $`\times`$ corpus support decile AUROC (n=5,815, 각 decile $`\approx`$ 5
 
 <figure id="fig:fusion_delta" data-latex-placement="htbp">
 
-<figcaption>Corpus support decile 별 Fusion AUROC 와 단일 신호 AUROC 의 차이. 양수 = Fusion 우위, 음수 = 단일 신호 우위. Fusion 은 SE / logit-diagnostic 대비 모든 영역에서 우위이나, Energy 단독과의 비교는 영역별로 변동한다 — decile 70–80 에서 Fusion 우위가 +0.050 으로 가장 크고, decile 40–50 에서는 Energy 가 Fusion 을 0.014 능가한다.</figcaption>
+<figcaption>Fusion AUROC 와 단일 신호 AUROC 의 decile 별 차이. Panel A 는 Fusion 과 SE / Energy 의 작은 폭의 차이를, Panel B 는 Fusion 과 logit-diagnostic 의 큰 폭의 차이를 별도 scale 에 보여준다. Panel A 에서 Fusion 은 SE 대비 모든 decile 에서 우위, Energy 대비는 영역별로 변동 (decile 70–80 에서 +0.050 으로 최대 우위, 40–50 에서 -0.014 로 Energy 단독이 우위).</figcaption>
 </figure>
 
 그림 <a href="#fig:fusion_delta" data-reference-type="ref" data-reference="fig:fusion_delta">4.2</a> 가 보이는 패턴은 두 가지이다. 첫째, Fusion 은 SE 와 logit-diagnostic 단독에 대해 모든 영역에서 일관된 우위를 보인다 (vs SE 0.018–0.082, vs logit-diagnostic 0.30 이상). 단순 결합만으로도 약한 단일 신호를 보완하는 효과는 분명하다. 둘째, Energy 단독과의 비교는 corpus 영역에 따라 변동한다. decile 70–80 에서 Fusion 우위가 +0.050로 가장 크고 80–90 에서 +0.043, 반대로 decile 40–50 에서는 Energy 단독이 Fusion 을 0.014 능가하며 60–70 에서는 거의 동률 (+0.003) 이다.
@@ -324,8 +336,8 @@ Method $`\times`$ corpus support decile AUROC (n=5,815, 각 decile $`\approx`$ 5
 
 | Method              |    AGG    | HaluEval-QA | TruthfulQA |   Brier   | ECE (비율) |
 |:--------------------|:---------:|:-----------:|:----------:|:---------:|:----------:|
-| **Fusion (GBM)**    | **0.889** |    0.815    | **0.951**  | **0.113** | **0.014**  |
-| Random Forest       |   0.888   |    0.813    |   0.953    |   0.112   |   0.016    |
+| **Fusion (GBM)**    | **0.889** |    0.815    |   0.951    |   0.113   | **0.014**  |
+| Random Forest       |   0.888   |    0.813    | **0.953**  | **0.112** |   0.016    |
 | Logistic Regression |   0.876   |    0.797    |   0.916    |   0.124   |   0.034    |
 | Energy-only         |   0.862   |      —      |     —      |     —     |     —      |
 | SE-only             |   0.832   |      —      |     —      |     —     |     —      |
@@ -335,7 +347,7 @@ Method $`\times`$ corpus support decile AUROC (n=5,815, 각 decile $`\approx`$ 5
 
 </div>
 
-Fusion 이 두 데이터셋 모두에서 1위이며 calibration 도 1위 (Brier 0.113, ECE 1.4%) 이다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: “Cardiff”, “the Welsh capital”) 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 *어려운 질문* 으로 잘못 분류한다 (TruthfulQA is_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (0.889) 와 §<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a> 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
+AUROC 는 Fusion 이 두 데이터셋 모두에서 1위 (AGG 0.889) 이다. Calibration 은 ECE 기준 Fusion (1.4%) 이 가장 낮고, Brier 는 Random Forest (0.112) 가 Fusion (0.113) 보다 근소하게 낮으나 차이가 작다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: “Cardiff”, “the Welsh capital”) 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 *어려운 질문* 으로 잘못 분류한다 (TruthfulQA is_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (0.889) 와 §<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a> 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
 
 본 절의 평가는 진정한 leave-one-dataset-out (한 데이터셋만으로 학습 후 다른 데이터셋에서 평가) 이 아니라 5,815 개 질문 전체에 대한 5-fold CV 결과를 데이터셋별로 분해한 것이다. 데이터셋 간 도메인 전이 검증은 본 논문 범위를 넘는다.
 
@@ -349,7 +361,7 @@ Fusion 이 두 데이터셋 모두에서 1위이며 calibration 도 1위 (Brier 
 
 ##### 첫째 (난이도 ↔ corpus support).
 
-sample-consistency 계열 (SE, Energy, Fusion) 의 AUROC 가 corpus support 와 단조 관계로 변동한다 — 가장 부족한 영역에서 가장 낮고 풍부한 영역에서 가장 높다 (SE 0.80 에서 0.92, Energy 0.821에서 0.954, Fusion 0.851에서 0.978). 반면 logit-diagnostic 은 모든 영역에서 0.508–0.628 의 약한 판별력에 머물러 단조 패턴을 따르지 않는다. sample-consistency 계열에 한정하면 환각 탐지 자체가 corpus 부족 영역에서 더 어렵다는 점이 데이터로 확인된다.
+sample-consistency 계열 (SE, Energy, Fusion) 의 AUROC 가 corpus support 영역과 전반적 상승 경향을 보인다 — 가장 부족한 영역에서 낮고 풍부한 영역에서 높다 (SE 0.80 에서 0.92, Energy 0.821에서 0.954, Fusion 0.851에서 0.978). 반면 logit-diagnostic 은 모든 영역에서 0.508–0.628 의 약한 판별력에 머물러 이 경향을 따르지 않는다. sample-consistency 계열에 한정하면 *is_hard* proxy 의 판별이 corpus 부족 영역에서 상대적으로 어렵다는 점이 데이터로 관찰된다.
 
 ##### 둘째 (영역별 단일 신호 우열).
 

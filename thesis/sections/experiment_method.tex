@@ -33,7 +33,17 @@ U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \tex
 로 계산한다. 부호 규약은 lower energy = higher reliability. teacher-forced scoring 의 NLL 평균, logit variance, confidence margin 은 logit-diagnostic 단일 신호 (§\ref{ch:experiment} 종합 baseline) 와 Fusion 입력 feature 의 일부로 함께 사용된다 (정의 단위가 다르므로 Energy 와 같은 단일 신호 칸에 합치지 않는다).
 
 \paragraph{Corpus-grounded feature.}
-후보 답변에 등장하는 entity 의 corpus 내 frequency 와 entity-pair co-occurrence 로 corpus support 신호를 만든다. Entity 추출은 \emph{spaCy \texttt{en\_core\_web\_lg} NER} 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 noun-chunk fallback, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거 + 후보당 최대 8 개로 잘라낸다. corpus count backend 는 Liu 등 (2024) 의 Infini-gram\cite{infinigram2024} 의 \texttt{v4\_dolmasample\_olmo} 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용하며, entity-pair co-occurrence 는 \texttt{count\_cnf} AND query 로 산출한다. 두 값을 결합한 coverage score 위에서 \emph{rank-quantile 균등 분할} 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다 — fixed-cutoff 가 spaCy NER 채택 후 좌편향 분포 (약 58\% 가 0) 에서 표본 쏠림 문제를 보이기 때문이다.
+질문과 후보 답변에서 추출한 entity 들의 corpus 내 frequency 와 entity-pair co-occurrence 를 결합해 corpus support 신호를 만든다. Entity 추출은 spaCy \texttt{en\_core\_web\_lg} NER 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 spaCy noun-chunk 를 fallback 으로 사용하고, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거를 거치며 후보당 최대 8 개로 잘라낸다.
+
+corpus count backend 는 Liu 등 (2024) 의 Infini-gram\cite{infinigram2024} 의 \texttt{v4\_dolmasample\_olmo} 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용한다. 한 질문의 entity 집합 $E$ 와 entity-pair 집합 $P$ 에 대해 다음을 산출한다.
+\begin{align*}
+f_{\min} &= \min_{e \in E} \mathrm{freq}(e), \qquad
+f_{\text{axis}} = \frac{\log(1 + f_{\min})}{\log(1 + 10^6)} \\
+p_{\text{mean}} &= \frac{1}{|P|} \sum_{(e_i, e_j) \in P} \mathrm{cooc}(e_i, e_j), \qquad
+p_{\text{axis}} = \frac{\log(1 + p_{\text{mean}})}{\log(1 + 10^5)} \\
+\text{coverage} &= \tfrac{1}{2}\,(f_{\text{axis}} + p_{\text{axis}})
+\end{align*}
+여기서 $\mathrm{freq}(\cdot)$ 와 $\mathrm{cooc}(\cdot, \cdot)$ 는 각각 Infini-gram 의 단일 entity count 와 \texttt{count\_cnf} AND query 결과이다. coverage score 위에서 \emph{rank-quantile 균등 분할} 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다. rank-quantile 분할을 사용한 이유는 spaCy NER 채택 후 entity\_frequency 분포가 좌편향 (약 58\% 가 0) 이라 fixed-cutoff (예: 0.1 절대 임계값) 분할 시 표본 쏠림 문제가 발생하기 때문이다.
 
 본 논문에서 corpus support 신호는 \emph{Fusion 입력 feature 로 사용하지 않고} 영역별 평가 단위 (rank-quantile decile 분할) 로만 사용된다. 이는 평가 단위와 입력 feature 가 같은 source 에서 나오면 self-conditioning artifact 가 발생할 수 있기 때문이다 (§\ref{ch:method}).
 
