@@ -5,7 +5,7 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption{종합 baseline (n=5{,}815 질문). 라벨은 각 질문의 free-sample N=10 의 정답 매칭 비율이 0.5 미만인 경우 \emph{어려운 질문} (is\_hard=1). 단일 신호는 score-based AUROC (학습 없음). Fusion 은 5-fold CV gradient boosting (input: SE, Energy, NLL, confidence margin, logit variance 의 질문 단위 집계). 굵은 글씨 = 1위.}
+\caption[종합 baseline]{종합 baseline (n=5{,}815 질문). 라벨은 각 질문의 free-sample N=10 의 정답 매칭 비율이 0.5 미만인 경우 \emph{어려운 질문} (is\_hard=1). 단일 신호는 score-based AUROC (학습 없음). Fusion 은 5-fold CV gradient boosting (input: SE, Energy, NLL, confidence margin, logit variance 의 질문 단위 집계). 굵은 글씨 = 각 metric 별 1위 (AUROC / AUPRC / ECE 는 gradient boosting, Brier 는 random forest 가 근소 우위).}
 \label{tab:current_thesis_evidence}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -19,7 +19,7 @@
 \midrule
 \multicolumn{5}{l}{\emph{Fusion (5-fold CV)}} \\
 \quad logistic regression          & 0.876 & 0.809 & 0.124 & 0.034 \\
-\quad random forest                & 0.888 & 0.836 & 0.112 & 0.016 \\
+\quad random forest                & 0.888 & 0.836 & \textbf{0.112} & 0.016 \\
 \quad \textbf{gradient boosting}   & \textbf{0.889} & \textbf{0.837} & 0.113 & \textbf{0.014} \\
 \bottomrule
 \end{tabular}
