@@ -178,7 +178,7 @@ Energy (Semantic Energy) & cluster 가중 token logit 합 & 다양성 작은 사
 
 \section{Corpus statistic 의 환각 탐지 활용 시도}
 
-corpus statistic 을 환각 탐지 신호로 직접 사용한 두 흐름이 있다.
+corpus statistic 을 환각 탐지 또는 factuality 평가에 활용한 세 흐름이 있다.
 
 \paragraph{QuCo-RAG.} Qiu 등 (2025)\cite{qucorag} 은 retrieval-augmented generation 의 query-aware corpus grounding 절차에서 entity frequency 와 \mbox{entity-pair} co-occurrence 를 corpus count 로 측정해 답변이 외부 자료로 얼마나 ``뒷받침될 수 있는지'' 를 정량화하였다. 본 논문은 같은 corpus statistic 을 사용하되 그 \emph{용도} 를 retrieval trigger 가 아니라 \emph{탐지 신호 신뢰도를 분해하는 외부 조건 축} 으로 재해석한다.
 
@@ -304,7 +304,7 @@ decile & n & SE & \textbf{Energy} & logit-diag & Fusion \\
 \begin{table}[htbp]
 \centering
 \small
-\caption[Fusion - Energy delta per-decile bootstrap CI]{Decile 별 Fusion AUROC $-$ Energy AUROC 의 점추정치와 95\% prompt-단위 bootstrap CI (n=1{,}000). 양수 = Fusion 우위. CI 가 0 을 포함하지 않으면 \checkmark. 표시는 다중비교 보정 전의 탐색적 불확실성 진단이며, decile 10 개에 대한 동시 검정의 family-wise error 는 보정하지 않았다.}
+\caption[Fusion - Energy delta per-decile bootstrap CI]{Decile 별 Fusion AUROC $-$ Energy AUROC 의 점추정치와 95\% prompt-단위 bootstrap CI (n=1{,}000). 양수 = Fusion 우위. CI 가 0 을 포함하지 않으면 \checkmark. 표시는 다중비교 보정 전의 탐색적 불확실성 진단이며, decile 10 개에 대한 동시 검정의 family-wise error 는 보정하지 않았다. 본 표의 점추정치는 full-precision AUROC 에서 산출되므로, 표~\ref{tab:bin10_method_matrix} 의 소수 셋째 자리 반올림 AUROC 값을 단순 차이로 계산한 결과 (예: 70--80 의 0.918 - 0.868 = 0.050) 와 일부 decile 에서 1--2 단위 차이가 있을 수 있다.}
 \label{tab:fusion_energy_ci}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -351,7 +351,7 @@ SE-only & 0.832 & --- & --- & --- & --- \\
 \end{tabular}
 \end{table}
 
-AUROC 는 Fusion 이 두 데이터셋 모두에서 1위 (AGG \HeadlineFusionAuroc) 이다. Calibration 은 ECE 기준 Fusion (\HeadlineECE\%) 이 가장 낮고, Brier 는 Random Forest (0.112) 가 Fusion (\HeadlineBrier) 보다 근소하게 낮으나 차이가 작다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: ``Cardiff'', ``the Welsh capital'') 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 \emph{어려운 질문} 으로 잘못 분류한다 (TruthfulQA is\_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (\HeadlineFusionAuroc) 와 §\ref{ch:experiment} 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
+AUROC 는 AGG (\HeadlineFusionAuroc) 와 HaluEval-QA (Fusion 0.815) 에서 Fusion 이 가장 높고, TruthfulQA 에서는 Random Forest (0.953) 가 Fusion (0.951) 을 0.002 차로 근소하게 앞선다. Calibration 은 ECE 기준 Fusion (\HeadlineECE\%) 이 가장 낮고, Brier 는 Random Forest (0.112) 가 Fusion (\HeadlineBrier) 보다 근소하게 낮으나 차이가 작다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: ``Cardiff'', ``the Welsh capital'') 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 \emph{어려운 질문} 으로 잘못 분류한다 (TruthfulQA is\_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (\HeadlineFusionAuroc) 와 §\ref{ch:experiment} 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
 
 본 절의 평가는 진정한 leave-one-dataset-out (한 데이터셋만으로 학습 후 다른 데이터셋에서 평가) 이 아니라 5{,}815 개 질문 전체에 대한 5-fold CV 결과를 데이터셋별로 분해한 것이다. 데이터셋 간 도메인 전이 검증은 본 논문 범위를 넘는다.
 

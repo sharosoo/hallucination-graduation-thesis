@@ -70,7 +70,7 @@ Ma 등 (2025) 은 SE 가 softmax 후 cluster 확률 분포의 entropy 만 사용
 
 ## Corpus statistic 의 환각 탐지 활용 시도
 
-corpus statistic 을 환각 탐지 신호로 직접 사용한 두 흐름이 있다.
+corpus statistic 을 환각 탐지 또는 factuality 평가에 활용한 세 흐름이 있다.
 
 ##### QuCo-RAG.
 
@@ -138,11 +138,11 @@ corpus statistic 은 단계 (2) 의 평가 단위로만 사용하고 단계 (4) 
 
 ## 실험 설정
 
-본 실험은 데이터셋이 이미 정답 후보와 환각 후보를 명시적으로 구분해 제공한다는 점을 활용하여, 새 답을 생성한 뒤 정오를 사후 판정하는 절차나 LLM-as-judge 의존 없이 paired 비교를 수행한다.
+본 실험에서 후보 답변의 정답 / 환각 라벨은 데이터셋 annotation 을 그대로 사용하며, LLM-as-judge 로 후보의 정오를 새로 판정하지 않는다. 다만 질문 단위 *is_hard* proxy 라벨은 별도로 산출되며 (자세한 정의는 §평가 지표 참조) 모델의 free-sample N=10 답변과 데이터셋 정답의 token-overlap 매칭 비율로 정의된다.
 
 ### 데이터셋 구성
 
-TruthfulQA 와 HaluEval-QA 두 데이터셋을 사용한다. TruthfulQA 는 정답 후보 list 와 오답 후보 list 에서 결정론적으로 한 쌍씩 선택하고, HaluEval-QA 는 제공되는 정답 답과 환각 답을 그대로 사용한다. 각 질문마다 정확히 두 후보 답 (정답 + 환각) 을 두며, 최종 데이터는 5,815 개 질문 + 11,630 개 후보 답이다 (TruthfulQA 815 질문 / 1,630 후보, HaluEval-QA 5,000 질문 / 10,000 후보).
+TruthfulQA 와 HaluEval-QA 두 데이터셋을 사용한다. TruthfulQA 는 정답 후보 list 와 오답 후보 list 에서 결정론적으로 한 쌍씩 선택하고, HaluEval-QA 는 제공되는 정답 답변과 환각 답변을 그대로 사용한다. 각 질문마다 정확히 두 후보 답 (정답 + 환각) 을 두며, 최종 데이터는 5,815 개 질문 + 11,630 개 후보 답이다 (TruthfulQA 815 질문 / 1,630 후보, HaluEval-QA 5,000 질문 / 10,000 후보).
 
 ### 모델 출력 수집
 
@@ -343,7 +343,7 @@ Method $`\times`$ corpus support decile AUROC (n=5,815, 각 decile $`\approx`$ 5
 | 80–90  | 592 | $`+0.047`$ | $`[+0.029, +0.067]`$ |           |
 | 90–100 | 580 | $`+0.027`$ | $`[+0.016, +0.040]`$ |           |
 
-Decile 별 Fusion AUROC $`-`$ Energy AUROC 의 점추정치와 95% prompt-단위 bootstrap CI (n=1,000). 양수 = Fusion 우위. CI 가 0 을 포함하지 않으면 . 표시는 다중비교 보정 전의 탐색적 불확실성 진단이며, decile 10 개에 대한 동시 검정의 family-wise error 는 보정하지 않았다.
+Decile 별 Fusion AUROC $`-`$ Energy AUROC 의 점추정치와 95% prompt-단위 bootstrap CI (n=1,000). 양수 = Fusion 우위. CI 가 0 을 포함하지 않으면 . 표시는 다중비교 보정 전의 탐색적 불확실성 진단이며, decile 10 개에 대한 동시 검정의 family-wise error 는 보정하지 않았다. 본 표의 점추정치는 full-precision AUROC 에서 산출되므로, 표 <a href="#tab:bin10_method_matrix" data-reference-type="ref" data-reference="tab:bin10_method_matrix">4.2</a> 의 소수 셋째 자리 반올림 AUROC 값을 단순 차이로 계산한 결과 (예: 70–80 의 0.918 - 0.868 = 0.050) 와 일부 decile 에서 1–2 단위 차이가 있을 수 있다.
 
 </div>
 
@@ -368,7 +368,7 @@ Decile 별 Fusion AUROC $`-`$ Energy AUROC 의 점추정치와 95% prompt-단위
 
 </div>
 
-AUROC 는 Fusion 이 두 데이터셋 모두에서 1위 (AGG 0.889) 이다. Calibration 은 ECE 기준 Fusion (1.4%) 이 가장 낮고, Brier 는 Random Forest (0.112) 가 Fusion (0.113) 보다 근소하게 낮으나 차이가 작다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: “Cardiff”, “the Welsh capital”) 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 *어려운 질문* 으로 잘못 분류한다 (TruthfulQA is_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (0.889) 와 §<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a> 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
+AUROC 는 AGG (0.889) 와 HaluEval-QA (Fusion 0.815) 에서 Fusion 이 가장 높고, TruthfulQA 에서는 Random Forest (0.953) 가 Fusion (0.951) 을 0.002 차로 근소하게 앞선다. Calibration 은 ECE 기준 Fusion (1.4%) 이 가장 낮고, Brier 는 Random Forest (0.112) 가 Fusion (0.113) 보다 근소하게 낮으나 차이가 작다. 다만 TruthfulQA 단독 AUROC 0.951 은 라벨 노이즈에 의해 부풀려진 수치로 해석해야 한다. 본 논문의 token-overlap 라벨은 의미적으로 동등한 paraphrase 정답 (예: “Cardiff”, “the Welsh capital”) 을 충분히 잡지 못해 TruthfulQA 의 다양한 정답 표현을 *어려운 질문* 으로 잘못 분류한다 (TruthfulQA is_hard 비율 0.97). 본 논문 주요 결과 해석은 HaluEval-QA 단독 (Fusion 0.815) 기준이며, AGG (0.889) 와 §<a href="#ch:experiment" data-reference-type="ref" data-reference="ch:experiment">[ch:experiment]</a> 의 영역별 분해 결과는 TruthfulQA 라벨 노이즈가 가중 평균 형태로 섞여 있다는 점을 감안해야 한다 (NLI 기반 라벨링으로의 교체는 §결론 한계 / 향후 연구 항목에서 다룬다).
 
 본 절의 평가는 진정한 leave-one-dataset-out (한 데이터셋만으로 학습 후 다른 데이터셋에서 평가) 이 아니라 5,815 개 질문 전체에 대한 5-fold CV 결과를 데이터셋별로 분해한 것이다. 데이터셋 간 도메인 전이 검증은 본 논문 범위를 넘는다.
 
