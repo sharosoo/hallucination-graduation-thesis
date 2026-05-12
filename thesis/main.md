@@ -69,13 +69,14 @@ range 에 어떤 영향을 미치는지 정량화한다.
 본 연구의 기여는 다음 세 가지이다. (1) 환각 탐지 신호의 신뢰도가 corpus
 조건에 따라 어떻게 달라지는지를 corpus 신호의 단위별로 비교하는 분석
 절차를 제시한다. (2) 본 표본에서 entity co-occurrence 가 단일 entity
-빈도보다 환각 탐지 신호의 신뢰도 변동을 약 1.88배 (SVAMP 포함 / 제외에
-따라 1.5–1.9배) 더 세밀하게 분해함을 1차 검증한다. 이 결과는 “entity
-co-occurrence 가 단일 entity 빈도보다 모델의 학습 정도를 더 직접
-반영한다” 는 직관과 부합한다. (3) corpus 신호의 설계 목표를 환각
-탐지기의 *입력 변수* 가 아니라 탐지 신호의 *조건부 평가 척도* 로 다시
-설정하는 관점을 제시한다. 이 관점은 환각 탐지 연구의 평가 보고 방식과,
-실제 LLM 서비스에서의 corpus 조건부 신뢰 전략 모두에 시사점을 갖는다.
+빈도보다 환각 탐지 신호의 신뢰도 변동을 약 1.5–1.9배 더 세밀하게
+분해함을 정량 분석한다 (단일 조건 점추정치 1.88배, 95% 신뢰구간 하한
++0.002, SVAMP 제외 시 1.68배까지 감소). 이 결과는 “entity co-occurrence
+가 단일 entity 빈도보다 모델의 학습 정도를 더 직접 반영한다” 는 직관과
+부합한다. (3) corpus 신호의 설계 목표를 환각 탐지기의 *입력 변수* 가
+아니라 탐지 신호의 *조건부 평가 척도* 로 다시 설정하는 관점을 제시한다.
+이 관점은 환각 탐지 연구의 평가 보고 방식과, 실제 LLM 서비스에서의
+corpus 조건부 신뢰 전략 모두에 시사점을 갖는다.
 
 ## 논문 구성
 
@@ -919,31 +920,50 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
 
 ## 한계
 
-본 연구는 다음과 같은 한계를 지닌다.
+##### 가장 치명적 한계: proxy corpus index 의 사용.
 
-1.  **Corpus 색인과 사전학습 데이터의 불일치 (가장 치명적 한계).**
-    corpus 신호는 `v4_dolmasample_olmo` (16B Dolma sample) 단일
-    Infini-gram 색인에서 산출된다. 이 색인은 OLMo 의 사전학습 데이터에서
-    추출한 것이며 Qwen2.5-3B 의 실제 사전학습 corpus 와 다르다. 따라서
-    본 논문이 측정한 “corpus 뒷받침” 은 모델이 실제로 학습한 데이터의
-    양이 아니라 *proxy index 위에서 측정한 사실 등장 빈도* 이며, corpus
-    빈도와 환각 사이의 연결은 상관 관계로만 해석되고 인과 관계로 해석될
-    수 없다. 모델 제공자가 사전학습 corpus 를 공개하지 않는 한 이 한계는
-    본 연구 설계 자체에 내재한다. 도메인 특화 corpus (예: BioASQ 용
-    PubMed) 를 사용하면 AUROC range 이 달라질 가능성이 있다.
+본 논문은 corpus 신호 산출에 Infini-gram 색인 `v4_dolmasample_olmo`
+(OLMo 의 16B Dolma sample) 을 사용하였다. 이는 Qwen2.5-3B 의 실제
+사전학습 corpus 가 아니며, Qwen 의 사전학습 데이터는 모델 제공자에 의해
+공개되지 않았다. 따라서 본 논문이 측정한 “corpus 뒷받침” 은 모델이
+실제로 학습한 데이터의 양이 아니라 *투명하고 포괄적인 web-scale 색인
+위에서 측정한 사실 등장 빈도* 이다.
 
-2.  **단일 모델 평가.** 본 연구는 Qwen2.5-3B 단일 모델에서 수행되었다.
+이러한 proxy 사용에는 정당화 근거가 있다. Web-scale 사전학습 corpus 들
+(Dolma, RedPajama, C4 등) 은 Common Crawl 기반의 공통 source 를 상당
+부분 공유하므로, 한 transparent corpus 에서 산출한 통계가 다른 LLM 의
+학습 노출에 대한 합리적 proxy 역할을 할 수 있다는 가정은 선행 연구에서도
+채택되어 왔다 (예: Qiu 등 2025 의 QuCo-RAG). 그러나 이 proxy 대체는
+형식적으로 보장되지 않으며, 본 논문 결과의 해석에 다음 두 가지 직접적인
+제약을 가한다. 첫째, corpus 뒷받침이 큰 sample 에서 Semantic Entropy 의
+AUROC 가 높게 관찰되는 결과는 “모델이 학습해서 잘 안다” 라는 인과 진술이
+아니라, “Dolma 와 같은 web 분포에서 자주 등장하는 사실은 Qwen 학습에서도
+자주 등장했을 가능성이 높다” 라는 *간접 추론* 을 통해서만 해석된다.
+둘째, entity co-occurrence 가 entity 빈도보다 약 1.88배 큰 분해를
+보인다는 비율 또한 Dolma 색인에 한정된 관찰이며, Qwen 의 실제 corpus
+또는 다른 모델의 corpus 에서는 두 단위의 비율이 다를 수 있다. 따라서 본
+결과는 corpus 빈도와 환각 사이의 *상관 관계 관측* 에 한정되며, 모델 학습
+가능성에 대한 *인과 진술* 로 해석되어서는 안 된다. 이 한계는 모델
+제공자가 사전학습 corpus 를 공개하기 전까지 본 연구 설계에 내재하며,
+후속 연구가 corpus 색인을 모델별 실제 학습 데이터로 교체하기 전에는 수치
+자체의 외부 타당성에 분명한 제약이 있다.
+
+##### 이외 한계.
+
+이외에 다음과 같은 한계를 함께 보고한다.
+
+1.  **단일 모델 평가.** 본 연구는 Qwen2.5-3B 단일 모델에서 수행되었다.
     corpus 신호의 구간별 변동 패턴이 Llama, Mistral, Gemma 계열
     모델에서도 같은 방향으로 나타나는지는 직접 검증되지 않았다. Farquhar
     등 (2024) 에서 서로 다른 LLM 계열 사이에서도 Semantic Entropy 의
     패턴이 유사하게 관찰되었다는 점은 일반화 가능성을 시사하나, 이는
     향후 연구로 남긴다.
 
-3.  **NLI 라벨링 한계.** 정답 라벨은 `microsoft/deberta-large-mnli` 기반
+2.  **NLI 라벨링 한계.** 정답 라벨은 `microsoft/deberta-large-mnli` 기반
     양방향 entailment $`\geq`$ 0.5 기준에 의존한다. LLM-as-judge 와 같은
     다른 라벨링 방식과의 비교 검증은 향후 과제로 남는다.
 
-4.  **생성 답변에 기반한 라벨과 신호의 부분 결합.** 정답 라벨과 Semantic
+3.  **생성 답변에 기반한 라벨과 신호의 부분 결합.** 정답 라벨과 Semantic
     Entropy / Energy 신호는 모두 동일한 N=10 개의 생성 답변에서
     산출된다. 라벨은 각 답변과 정답 후보의 NLI 매칭으로 결정되고,
     Semantic Entropy / Energy 는 같은 답변들의 의미 cluster 분포와 토큰
@@ -955,12 +975,12 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
     선행 연구 비교의 전제는 유지되며, 본 결과는 동일 라벨링 절차
     위에서의 상대적 비교로 해석한다.
 
-5.  **Self-conditioning 회피.** corpus 통계량은 (a) fusion 입력
+4.  **Self-conditioning 회피.** corpus 통계량은 (a) fusion 입력
     변수와 (b) 분석용 분해 신호 두 용도로 모두 사용된다. (b) 의 분해
     분석은 모델 출력과 무관한 외부 corpus 통계 위에서 수행되므로
     self-conditioning 문제는 발생하지 않는다.
 
-6.  **AUROC range 차이의 표본 변동성.** 약 1.88배라는 비율은 단일
+5.  **AUROC range 차이의 표본 변동성.** 약 1.88배라는 비율은 단일
     조건에서 산출한 점추정치이며, 두 AUROC range 의 차이에 대한 sample
     단위 bootstrap 95% 신뢰구간을
     §<a href="#sec:axis" data-reference-type="ref"
@@ -973,14 +993,14 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
     필요하다. 또한 max$`-`$min 통계량 자체가 순서통계량이므로 구간 수가
     다른 분할에서는 비율의 절대 크기가 달라질 수 있다.
 
-7.  **Fusion lift 의 통계적 유의성.** corpus 신호 포함 여부에 따른
+6.  **Fusion lift 의 통계적 유의성.** corpus 신호 포함 여부에 따른
     gradient boosting 의 lift 에 대한 sample 단위 bootstrap 95% 신뢰구간
     \[+0.005, +0.011\] 은 0 을 포함하지 않으며 모든 반복에서 양수이다.
     따라서 corpus 신호의 fusion 기여는 통계적으로 0 과 구분되는 양의
     효과이지만, 절대 크기 (+0.008) 는 답변 단위·sample 단위 신호 결합
     효과 (+0.026) 의 약 3분의 1 정도에 한정된다.
 
-8.  **데이터셋별 이질성.**
+7.  **데이터셋별 이질성.**
     표 <a href="#tab:per_dataset_delta" data-reference-type="ref"
     data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>
     에서 보이듯, entity co-occurrence AUROC range 이 entity 빈도 AUROC
@@ -990,7 +1010,7 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
     뜻이 아니라, 데이터셋 종합 통계이다. 도메인별로 corpus 신호의 적절한
     단위가 다를 수 있다는 가설은 본 논문의 범위 밖이다.
 
-9.  **Corpus 신호의 entity 추출 범위.** 본 논문의 corpus 신호는 질문
+8.  **Corpus 신호의 entity 추출 범위.** 본 논문의 corpus 신호는 질문
     텍스트와 데이터셋이 제공한 정답 텍스트의 entity 를 합쳐 산출하며,
     모델이 생성한 답변의 entity 는 사용되지 않는다. 따라서 신호 값은
     모델 출력과 독립이며, 한계 4 에서 다룬 답변 결합 문제와는 차원이
@@ -1002,7 +1022,7 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
     §<a href="#sec:axis" data-reference-type="ref"
     data-reference="sec:axis">4.5</a> 에 명시하였다.
 
-10. **AUROC range 과 Spearman $`\rho`$ 의 분리 해석.** AUROC range 은
+9.  **AUROC range 과 Spearman $`\rho`$ 의 분리 해석.** AUROC range 은
     max$`-`$min 통계량이므로, 구간이 올라갈수록 AUROC 가 단조 증가하는
     양상과 비단조 변동 (U자형 등) 을 구분하지 못한다. 본 논문은
     표 <a href="#tab:axis_decomp" data-reference-type="ref"
@@ -1017,25 +1037,25 @@ data-reference="tab:per_dataset_delta">[tab:per_dataset_delta]</a>).
     강건한 단조성 검정 (Mann-Kendall, partial $`\rho`$) 과 다중비교
     보정은 향후 과제로 남긴다.
 
-11. **NLI 임계값 0.5 의 민감도 미검증.** 본 논문은 정답 라벨을 양방향
+10. **NLI 임계값 0.5 의 민감도 미검증.** 본 논문은 정답 라벨을 양방향
     entailment 확률 0.5 임계로 정의하였다. 임계값을 0.4 또는 0.6 으로
     변경했을 때 AUROC range 과 비율이 어떻게 달라지는지에 대한 민감도
     분석은 수행하지 않았으며, 본 결과가 임계 0.5 에 어느 정도
     의존하는지는 후속 검증이 필요하다.
 
-12. **Fusion 입력 변수의 기여도 분해 미수행.** fusion 모델의 +0.026
+11. **Fusion 입력 변수의 기여도 분해 미수행.** fusion 모델의 +0.026
     향상이 SE / Energy / 답변 단위 logit 통계 가운데 어느 신호의
     결합에서 비롯되었는지를 분해하는 분석 (예: permutation importance,
     SHAP) 은 수행하지 않았다. 본 논문은 fusion 결과를 종합 AUROC
     수준에서만 보고하며, 입력 변수별 기여도 분리는 후속 과제로 남긴다.
 
-13. **NQ-Open 의 부분 구간 outlier 원인 미규명.** NQ-Open 의 두 번째
+12. **NQ-Open 의 부분 구간 outlier 원인 미규명.** NQ-Open 의 두 번째
     구간 (20–30) 에서 AUROC 가 0.266 까지 떨어지는 outlier 는 정답률
     0.058 (표본 120개 중 정답 7개) 의 클래스 불균형에서 일부 비롯된
     것으로 보이지만, 이러한 분포 skew 의 근본 원인 (질문 유형, entity
     분포 등) 에 대한 추가 분석은 수행하지 않았다.
 
-14. **단순 prompt 설정.** 본 연구는 추가 context 없는 한 문장 응답
+13. **단순 prompt 설정.** 본 연구는 추가 context 없는 한 문장 응답
     prompt 위에서 수행되었다. 실무 LLM 서비스에서 표준이 된 RAG 환경이나
     multi-turn agentic 설정에서의 일반화는 검증 대상이며, 본 결과를
     retrieval-augmented 환경에 그대로 적용하기 전에 별도 검증이
@@ -1150,6 +1170,10 @@ LLMs with Real-World Entity Queries,” *arXiv preprint arXiv:2407.17468*,
 Y. Zhang et al., “Measuring the Impact of Lexical Training Data Coverage
 on Hallucination Detection in Large Language Models,” *arXiv preprint
 arXiv:2511.17946*, 2025.
+
+Z. Qiu et al., “QuCo-RAG: Query-aware Corpus Grounding for
+Retrieval-Augmented Generation,” *arXiv preprint arXiv:2512.19134*,
+2025.
 
 J. Liu et al., “Infini-gram: Scaling Unbounded n-gram Language Models to
 a Trillion Tokens,” *arXiv preprint arXiv:2401.17377*, 2024.
