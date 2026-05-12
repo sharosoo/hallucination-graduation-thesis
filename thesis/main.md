@@ -324,9 +324,9 @@ Corpus 신호는 Infini-gram[@infinigram2024] 의 local engine 을 backend 로
 
 ##### Entity 수준 신호.
 
-spaCy 의 `en_core_web_lg` 개체명 인식기로 12개 범주 (인물, 조직, 지명,
-위치, 날짜, 사건, 작품, 시설, 국적/종교, 제품, 언어, 법) 의 entity 를
-추출한다. 한 sample 에 대해 다음 두 가지 정규화 점수를 계산한다.
+spaCy 의 `en_core_web_lg` entity 인식기 (NER) 로 12개 범주 (인물, 조직,
+지명, 위치, 날짜, 사건, 작품, 시설, 국적/종교, 제품, 언어, 법) 의 entity
+를 추출한다. 한 sample 에 대해 다음 두 가지 정규화 점수를 계산한다.
 $$\begin{align*}
 \text{entity 빈도} &= \frac{\log(1 + \min_{e \in E} \mathrm{freq}(e))}{\log(1 + 10^6)}, \\
 \text{entity co-occurrence} &= \frac{\log\!\bigl(1 + \tfrac{1}{|P|}\sum_{(e_i,e_j) \in P}\mathrm{cooc}(e_i,e_j)\bigr)}{\log(1 + 10^5)}.
