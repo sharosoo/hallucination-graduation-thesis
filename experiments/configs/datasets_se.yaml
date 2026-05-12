@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "registry_name": "single_candidate_short_answer_experiment_datasets",
+  "experiment_dataset_policy": {
+    "dataset_contract": "single_candidate_generation_evaluation",
+    "active_datasets": [
+      "TriviaQA",
+      "SQuAD-1.1",
+      "BioASQ",
+      "NQ-Open",
+      "SVAMP"
+    ],
+    "candidate_rows_per_prompt": 1,
+    "candidate_policy": "Each prompt contributes exactly one dataset-provided ground-truth answer as the right candidate. No paired hallucinated candidate. Generation-level correctness is determined post-hoc by NLI bidirectional entailment matching of free-sample answers against the ground-truth answer (and any provided aliases).",
+    "rationale": "These 5 datasets are the same evaluation set used by Farquhar (Nature 2024) Semantic Entropy. Their ground-truth answers are short single-fact strings (or multi-paraphrase aliases). Generation-level evaluation matches Farquhar's per-generation correctness scoring directly.",
+    "comparison_with_paired_track": "Paired (TruthfulQA + HaluEval-QA) track in datasets.yaml remains active for the historical thesis path. SE 5-dataset track is the main evaluation aligned with Farquhar / Ma original setups."
+  },
+  "mandatory_core_datasets": [
+    "TriviaQA",
+    "SQuAD-1.1",
+    "BioASQ",
+    "NQ-Open",
+    "SVAMP"
+  ],
+  "label_policy": {
+    "supervised_target": {
+      "field": "is_correct",
+      "source": "post-hoc NLI bidirectional entailment matching of free-sample vs ground-truth",
+      "binary": true,
+      "row_unit": "(prompt_id, sample_index)"
+    },
+    "primary_analysis_axis": "corpus_axis_bin",
+    "sensitivity_analysis_axes": ["corpus_axis_bin_5", "corpus_axis_bin_10"],
+    "row_level_output": {
+      "required_fields": ["is_correct", "nli_max_prob", "match_method", "token_overlap_match"],
+      "notes": "Single-candidate track produces no is_hallucination label (no annotation-provided hallucinated candidate). is_correct is generation-level (per free-sample), not candidate-level."
+    }
+  },
+  "datasets": [
+    {
+      "name": "TriviaQA",
+      "role": "core",
+      "hf_id": "trivia_qa",
+      "config": "rc.nocontext",
+      "split": "validation",
+      "split_id": "triviaqa_rc_nocontext_validation",
+      "target_sample_count": 800,
+      "seed": 13,
+      "candidate_policy": {
+        "type": "single_dataset_provided_ground_truth",
+        "right_candidate_source": "answer.value",
+        "alias_source": "answer.aliases",
+        "candidate_rows_per_prompt": 1
+      },
+      "context_policy": {
+        "include_context": false,
+        "rationale": "Farquhar 2024 explicitly disables context to induce confabulations (without context the accuracy rate drops enough to make the metric meaningful)."
+      },
+      "notes": "Trivia knowledge QA, short single-entity answers (avg 2-3 words), 1-6 aliases per question."
+    },
+    {
+      "name": "SQuAD-1.1",
+      "role": "core",
+      "hf_id": "rajpurkar/squad",
+      "config": null,
+      "split": "validation",
+      "split_id": "squad_v1_validation",
+      "target_sample_count": 800,
+      "seed": 23,
+      "candidate_policy": {
+        "type": "single_dataset_provided_ground_truth",
+        "right_candidate_source": "answers.text[0]",
+        "alias_source": "answers.text",
+        "candidate_rows_per_prompt": 1
+      },
+      "context_policy": {
+        "include_context": false,
+        "rationale": "Farquhar 2024 disables passage context to induce confabulations. SQuAD 1.1 (not v2.0) excludes deliberately unanswerable questions."
+      },
+      "notes": "Wikipedia reading comprehension, short answer spans (avg 3 words), ~3 aliases."
+    },
+    {
+      "name": "BioASQ",
+      "role": "core",
+      "hf_id": "kroshan/BioASQ",
+      "config": null,
+      "split": "train",
+      "split_id": "bioasq_task_b_11b_2023",
+      "target_sample_count": 800,
+      "seed": 31,
+      "candidate_policy": {
+        "type": "single_dataset_provided_ground_truth",
+        "right_candidate_source": "text",
+        "alias_source": null,
+        "candidate_rows_per_prompt": 1,
+        "field_parser": "bioasq_answer_context_tag",
+        "field_parser_note": "Answer text is wrapped as '<answer> ... <context> ...'. Extract substring between '<answer>' and '<context>' as the ground truth."
+      },
+      "context_policy": {
+        "include_context": false,
+        "rationale": "Farquhar 2024 disables context."
+      },
+      "notes": "Life-sciences QA. Domain entities may have lower OLMo Dolma coverage compared to general datasets."
+    },
+    {
+      "name": "NQ-Open",
+      "role": "core",
+      "hf_id": "nq_open",
+      "config": null,
+      "split": "validation",
+      "split_id": "nqopen_validation",
+      "target_sample_count": 800,
+      "seed": 41,
+      "candidate_policy": {
+        "type": "single_dataset_provided_ground_truth",
+        "right_candidate_source": "answer[0]",
+        "alias_source": "answer",
+        "candidate_rows_per_prompt": 1
+      },
+      "context_policy": {
+        "include_context": false,
+        "rationale": "Open-domain QA, no source text by design."
+      },
+      "notes": "Real Google search questions, short single-fact answers (avg 2 words), ~2 aliases."
+    },
+    {
+      "name": "SVAMP",
+      "role": "core",
+      "hf_id": "ChilleD/SVAMP",
+      "config": null,
+      "split": "test",
+      "split_id": "svamp_test",
+      "target_sample_count": 300,
+      "seed": 53,
+      "candidate_policy": {
+        "type": "single_dataset_provided_ground_truth",
+        "right_candidate_source": "Answer",
+        "alias_source": null,
+        "candidate_rows_per_prompt": 1,
+        "question_field": "question_concat"
+      },
+      "context_policy": {
+        "include_context": false,
+        "rationale": "Math word problem, no external context. Body is included in question_concat."
+      },
+      "notes": "Elementary math word problem, numeric answer (1 word, integer or float). Total dataset size 300 (test split). Corpus signal expected weak (numeric answers, sparse entities)."
+    }
+  ]
+}

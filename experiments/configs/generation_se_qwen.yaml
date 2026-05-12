@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "track": "se_5datasets_single_candidate",
+  "formula_manifest_ref": "experiments/literature/formula_notes.md",
+  "dataset_manifest_ref": "experiments/configs/datasets_se.yaml",
+  "logits_schema_version": "generation_logits_v1",
+  "runtime": {
+    "device": "cuda",
+    "local_files_only": false,
+    "trust_remote_code": false,
+    "full_logits_dtype": "float16",
+    "max_full_logits_parquet_gib": 800,
+    "min_full_logits_disk_reserve_gib": 100,
+    "free_sample_batch_size": 12,
+    "candidate_score_batch_size": 24
+  },
+  "model": {
+    "model_name": "Qwen/Qwen2.5-3B",
+    "tokenizer_name": "Qwen/Qwen2.5-3B",
+    "revision": null
+  },
+  "generation": {
+    "seed": 13,
+    "max_new_tokens": 64,
+    "do_sample": true,
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "top_k": 50,
+    "stop_on_eos": true,
+    "answer_only": {
+      "enabled": false
+    },
+    "free_sample_count": 10
+  },
+  "notes": [
+    "SE 5-dataset (TriviaQA / SQuAD-1.1 / BioASQ / NQ-Open / SVAMP) single-candidate track.",
+    "Sentence-length generation (Farquhar 2024 default scenario): 'Answer the following question in a single brief but complete sentence.'",
+    "answer_only.enabled=false — full sentence-level free-form generation.",
+    "Sampling: temperature=1.0, top_p=0.9, top_k=50 (Farquhar 2024 §Methods).",
+    "max_new_tokens=128 (sentence-length, longer than the 64-token answer-only mode in the paired track).",
+    "Prompt template baked into prompt_groups.jsonl by hf_datasets_single_candidate.build_se_prompt — model code uses prompt as-is."
+  ]
+}

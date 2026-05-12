@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "track": "se_5datasets_single_candidate",
+  "formula_manifest_ref": "experiments/literature/formula_notes.md",
+  "dataset_manifest_ref": "experiments/configs/datasets_se.yaml",
+  "logits_schema_version": "generation_logits_v1",
+  "runtime": {
+    "device": "cuda",
+    "local_files_only": false,
+    "trust_remote_code": false,
+    "full_logits_dtype": "float16",
+    "max_full_logits_parquet_gib": 1300,
+    "min_full_logits_disk_reserve_gib": 100,
+    "free_sample_batch_size": 24,
+    "candidate_score_batch_size": 32
+  },
+  "model": {
+    "model_name": "google/gemma-4-E4B-it",
+    "tokenizer_name": "google/gemma-4-E4B-it",
+    "revision": null
+  },
+  "generation": {
+    "seed": 13,
+    "max_new_tokens": 32,
+    "do_sample": true,
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "top_k": 50,
+    "stop_on_eos": true,
+    "answer_only": {
+      "enabled": false
+    },
+    "free_sample_count": 10
+  },
+  "notes": [
+    "SE 5-dataset (TriviaQA / SQuAD-1.1 / BioASQ / NQ-Open / SVAMP) single-candidate track — Gemma 4 E4B-it mirror of generation_se_qwen.yaml.",
+    "Two-model setup: Qwen2.5-3B + Gemma 4 E4B-it for cross-model generalization check.",
+    "Gemma 4 E4B-it is publicly available on HuggingFace (no gated license).",
+    "Sampling identical to Qwen run for direct comparison."
+  ]
+}

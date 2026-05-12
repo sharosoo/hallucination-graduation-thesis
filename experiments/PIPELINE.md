@@ -1,6 +1,11 @@
 # 논문 실험 파이프라인
 
-이 문서는 처음 보는 연구자가 같은 산출물을 다시 만들 수 있도록 고정한 실행 계약이다. 이 repo에는 논문용 **실험 데이터셋**이 하나만 있다. 실험 데이터셋은 TruthfulQA와 HaluEval-QA에서 제공되는 (정답, 환각) 후보 쌍을 prompt 단위로 정렬한 paired discriminative dataset이다.
+이 문서는 처음 보는 연구자가 같은 산출물을 다시 만들 수 있도록 고정한 실행 계약이다. 본 repo 에는 **두 개의 실험 트랙** 이 있다.
+
+- **트랙 A — Paired (legacy)**: TruthfulQA + HaluEval-QA 의 (정답, 환각) 후보 쌍 (`datasets.yaml`, S0–S13). 본 논문 초기 시도 + prompt-level is\_hard reframe 분석에 사용. 산출물은 `pipeline-20260507T103225Z` 등 paired run dir 에 보존.
+- **트랙 B — SE 5-dataset Single-candidate (메인)**: TriviaQA + SQuAD-1.1 + BioASQ + NQ-Open + SVAMP. Farquhar (Nature 2024) Semantic Entropy 와 동일 평가셋. Single ground-truth answer per prompt + generation-level NLI correctness. (`datasets_se.yaml`, S1'-S6', §3 참조). 본 논문 메인 평가의 source.
+
+두 트랙 모두 **Full logits must be repo-owned**, **Corpus statistics must be repo-owned**, **Infini-gram-compatible count backend** 를 사용한다. 학습기는 **scikit-learn 5-fold (Group)KFold** 다. correctness 는 트랙 A 에서 dataset annotation, 트랙 B 에서 NLI 양방향 entailment 매칭이다.
 
 검증 기준은 단순하다. **Full logits must be repo-owned**, **Corpus statistics must be repo-owned**, **Infini-gram-compatible count backend**를 사용한다. **Elasticsearch/BM25 is used for retrieval** only, and **Elasticsearch/BM25 may be used for retrieval evidence**; count 대체물로 쓰지 않는다. 학습기는 **custom stdlib L2 logistic regression**이다. correctness는 dataset annotation에서 직접 온다. heuristic 문자열 매칭, generated-answer 사후 판정, LLM-as-judge fallback은 thesis-valid label source가 아니다. 문서-구현 정렬은 `run_pipeline.py`와 코드 리뷰가 책임진다.
 
@@ -37,6 +42,24 @@ NLL + margin + variance]
 features + corpus bins + labels]
     L[12. global and condition-aware fusion]
     M[13. corpus-bin reliability robustness]
+    N["14. [보조] prompt-level NLI is_hard 라벨링
++ prompt-unit reframe"]
+    O[15. free-sample token diagnostics
+sample 단위 logit 통계]
+    P[16. generation-level NLI correctness 라벨
+sample 단위 is_correct]
+    Q["17. [메인 트랙 A] generation-level fusion
++ robustness (HaluEval/TQA)"]
+    R["18. SE 5-dataset Single-candidate
+TriviaQA / SQuAD / BioASQ / NQ-Open / SVAMP"]
+    S["19. Generation (Qwen + Gemma)
+free-sample N=10, sentence-length"]
+    T["20. SE / Energy / sample diagnostics
++ NLI is_correct"]
+    U["21. Corpus features 다양화
+entity / qa_bridge / n-gram"]
+    V["22. [메인 트랙 B] generation-level fusion
++ robustness (Farquhar 와 직접 비교)"]
 
     A --> B --> C --> D --> E
     C --> F
@@ -50,6 +73,15 @@ features + corpus bins + labels]
     I --> K
     J --> K
     K --> L --> M
+    D --> N
+    K --> N
+    D --> O
+    D --> P
+    O --> Q
+    P --> Q
+    K --> Q
+    R --> S --> T --> V
+    R --> U --> V
 ```
 
 ## 2. 전체 실행 명령
@@ -247,6 +279,264 @@ uv run python experiments/scripts/run_robustness.py --features experiments/resul
 
 각 corpus-axis bin에서 AUROC, AUPRC, paired win rate, hallucinated-minus-normal delta, confidence interval을 보고한다. confidence interval이 0을 가로지르면 안정적 개선이라고 쓰지 않는다. robustness split은 prompt 단위로 묶는다. 같은 prompt에서 나온 두 candidate row가 train/test로 갈라지면 누수다.
 
+### S10. [보조] prompt-level reframe (NLI is_hard proxy)
+
+> 본 단계는 **보조 분석** 이다. 메인 평가는 S11–S13 (generation-level) 이다.
+> S10 산출물은 보존되며 (재현성 / 비교 목적), thesis 본문에는 등장하지 않는다.
+
+```bash
+# 1) prompt-level NLI accuracy → is_hard 라벨링 (한 번만, 캐시됨)
+uv run python experiments/scripts/relabel_is_hard_nli.py --run-dir experiments/results
+
+# 2) prompt-level fusion + robustness (NLI 캐시 자동 재사용)
+uv run python experiments/scripts/run_prompt_level_analysis.py --run-dir experiments/results
+```
+
+- 입력: `results/generation/free_sample_rows.json`, `results/features.parquet`
+- 모듈: `experiments/application/prompt_accuracy.py`, `experiments/scripts/run_prompt_level_analysis.py`
+- 출력:
+  - `results/prompt_accuracy.parquet` — prompt 단위 `(prompt_id, dataset, accuracy, accuracy_token, is_hard, match_method, n_samples, n_matches, n_candidates)` 테이블 (canonical).
+  - `results/prompt_accuracy.audit.json` — 매칭 모드 (`nli_bidirectional_max_entail` / `token_overlap`), NLI model / threshold, per-dataset is_hard rate, label change vs token-overlap.
+  - `results/prompt_features.parquet` — 위 라벨에 prompt-level SE/Energy/logit-diagnostic 집계 + corpus axis bin id 를 join 한 표.
+  - `results/fusion.prompt_level/`, `results/robustness.prompt_level/` — prompt-unit fusion + robustness artifact (S8 / S9 와 동일한 구조).
+- 라벨 정의:
+  - 각 질문의 free-sample $N=10$ 답변과 dataset 정답 후보 (best_answer / right_answer / correct_answers / correct_candidate_pool) 사이를 매칭한다.
+  - **default (NLI):** `microsoft/deberta-large-mnli` 의 양방향 entailment 확률 $\max(p(c \to s), p(s \to c)) \geq 0.5$ 이면 (sample, candidate) pair 가 매칭. paraphrase 정답을 token-overlap 보다 잘 잡는다.
+  - **fallback (token):** `--no-nli-accuracy` 옵션 또는 NLI 의존성 (transformers / torch) 미설치 시 자카드 ≥ 0.5 또는 substring 매칭으로 fallback.
+  - prompt accuracy = `matches / N`. **is_hard = (accuracy < 0.5)**. token-overlap accuracy 도 항상 sanity column 으로 함께 저장한다.
+- 본 단계는 candidate-level pipeline (S0–S9) 산출물을 그대로 재사용한다. NLI 매칭은 한 번만 GPU 추론하고, 이후 `run_prompt_level_analysis.py` 는 `prompt_accuracy.parquet` 캐시만 읽어 분석을 반복한다 (NLI 재실행 비용 0). 라벨이 candidate-level `is_hallucination` 과 다르므로 (질문 단위 어려움 vs 답변 단위 정오), 두 분석은 보완적이다.
+
+### S11. free-sample token diagnostics (sample-level)
+
+```bash
+uv run python -m experiments.adapters.free_sample_diagnostics --run-dir experiments/results
+```
+
+- 입력: `results/generation/free_sample_rows.json`, `results/generation/free_sample_rows.json.full_logits.parquet`
+- 모듈: `experiments/adapters/free_sample_diagnostics.py`
+- 출력: `results/free_sample_diagnostics.parquet` — row=(prompt_id, sample_index)
+- 산출 신호 (sample 단위):
+  - `sample_nll = mean_t(logsumexp_t - selected_logit_t)` — token-mean NLL
+  - `sample_sequence_log_prob = sum_t(log p(x_t))`
+  - `sample_logit_variance = var_t(selected_token_logit_t)`
+  - `sample_logsumexp_mean = mean_t(logsumexp_t)` — partition function flatness
+  - `sample_confidence_margin_mean = mean_t(top1_logit - top2_logit)` — full vocab parquet streaming 으로 산출
+  - `sample_confidence_margin_min = min_t(top1_logit - top2_logit)` — token 단위 worst case
+  - `sample_top1_logit_mean = mean_t(top1_logit)`
+- top1 / top2 logit 은 73GB `full_logits.parquet` (half precision full vocab cache) 를 row group streaming + `np.partition(arr, -2)` 으로 추출. 메모리 batch-bounded.
+
+### S12. generation-level NLI correctness 라벨링
+
+```bash
+# 자동 호출됨 (run_generation_level_analysis.py 가 캐시 없으면 실행)
+uv run python -c "from pathlib import Path; from experiments.application.prompt_accuracy import build_generation_correctness_frame, write_generation_correctness_artifacts; import json; RUN=Path('experiments/results'); fs=json.loads((RUN/'results/generation/free_sample_rows.json').read_text())['samples']; df=build_generation_correctness_frame(fs); write_generation_correctness_artifacts(df, RUN/'results', nli_model_name='microsoft/deberta-large-mnli', threshold=0.5, use_nli=True)"
+```
+
+- 입력: `results/generation/free_sample_rows.json`
+- 모듈: `experiments/application/prompt_accuracy.py` 의 `build_generation_correctness_frame`
+- 출력:
+  - `results/generation_correctness.parquet` — row=(prompt_id, dataset, sample_index, is_correct, nli_max_prob, match_method, token_overlap_match)
+  - `results/generation_correctness.audit.json` — per-dataset is_correct rate, label change vs token-overlap
+- 라벨 정의: free-sample $s_i$ 와 정답 후보 $c$ (best_answer / right_answer / correct_answers / correct_candidate_pool) 의 양방향 entailment 확률 $\max\bigl(p(c \to s_i),\,p(s_i \to c)\bigr) \geq 0.5$ 이면 `is_correct=1`. NLI 모델 = `microsoft/deberta-large-mnli` (SE 산출과 동일).
+- 본 라벨은 Farquhar (Nature 2024) / Ma (2025) 의 generation-level correctness 와 동일 평가 단위.
+
+### S13. generation-level fusion + robustness (메인)
+
+```bash
+uv run python experiments/scripts/run_generation_level_analysis.py --run-dir experiments/results
+```
+
+- 입력: `results/generation_correctness.parquet`, `results/free_sample_diagnostics.parquet`, `results/features.parquet` (prompt-level SE / Energy / corpus axis broadcast 용)
+- 모듈: `experiments/application/generation_level_eval.py`
+- 출력:
+  - `results/generation_features.parquet` — row=(pid, si), label=is_correct, with all signals joined
+  - `results/fusion.generation_level/{summary.json, predictions.jsonl}`
+  - `results/robustness.generation_level/{summary.json, bootstrap_ci.json, corpus_bin_reliability.json, leave_one_dataset_out.json, threshold_calibration.json}`
+- Fusion split: **GroupKFold(prompt_id) 5-fold** — 같은 prompt 의 sample 이 train/test 에 나뉘는 누수 방지.
+- Fusion 입력 신호:
+  - prompt-level (broadcast, 같은 prompt 의 모든 sample 동일 값): SE, Semantic Energy, corpus axis bin
+  - sample-level (row 단위 변동): sample_nll, sample_logit_variance, sample_logsumexp_mean, sample_sequence_log_prob, sample_confidence_margin_mean
+- Metrics: AUROC, AUPRC, Brier, ECE, **AURAC** (Area Under Rejection-Accuracy Curve, Farquhar Nature 2024 main metric).
+- 본 단계는 thesis 본문 메인 평가의 모든 표 / 그림 / 매크로의 source 다.
+
+---
+
+## 트랙 B — SE 5-dataset Single-candidate (메인 평가)
+
+본 트랙은 Farquhar (Nature 2024) Semantic Entropy 와 Ma (2025) Semantic Energy 가 사용한 평가셋과 동일한 5 datasets 위에서 generation-level 환각 탐지를 평가한다. Single ground-truth answer per prompt + post-hoc NLI correctness. **본 논문 메인 평가의 source 트랙이다.**
+
+### S1'. 데이터셋 준비 (5 SE datasets)
+
+```bash
+uv run python experiments/scripts/prepare_datasets_se.py \
+  --config experiments/configs/datasets_se.yaml \
+  --out-dir experiments/results/datasets
+```
+
+- 입력: `experiments/configs/datasets_se.yaml`
+- 모듈: `experiments/adapters/hf_datasets_single_candidate.py`, `experiments/scripts/prepare_datasets_se.py`
+- 출력:
+  - `results/datasets/prompt_groups.jsonl` — 3,500 prompts (TriviaQA 800 + SQuAD-1.1 800 + BioASQ 800 + NQ-Open 800 + SVAMP 300)
+  - `results/datasets/candidate_rows.jsonl` — 3,500 single right candidate (1 per prompt)
+  - `results/datasets/dataset_manifest.json`
+- Prompt template (Farquhar 2024 sentence-length):
+  ```
+  Answer the following question in a single brief but complete sentence.
+  Question: {question}
+  Answer:
+  ```
+- Context passage 누락 (Farquhar §Methods — confabulation 유도 의도)
+
+### S2'. Generation (free-sample N=10, 두 모델)
+
+```bash
+# 모델 A: Qwen2.5-3B
+uv run python experiments/scripts/run_generation.py \
+  --config experiments/configs/generation_se_qwen.yaml \
+  --prompt-groups $RUN/results/datasets/prompt_groups.jsonl \
+  --candidates $RUN/results/datasets/candidate_rows.jsonl \
+  --out-free-samples $RUN/qwen/results/generation/free_sample_rows.json \
+  --out-candidate-scores $RUN/qwen/results/generation/candidate_scores.json
+
+# 모델 B: Gemma 4 E4B-it (publicly available)
+uv run python experiments/scripts/run_generation.py \
+  --config experiments/configs/generation_se_gemma.yaml \
+  --prompt-groups $RUN/results/datasets/prompt_groups.jsonl \
+  --candidates $RUN/results/datasets/candidate_rows.jsonl \
+  --out-free-samples $RUN/gemma/results/generation/free_sample_rows.json \
+  --out-candidate-scores $RUN/gemma/results/generation/candidate_scores.json
+```
+
+- 모델: Qwen2.5-3B + Google Gemma 4 E4B-it (cross-model 일반화 검증)
+- Sampling: temperature=1.0, top_p=0.9, top_k=50, N=10 (Farquhar 2024 §Methods)
+- max_new_tokens=64 (sentence-length 답변 충분)
+- `answer_only.enabled=false` — sentence-level free-form generation
+- 산출물: `$RUN/{qwen,gemma}/results/generation/free_sample_rows.json` + full vocab logits parquet sidecar
+
+### S3'. Checkpoint consolidate (free_sample_rows.json 재조립)
+
+```bash
+uv run python experiments/scripts/consolidate_checkpoints_se.py \
+  --checkpoint-dir $RUN/{qwen,gemma}/results/generation/free_sample_rows.json.checkpoint \
+  --out $RUN/{qwen,gemma}/results/generation/free_sample_rows.json
+```
+
+run_generation.py 의 finalize 단계가 35,000 sample × full vocab logits parquet consolidate 로 매우 느릴 때 (Qwen 측정 약 3-5h+), checkpoint shard 들에서 sample dict 만 직접 모아 free_sample_rows.json 만든다 (~10초). full_logits 는 per-shard parquet 로 두고 sample 의 `full_logits_ref.path` 에 절대 경로 기록 → 후속 streaming (free_sample_diagnostics 의 top1-top2 margin) 에서 그대로 읽음. 빈 response_text 는 `(empty)` placeholder.
+
+산출: `$RUN/{qwen,gemma}/results/generation/free_sample_rows.json` (35,000 sample, ~100 MB).
+
+### S4'. Semantic Entropy
+
+```bash
+uv run python experiments/scripts/compute_semantic_entropy.py \
+  --free-samples $RUN/{qwen,gemma}/results/generation/free_sample_rows.json \
+  --out $RUN/{qwen,gemma}/results/semantic_entropy_features.parquet
+```
+
+기존 트랙 A 어댑터 재사용. NLI cluster + cluster log-likelihood 산출 (prompt 단위).
+
+### S5'. Semantic Energy (paper-faithful)
+
+```bash
+uv run python experiments/scripts/compute_energy_se_minimal.py \
+  --free-samples $RUN/{qwen,gemma}/results/generation/free_sample_rows.json \
+  --semantic-entropy $RUN/{qwen,gemma}/results/semantic_entropy_features.parquet \
+  --out $RUN/{qwen,gemma}/results/energy_features.parquet
+```
+
+본 트랙은 candidate_scores 가 없는 single-candidate 셋업이므로 트랙 A 의 `compute_energy_features.py` (candidate_scores 필수) 대신 mini script 가 free-sample + SE cluster 만으로 paper-faithful Semantic Energy (Ma 2025 Eq. 11–14) 산출.
+
+### S6'. Free-sample diagnostics (sample-level token 통계)
+
+```bash
+uv run python -m experiments.adapters.free_sample_diagnostics --run-dir $RUN/{qwen,gemma}
+```
+
+- 입력: `$RUN/.../generation/free_sample_rows.json` + per-shard `full_logits.parquet`
+- 산출 신호 (sample 단위): sample_nll / sample_sequence_log_prob / sample_logit_variance / sample_logsumexp_mean (selected token 통계) + sample_confidence_margin_{mean,min} / sample_top1_logit_mean (full vocab streaming top1-top2 추출)
+- `--no-vocab-margin` 시 top1-top2 streaming skip (selected-token 통계만)
+
+### S7'. Generation-level NLI correctness
+
+```bash
+uv run python -c "from experiments.application.prompt_accuracy import build_generation_correctness_frame, write_generation_correctness_artifacts; ..."
+```
+
+- free-sample $s_i$ 와 정답 후보 (alias_list) 사이의 \texttt{microsoft/deberta-large-mnli} 양방향 entailment 매칭 확률 ≥ 0.5 → `is_correct=1`.
+- 산출: `generation_correctness.parquet` + `generation_correctness.audit.json`. row=(prompt_id, sample_index).
+- GPU 메모리 충돌 시 `batch_size=16` 권장 (Gemma generation 과 병렬 실행 가능).
+
+### S8'. Corpus features (entity-level)
+
+```bash
+uv run python experiments/scripts/compute_corpus_features.py \
+  --candidates $RUN/results/datasets/candidate_rows.jsonl \
+  --out $RUN/{qwen,gemma}/results/corpus_features.parquet \
+  --entity-extractor spacy
+```
+
+- 입력: SE track candidate_rows (single right candidate per prompt)
+- 어댑터: `experiments/adapters/corpus_features.py` (그대로)
+- backend: `candidate_rows.jsonl.corpus_backend.json` sidecar 가 같은 디렉터리에 있어야 함 (paired track 의 backend config 복사 또는 재작성)
+- 산출: entity_frequency, entity_pair_cooccurrence, axis bin 등 (트랙 A 와 동일)
+
+### S9'. QA Bridge co-occurrence (corpus 다양화 1)
+
+```bash
+uv run python experiments/scripts/compute_qa_bridge_features.py \
+  --candidates $RUN/results/datasets/candidate_rows.jsonl \
+  --out $RUN/{qwen,gemma}/results/qa_bridge_features.parquet
+```
+
+- 어댑터: `experiments/adapters/qa_bridge_features.py`
+- 산출: (question entity, answer entity) bridge co-occurrence — fact-level corpus support
+- 신호: qa_bridge_pair_count / min / mean / axis / zero_flag
+
+### S10'. N-gram coverage (corpus 다양화 2)
+
+```bash
+uv run python experiments/scripts/compute_ngram_coverage_features.py \
+  --candidates $RUN/results/datasets/candidate_rows.jsonl \
+  --out $RUN/{qwen,gemma}/results/ngram_coverage_features.parquet \
+  --n 3 5
+```
+
+- 어댑터: `experiments/adapters/ngram_coverage_features.py`
+- 산출: 답변 token 의 3-gram, 5-gram 의 corpus count 평균/min/zero_count/axis (Infini-gram 본래 use case)
+- 신호: ans_ngram_3_axis, ans_ngram_5_axis, ans_ngram_3_zero_count, ans_ngram_5_zero_count
+
+### S11'. Generation-level fusion + robustness (메인)
+
+```bash
+uv run python experiments/scripts/run_generation_se_analysis.py \
+  --run-dir $RUN/{qwen,gemma} --bootstrap-n 1000
+```
+
+- 모듈: `experiments/application/generation_level_eval.py` (`build_generation_features` + `run_generation_fusion` + bootstrap CI + per-decile + per-dataset + calibration + AURAC)
+- Fusion 입력 (CORE_INPUTS): SE / Semantic Energy (broadcast) + sample_nll / sample_logit_variance / sample_logsumexp_mean / sample_sequence_log_prob (sample-level)
+- Fusion 입력 (CORPUS_INPUTS, with-corpus 변형): corpus_axis_bin_10_ord, entity_frequency_axis, entity_pair_cooccurrence_axis, entity_frequency_min, qa_bridge_axis/min/zero_flag, ans_ngram_3_axis, ans_ngram_5_axis, ans_ngram_3_zero_count, ans_ngram_5_zero_count
+- Split: 5-fold GroupKFold(prompt_id)
+- Metrics: AUROC, AUPRC, Brier, ECE, **AURAC** (Farquhar Nature 2024 main metric)
+- 산출: `fusion.generation_level/{summary.json, predictions.jsonl}` + `robustness.generation_level/{summary, bootstrap_ci, corpus_bin_reliability, leave_one_dataset_out, threshold_calibration}.json`
+
+### 트랙 B 산출물 체크리스트
+
+| Artifact | 모델별 path | 역할 |
+| --- | --- | --- |
+| `prompt_groups.jsonl` + `candidate_rows.jsonl` | shared | 5 datasets × ~700 prompt 평균 (총 3,500 prompt) |
+| `candidate_rows.jsonl.corpus_backend.json` | shared | infini-gram local backend pin (paired 트랙과 같은 v4_dolmasample_olmo) |
+| `free_sample_rows.json` | `qwen/`, `gemma/` | N=10 free samples per prompt |
+| `free_sample_rows.json.checkpoint/` (shard tree) | `qwen/`, `gemma/` | per-sample full_logits.parquet (consolidate 안 함) |
+| `semantic_entropy_features.parquet` | `qwen/`, `gemma/` | NLI cluster + likelihood |
+| `energy_features.parquet` | `qwen/`, `gemma/` | paper-faithful Semantic Energy |
+| `free_sample_diagnostics.parquet` | `qwen/`, `gemma/` | sample-level token 통계 + top1-top2 margin |
+| `generation_correctness.parquet` + `.audit.json` | `qwen/`, `gemma/` | NLI 양방향 entailment is_correct (per generation) |
+| `corpus_features.parquet` | `qwen/`, `gemma/` | entity-level corpus signal |
+| `qa_bridge_features.parquet` | `qwen/`, `gemma/` | question↔answer entity bridge cooc (corpus 다양화 1) |
+| `ngram_coverage_features.parquet` | `qwen/`, `gemma/` | answer 3/5-gram corpus coverage (corpus 다양화 2) |
+| `generation_features.parquet` | `qwen/`, `gemma/` | row=(pid,si), 모든 신호 join |
+| `fusion.generation_level/`, `robustness.generation_level/` | `qwen/`, `gemma/` | 메인 분석 결과 (thesis 본문 source) |
+
 ## 4. 최종 산출물 체크리스트
 
 | Artifact | 생성 stage | 역할 |
@@ -263,6 +553,13 @@ uv run python experiments/scripts/run_robustness.py --features experiments/resul
 | `features.parquet` | S7 | fusion input table with corpus bins |
 | `fusion/summary.json` | S8 | global and condition-aware fusion results |
 | `robustness/summary.json` | S9 | corpus-bin reliability and robustness results |
+| `prompt_accuracy.parquet` + `prompt_accuracy.audit.json` | S10 [보조] | prompt-level NLI is_hard 라벨 + 매칭 audit |
+| `prompt_features.parquet` | S10 [보조] | prompt-unit fusion 입력 |
+| `fusion.prompt_level/`, `robustness.prompt_level/` | S10 [보조] | prompt-unit reframe 분석 결과 |
+| `free_sample_diagnostics.parquet` | S11 | sample 단위 token logit 통계 (NLL / variance / margin / etc.) |
+| `generation_correctness.parquet` + `.audit.json` | S12 | generation-level NLI is_correct 라벨 + audit |
+| `generation_features.parquet` | S13 | generation-unit fusion 입력 (prompt broadcast + sample-level signal) |
+| `fusion.generation_level/`, `robustness.generation_level/` | S13 [메인] | generation-unit fusion + robustness (thesis 본문 source) |
 
 논문 claim은 위 산출물이 모두 생성되고 각 validator가 통과한 run manifest에서만 작성한다.
 

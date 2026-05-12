@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -37,56 +36,45 @@ from sklearn.metrics import (
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
-
-def norm(text: str) -> str:
-    text = (text or "").lower().strip()
-    text = re.sub(r"[^\w\s]", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def overlap_match(sample: str, refs: list[str]) -> bool:
-    if not sample or not refs:
-        return False
-    s = set(sample.split())
-    for ref in refs:
-        c = set(ref.split())
-        if c and len(s & c) / len(c) >= 0.5:
-            return True
-    return False
+from experiments.application.prompt_accuracy import (
+    DEFAULT_HARD_ACCURACY_CUTOFF,
+    DEFAULT_NLI_MODEL_NAME,
+    DEFAULT_NLI_THRESHOLD,
+    build_prompt_accuracy_frame,
+    write_prompt_accuracy_artifacts,
+)
 
 
-def build_prompt_features(run_dir: Path) -> pd.DataFrame:
+def build_prompt_features(
+    run_dir: Path,
+    *,
+    use_nli: bool = True,
+    nli_model_name: str = DEFAULT_NLI_MODEL_NAME,
+    nli_threshold: float = DEFAULT_NLI_THRESHOLD,
+    hard_cutoff: float = DEFAULT_HARD_ACCURACY_CUTOFF,
+) -> pd.DataFrame:
     fs = json.loads((run_dir / "results/generation/free_sample_rows.json").read_text())["samples"]
-    pa: dict[str, dict] = {}
-    for s in fs:
-        pid = s["prompt_id"]
-        if pid not in pa:
-            md = s.get("metadata") or {}
-            refs = []
-            for k in ("right_answer", "best_answer"):
-                v = md.get(k)
-                if isinstance(v, str) and v:
-                    refs.append(norm(v))
-            ca = md.get("correct_answers")
-            if isinstance(ca, list):
-                refs.extend(norm(x) for x in ca if isinstance(x, str) and x)
-            pa[pid] = {"refs": list({r for r in refs if r}), "matches": 0, "n": 0, "dataset": s["dataset"]}
-        if pa[pid]["refs"]:
-            if overlap_match(norm(s.get("response_text", "")), pa[pid]["refs"]):
-                pa[pid]["matches"] += 1
-        pa[pid]["n"] += 1
 
-    rows = []
-    for pid, v in pa.items():
-        if not v["refs"] or v["n"] == 0:
-            continue
-        rows.append({
-            "prompt_id": pid,
-            "dataset": v["dataset"],
-            "accuracy": v["matches"] / v["n"],
-            "is_hard": int(v["matches"] / v["n"] < 0.5),
-        })
-    label_df = pd.DataFrame(rows)
+    # 캐시 우선 사용: prompt_accuracy.parquet 가 이미 있으면 NLI 재실행 skip
+    cache_path = run_dir / "results/prompt_accuracy.parquet"
+    if use_nli and cache_path.exists():
+        label_df = pd.read_parquet(cache_path)
+        print(f"  reusing prompt accuracy cache: {cache_path.name} ({len(label_df)} prompts)")
+    else:
+        label_df = build_prompt_accuracy_frame(
+            fs,
+            use_nli=use_nli,
+            nli_model_name=nli_model_name,
+            threshold=nli_threshold,
+            hard_cutoff=hard_cutoff,
+        )
+        write_prompt_accuracy_artifacts(
+            label_df, run_dir / "results",
+            nli_model_name=nli_model_name,
+            threshold=nli_threshold,
+            hard_cutoff=hard_cutoff,
+            use_nli=use_nli,
+        )
 
     feat = pd.read_parquet(run_dir / "results/features.parquet")
     inner = pd.json_normalize(feat["features"])
@@ -365,11 +353,22 @@ def threshold_calibration(df: pd.DataFrame, preds: pd.DataFrame, methods: list[s
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-dir", required=True)
+    ap.add_argument("--no-nli-accuracy", action="store_true",
+                    help="prompt-level accuracy 산출 시 token-overlap 만 사용 (NLI 매칭 skip).")
+    ap.add_argument("--nli-model", default=DEFAULT_NLI_MODEL_NAME)
+    ap.add_argument("--nli-threshold", type=float, default=DEFAULT_NLI_THRESHOLD)
+    ap.add_argument("--hard-cutoff", type=float, default=DEFAULT_HARD_ACCURACY_CUTOFF)
     args = ap.parse_args()
     run_dir = Path(args.run_dir)
 
     print("[1/4] building prompt features ...", flush=True)
-    df = build_prompt_features(run_dir)
+    df = build_prompt_features(
+        run_dir,
+        use_nli=not args.no_nli_accuracy,
+        nli_model_name=args.nli_model,
+        nli_threshold=args.nli_threshold,
+        hard_cutoff=args.hard_cutoff,
+    )
     out_pf = run_dir / "results/prompt_features.parquet"
     df.to_parquet(out_pf, index=False)
     print(f"  saved {out_pf} ({len(df)} prompts)")
