@@ -98,7 +98,7 @@ Corpus Signal 단위별 분석}
 
 본 논문은 이 평균을 sample 그룹별로 분해해 측정한다. 사전학습 corpus 에 어떤 사실 패턴이 얼마나 등장했는지를 기준으로 sample 을 그룹별로 나눈 뒤, 환각 탐지 신호의 AUROC 를 그룹별로 따로 측정한다. 이때 corpus 패턴을 어떤 \emph{단위} 로 보느냐가 핵심이다. 단일 entity 가 얼마나 자주 등장했는지로 볼 수도 있고, 두 entity 가 \emph{함께} 얼마나 등장했는지 (entity co-occurrence) 로 볼 수도 있으며, 답변 어구의 n-gram 등장 빈도로 볼 수도 있다.
 
-핵심 결과는 다음과 같다. 질문 entity 와 답변 entity 가 corpus 에 자주 함께 등장한 sample 에서는 Semantic Entropy 의 AUROC 가 \HeadlineEntityPairSEHigh{} 인 반면, 거의 함께 등장하지 않은 sample 에서는 \HeadlineEntityPairSELow{} 로 크게 떨어진다. 같은 분석을 단순히 단일 entity 의 등장 횟수로 수행하면 AUROC range 이 절반 수준으로 줄어든다. 즉 ``Paris--France 가 같이 등장하는지'' 같은 \emph{entity co-occurrence} 정보가, ``Paris'' 한 단어의 등장 빈도보다 환각 탐지기의 신뢰도를 약 \HeadlineEntityPairOverEntityFreqRatio{}배 더 세밀하게 분해한다.
+핵심 결과는 다음과 같다. 질문 entity 와 답변 entity 가 corpus 에 자주 함께 등장한 sample 에서는 Semantic Entropy 의 AUROC 가 \HeadlineEntityPairSEHigh{} 인 반면, 거의 함께 등장하지 않은 sample 에서는 \HeadlineEntityPairSELow{} 로 크게 떨어진다. 같은 분석을 단순히 단일 entity 의 등장 횟수로 수행하면 AUROC range 이 절반 수준으로 줄어든다. 즉 ``Paris--France 가 같이 등장하는지'' 같은 \emph{entity co-occurrence} 정보가, ``Paris'' 한 단어의 등장 빈도보다 환각 탐지기의 신뢰도를 약 \HeadlineEntityPairOverEntityFreqRatio{}배 (SVAMP 포함 / 제외에 따라 \HeadlineRatioRangeLow{}--\HeadlineRatioRangeHigh{}배) 더 세밀하게 분해한다.
 
 이 결과는 corpus 신호의 역할에 대한 관점 전환을 제시한다. corpus 신호는 환각 탐지기의 입력 변수로 추가했을 때는 성능 향상이 미미하지만, \emph{탐지기가 신뢰할 수 있는 영역과 그렇지 않은 영역을 가르는 평가 척도} 로 사용했을 때는 큰 AUROC range 를 보인다. 이러한 비대칭은 향후 환각 탐지 연구가 평균 한 숫자가 아니라 corpus 조건별 AUROC range 를 함께 보고해야 함을 시사하며, 실제 LLM 서비스에서도 corpus 뒷받침이 약한 질문은 별도로 검증하는 \emph{조건부 신뢰} 전략의 토대가 될 수 있다. 본 연구는 Qwen2.5-3B 와 5개 QA 데이터셋 (TriviaQA, SQuAD-1.1, BioASQ, NQ-Open, SVAMP, 총 3{,}500 sample, 35{,}000 생성 답변) 위에서 1차 검증을 수행하였으며, 통계 검정과 신뢰구간은 §\ref{sec:axis} 와 §\ref{sec:limitations} 에 상세히 보고한다.
 \end{abstract}
@@ -131,7 +131,7 @@ corpus 통계량을 환각 탐지에 활용한 선행 연구\cite{wildhallucinat
 
 이 질문에 답하기 위해 세 가지 세부 목표를 설정한다. 첫째, 기존 환각 탐지 신호 (Semantic Entropy, Semantic Energy, 답변 단위 logit 통계) 의 성능을 동일 평가 절차 위에서 재현한다. 둘째, 단위가 서로 다른 corpus 신호 (entity 빈도, entity co-occurrence, question-answer bridge, n-gram) 를 설계하고, 각 신호 자체가 단독 환각 탐지기로 쓸 만한지 평가한다. 셋째, 같은 corpus 신호로 sample 을 그룹별로 나누었을 때 환각 탐지 신호의 구간별 AUROC 가 어떻게 변동하는지 비교하고, corpus 신호의 단위가 AUROC range 에 어떤 영향을 미치는지 정량화한다.
 
-\paragraph{본 논문의 기여.} 본 연구의 기여는 다음 세 가지이다. (1) 환각 탐지 신호의 신뢰도가 corpus 조건에 따라 어떻게 달라지는지를 corpus 신호의 단위별로 비교하는 분석 절차를 제시한다. (2) 본 표본에서 entity co-occurrence 가 단일 entity 빈도보다 환각 탐지 신호의 신뢰도 변동을 약 \HeadlineEntityPairOverEntityFreqRatio{}배 더 세밀하게 분해함을 1차 검증한다. 이 결과는 ``entity co-occurrence 가 단일 entity 빈도보다 모델의 학습 정도를 더 직접 반영한다'' 는 직관과 부합한다. (3) corpus 신호의 설계 목표를 환각 탐지기의 \emph{입력 변수} 가 아니라 탐지 신호의 \emph{조건부 평가 척도} 로 다시 설정하는 관점을 제시한다. 이 관점은 환각 탐지 연구의 평가 보고 방식과, 실제 LLM 서비스에서의 corpus 조건부 신뢰 전략 모두에 시사점을 갖는다.
+\paragraph{본 논문의 기여.} 본 연구의 기여는 다음 세 가지이다. (1) 환각 탐지 신호의 신뢰도가 corpus 조건에 따라 어떻게 달라지는지를 corpus 신호의 단위별로 비교하는 분석 절차를 제시한다. (2) 본 표본에서 entity co-occurrence 가 단일 entity 빈도보다 환각 탐지 신호의 신뢰도 변동을 약 \HeadlineEntityPairOverEntityFreqRatio{}배 (SVAMP 포함 / 제외에 따라 \HeadlineRatioRangeLow{}--\HeadlineRatioRangeHigh{}배) 더 세밀하게 분해함을 1차 검증한다. 이 결과는 ``entity co-occurrence 가 단일 entity 빈도보다 모델의 학습 정도를 더 직접 반영한다'' 는 직관과 부합한다. (3) corpus 신호의 설계 목표를 환각 탐지기의 \emph{입력 변수} 가 아니라 탐지 신호의 \emph{조건부 평가 척도} 로 다시 설정하는 관점을 제시한다. 이 관점은 환각 탐지 연구의 평가 보고 방식과, 실제 LLM 서비스에서의 corpus 조건부 신뢰 전략 모두에 시사점을 갖는다.
 
 \section{논문 구성}
 
@@ -278,7 +278,7 @@ gradient boosting (corpus 미포함)     & 0.800 & 0.553 & — \\
 \begin{table}[htbp]
 \centering
 \small
-\caption[Corpus 신호별 구간별 AUROC range 과 단조성]{Corpus 신호별로 산출한 Semantic Entropy / Semantic Energy / 답변 평균 NLL 의 구간별 AUROC range ($\Delta$) 과 단조성 ($\rho$). 각 신호는 sample 단위 순위 기반 10분위 구간으로 이산화하였다. $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 으로 정의한다. $\rho$ 는 Spearman 상관 (구간 순위와 구간별 AUROC, 양수는 단조 증가) 이며, $p$ 값은 양측, n=10 (구간 수) 이다. 본 표는 다음 두 단서를 전제로 해석한다. 첫째, 7개 신호 $\times$ 3개 환각 탐지 신호 = 21개 동시 검정에 대해 다중비교 보정을 적용하지 않은 예비 분석이며, Bonferroni 보정 ($\alpha$=0.05/21$\approx$0.0024) 을 적용하면 답변 평균 NLL 의 $\rho$=+0.733 ($p$=0.016) 도 유의 기준을 충족하지 않는다. 둘째, n=10 에서 $\rho$=$\pm$0.648 이 양측 $p$=0.05 의 임계값에 해당하므로, $|\rho|$=0.65 부근의 결과는 구간 폭과 동순위 처리 방식에 민감하다. 별표 (★) 는 해당 환각 탐지 신호의 AUROC range 이 가장 큰 행을 표시한다.}
+\caption[Corpus 신호별 구간별 AUROC range 과 단조성]{Corpus 신호별로 산출한 Semantic Entropy / Semantic Energy / 답변 평균 NLL 의 구간별 AUROC range 과 단조성 ($\rho$). 본 표 이하 본문 전체에서 \emph{AUROC range} 는 $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 으로 정의하며, 표 헤더 / 본문에서 두 표기를 동등하게 사용한다. 각 신호는 sample 단위 순위 기반 10분위 구간으로 이산화하였다. $\rho$ 는 Spearman 상관 (구간 순위와 구간별 AUROC, 양수는 단조 증가) 이며, $p$ 값은 양측, n=10 (구간 수) 이다. 본 표는 다음 두 단서를 전제로 해석한다. 첫째, 7개 신호 $\times$ 3개 환각 탐지 신호 = 21개 동시 검정에 대해 다중비교 보정을 적용하지 않은 예비 분석이며, Bonferroni 보정 ($\alpha$=0.05/21$\approx$0.0024) 을 적용하면 본 표의 모든 $\rho$ 가 유의 기준을 충족하지 않으며 (가장 강한 답변 평균 NLL 의 $\rho$=+0.733, $p$=0.016 도 임계를 통과하지 못한다), 따라서 본 $\rho$ 결과는 예비 분석으로 한정한다. 둘째, n=10 에서 $\rho$=$\pm$0.648 이 양측 $p$=0.05 의 임계값에 해당하므로, $|\rho|$=0.65 부근의 결과는 구간 폭과 동순위 처리 방식에 민감하다. 별표 (★) 는 해당 환각 탐지 신호의 AUROC range 이 가장 큰 행을 표시한다.}
 \label{tab:axis_decomp}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccccc@{}}
