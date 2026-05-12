@@ -6,33 +6,33 @@
 \begin{table}[htbp]
 \centering
 \small
-\caption[종합 baseline (generation-level, SE 5-dataset)]{종합 baseline. n=35{,}000 generation (Qwen2.5-3B, 5 datasets, N=10 free-sample). 라벨 정의 / 평가 단위 / fusion 입력 / AURAC 정의는 §\ref{sec:label}--§\ref{sec:fusion_def} 참조. \emph{corpus 추가 lift} = 같은 분류기에서 CORE\_INPUTS 만 vs.\ CORE+CORPUS\_INPUTS 의 AUROC 차이. 굵은 글씨 = AUROC 1위.}
+\caption[주요 신호의 종합 성능]{주요 신호의 종합 성능. 생성 답변 35{,}000건 (Qwen2.5-3B, 5개 데이터셋, sample 당 10개 자유 생성 답변) 을 대상으로 측정하였다. 라벨 정의, 평가 단위, fusion 입력, AURAC 정의는 §\ref{sec:label}--§\ref{sec:fusion_def} 에서 기술한다. corpus 추가 효과는 같은 분류기에서 핵심 입력만 사용한 경우와 핵심 입력에 corpus 신호를 함께 쓴 경우의 AUROC 차이로 정의한다. 굵은 글씨는 AUROC 가 가장 높은 행을 가리킨다.}
 \label{tab:current_thesis_evidence}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-신호 & AUROC & AURAC & Brier & corpus 추가 lift \\
+신호 & AUROC & AURAC & Brier & corpus 추가 효과 \\
 \midrule
-\multicolumn{5}{l}{\emph{단일 신호 (학습 없음, sample-consistency \& token logit)}} \\
-\quad logit-variance               & 0.620 & 0.400 & --- & --- \\
-\quad sequence-log-prob            & 0.656 & 0.466 & --- & --- \\
-\quad sample\_nll (logit-diagnostic) & 0.670 & 0.468 & --- & --- \\
-\quad Semantic Entropy (SE)        & 0.759 & 0.526 & --- & --- \\
-\quad Semantic Energy              & 0.774 & 0.533 & --- & --- \\
+\multicolumn{5}{l}{\emph{단일 신호 (학습 없음, 답변 일관성 및 토큰 logit 통계)}} \\
+\quad 답변 내 logit 분산                & 0.620 & 0.400 & --- & --- \\
+\quad 답변 전체 로그우도               & 0.656 & 0.466 & --- & --- \\
+\quad 답변 평균 음의 로그우도 (NLL)    & 0.670 & 0.468 & --- & --- \\
+\quad Semantic Entropy            & 0.759 & 0.526 & --- & --- \\
+\quad Semantic Energy                  & 0.774 & 0.533 & --- & --- \\
 \midrule
-\multicolumn{5}{l}{\emph{단일 corpus signal (학습 없음) — Negative result}} \\
-\quad entity\_pair\_cooccurrence\_axis & 0.546 & --- & --- & --- \\
-\quad entity\_frequency\_axis      & 0.565 & --- & --- & --- \\
-\quad ans\_ngram\_3\_axis          & 0.563 & --- & --- & --- \\
-\quad qa\_bridge\_mean             & 0.583 & --- & --- & --- \\
-\quad ans\_ngram\_3\_zero\_count   & 0.583 & --- & --- & --- \\
+\multicolumn{5}{l}{\emph{단일 corpus 신호 (학습 없음)}} \\
+\quad entity co-occurrence              & 0.546 & --- & --- & --- \\
+\quad entity 빈도                      & 0.565 & --- & --- & --- \\
+\quad 답변 3-gram 등장 빈도            & 0.563 & --- & --- & --- \\
+\quad question-answer bridge (평균)    & 0.583 & --- & --- & --- \\
+\quad 답변 3-gram 미등장 개수          & 0.583 & --- & --- & --- \\
 \midrule
-\multicolumn{5}{l}{\emph{Fusion (GroupKFold(prompt\_id) 5-fold OOF)}} \\
-\quad logistic regression (no corpus)    & 0.793 & 0.548 & 0.164 & --- \\
-\quad logistic regression (with corpus)  & 0.795 & 0.550 & 0.162 & $+0.002$ \\
-\quad random forest (no corpus)          & 0.790 & 0.546 & 0.166 & --- \\
-\quad random forest (with corpus)        & 0.800 & 0.555 & 0.161 & $+0.010$ \\
-\quad gradient boosting (no corpus)      & 0.800 & 0.553 & 0.161 & --- \\
-\quad \textbf{gradient boosting (with corpus)} & \textbf{0.808} & \textbf{0.559} & \textbf{0.158} & $+0.008$ \\
+\multicolumn{5}{l}{\emph{Fusion 모델 (sample 단위 5-fold 교차검증, 검증 fold 예측 기준)}} \\
+\quad logistic regression (corpus 미포함)    & 0.793 & 0.548 & 0.164 & --- \\
+\quad logistic regression (corpus 포함)      & 0.795 & 0.550 & 0.162 & $+0.002$ \\
+\quad random forest (corpus 미포함)          & 0.790 & 0.546 & 0.166 & --- \\
+\quad random forest (corpus 포함)            & 0.800 & 0.555 & 0.161 & $+0.010$ \\
+\quad gradient boosting (corpus 미포함)      & 0.800 & 0.553 & 0.161 & --- \\
+\quad \textbf{gradient boosting (corpus 포함)} & \textbf{0.808} & \textbf{0.559} & \textbf{0.158} & $+0.008$ \\
 \bottomrule
 \end{tabular}
 \end{table}
