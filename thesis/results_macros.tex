@@ -1,31 +1,99 @@
-% Headline metric macros (prompt-level, blueprint v5).
-% Source: pipeline-20260507T103225Z, run_prompt_level_analysis.py.
-% 5,815 prompts (HaluEval-QA 5,000 + TruthfulQA 815), is_hard 라벨.
+% Headline metric macros (generation-level, SE 5-dataset track).
+% Source: se-pipeline-20260511T034406Z, run_generation_se_analysis.py.
+%   per-generation NLI is_correct 라벨 (microsoft/deberta-large-mnli 양방향 entailment ≥ 0.5).
+% 35,000 generations (3,500 prompts × 10 free-samples).
+% Datasets: TriviaQA(800), SQuAD-1.1(800), BioASQ(800), NQ-Open(800), SVAMP(300).
+% Model: Qwen2.5-3B (base, fp16, RTX 5090 32GB).
+% Fusion = GroupKFold(prompt_id) 5-fold OOF.
+% AURAC = Farquhar Nature 2024 main metric.
 %
-% 본 논문 main: Energy = best single signal, Fusion 의 우월성은 corpus
-% 영역별 변동. 외부 corpus signal 추가 lift 는 본 논문에서 보고 보류
-% (self-conditioning artifact 위험, §방법 참조).
+% Cross-paper: SE 0.759 / Energy 0.774 ≈ Farquhar 0.75–0.85, Ma 2025 0.74–0.85 범위.
+% Main finding (Option A): entity_pair_cooccurrence_axis 가 SE 변동 Δ0.150 분해 ≈ entity_freq Δ0.080 의 약 2배.
 
-% Single signal (모든 영역에서 score-based AUROC, 학습 없음)
-\providecommand{\HeadlineSEAuroc}{0.832}
-\providecommand{\HeadlineEnergyAuroc}{0.862}
-\providecommand{\HeadlineLogitDiagAuroc}{0.581}
-\providecommand{\HeadlineCorpusAxisOnlyAuroc}{0.634}
+% Single signal AUROC (no training; rank-based)
+\providecommand{\HeadlineSEAuroc}{0.759}
+\providecommand{\HeadlineEnergyAuroc}{0.774}
+\providecommand{\HeadlineSampleNllAuroc}{0.670}
+\providecommand{\HeadlineSeqLogProbAuroc}{0.656}
+\providecommand{\HeadlineLogitVarAuroc}{0.620}
 
-% Fusion (5-fold CV GBM, corpus aggregate 미입력)
-\providecommand{\HeadlineFusionAuroc}{0.889}
+% Single corpus signal AUROC (negative result)
+\providecommand{\HeadlineQaBridgeMeanAuroc}{0.583}
+\providecommand{\HeadlineNgramZeroAuroc}{0.583}
+\providecommand{\HeadlineEntityFreqAxisAuroc}{0.565}
+\providecommand{\HeadlineEntityPairAxisAuroc}{0.546}
+\providecommand{\HeadlineCorpusAxisOnlyAuroc}{0.567}
 
-% Fusion - Energy delta (per-decile 변동 강조)
-\providecommand{\HeadlineFusionVsEnergyMean}{0.022}
-\providecommand{\HeadlineFusionVsEnergyMaxDelta}{0.047}
-\providecommand{\HeadlineFusionVsEnergyMinDelta}{-0.016}
+% Fusion AUROC (5-fold GroupKFold(prompt_id) OOF)
+\providecommand{\HeadlineLrNoCorpusAuroc}{0.793}
+\providecommand{\HeadlineLrWithCorpusAuroc}{0.795}
+\providecommand{\HeadlineRfNoCorpusAuroc}{0.790}
+\providecommand{\HeadlineRfWithCorpusAuroc}{0.800}
+\providecommand{\HeadlineGbmNoCorpusAuroc}{0.800}
+\providecommand{\HeadlineGbmWithCorpusAuroc}{0.808}
+\providecommand{\HeadlineFusionAuroc}{0.808}
 
-% Decile lowest / highest 의 Fusion AUROC
-\providecommand{\HeadlineFusionDecileLowest}{0.851}
-\providecommand{\HeadlineFusionDecileHighest}{0.981}
-\providecommand{\HeadlineEnergyDecileLowest}{0.821}
-\providecommand{\HeadlineEnergyDecileHighest}{0.954}
+% Corpus-add lift on fusion (단독/입력 약함)
+\providecommand{\HeadlineCorpusLiftLR}{0.002}
+\providecommand{\HeadlineCorpusLiftRF}{0.010}
+\providecommand{\HeadlineCorpusLiftGBM}{0.008}
 
-% Calibration (Fusion)
-\providecommand{\HeadlineBrier}{0.113}
-\providecommand{\HeadlineECE}{1.4}
+% AURAC (Farquhar Nature 2024 main metric)
+\providecommand{\HeadlineSEAurac}{0.526}
+\providecommand{\HeadlineEnergyAurac}{0.533}
+\providecommand{\HeadlineFusionAurac}{0.559}
+
+% Multi-axis decomposition Δ (axis 별 SE/Energy AUROC 변동 폭) — 본 논문 Main 발견
+\providecommand{\HeadlineEntityPairSEDelta}{0.150}
+\providecommand{\HeadlineEntityPairEnergyDelta}{0.144}
+\providecommand{\HeadlineEntityFreqSEDelta}{0.080}
+\providecommand{\HeadlineEntityFreqEnergyDelta}{0.077}
+\providecommand{\HeadlineEntityPairOverEntityFreqRatio}{1.88}
+
+% Decile range for entity_pair_cooccurrence axis
+\providecommand{\HeadlineEntityPairSELow}{0.643}
+\providecommand{\HeadlineEntityPairSEHigh}{0.793}
+\providecommand{\HeadlineEntityPairEnergyLow}{0.667}
+\providecommand{\HeadlineEntityPairEnergyHigh}{0.811}
+
+% qa_bridge sample_nll Δ (NLL이 가장 강하게 분해되는 axis)
+\providecommand{\HeadlineQaBridgeNllDelta}{0.176}
+
+% Calibration (Fusion GBM with corpus)
+\providecommand{\HeadlineBrier}{0.158}
+\providecommand{\HeadlineECE}{0.057}
+
+% ─── Review-driven additions (B=500 prompt-grouped bootstrap) ───
+% Δ SE bootstrap CI
+\providecommand{\HeadlinePairSEDeltaCIlow}{0.121}
+\providecommand{\HeadlinePairSEDeltaCIhigh}{0.211}
+\providecommand{\HeadlineFreqSEDeltaCIlow}{0.058}
+\providecommand{\HeadlineFreqSEDeltaCIhigh}{0.149}
+% Δ SE difference CI
+\providecommand{\HeadlinePairMinusFreqSEMean}{0.063}
+\providecommand{\HeadlinePairMinusFreqSECIlow}{0.002}
+\providecommand{\HeadlinePairMinusFreqSECIhigh}{0.117}
+\providecommand{\HeadlinePairMinusFreqSEPositiveFrac}{97.6}
+% Δ Energy difference CI
+\providecommand{\HeadlinePairMinusFreqEnergyMean}{0.058}
+\providecommand{\HeadlinePairMinusFreqEnergyCIlow}{0.004}
+\providecommand{\HeadlinePairMinusFreqEnergyCIhigh}{0.109}
+\providecommand{\HeadlinePairMinusFreqEnergyPositiveFrac}{98.0}
+% Fusion lift CI
+\providecommand{\HeadlineFusionLiftCIlow}{0.005}
+\providecommand{\HeadlineFusionLiftCIhigh}{0.011}
+% SVAMP excluded
+\providecommand{\HeadlineSVAMPExclSERatio}{1.68}
+\providecommand{\HeadlineSVAMPExclEnergyRatio}{1.54}
+% Ratio range (SVAMP 포함 vs 제외, SE/Energy 모두)
+\providecommand{\HeadlineRatioRangeLow}{1.5}
+\providecommand{\HeadlineRatioRangeHigh}{1.9}
+% Spearman ρ (decile rank vs per-decile AUROC) — 단조성 입증
+\providecommand{\HeadlineEntityPairSERho}{0.648}
+\providecommand{\HeadlineEntityPairSERhoP}{0.043}
+\providecommand{\HeadlineEntityPairEnergyRho}{0.600}
+\providecommand{\HeadlineEntityPairEnergyRhoP}{0.067}
+\providecommand{\HeadlineEntityPairNllRho}{0.733}
+\providecommand{\HeadlineEntityPairNllRhoP}{0.016}
+\providecommand{\HeadlineEntityFreqSERho}{0.636}
+\providecommand{\HeadlineEntityFreqSERhoP}{0.048}

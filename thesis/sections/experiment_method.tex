@@ -1,52 +1,86 @@
 % 실험 방법 섹션 (main.tex에 \input으로 포함)
 
-\section{실험 설정}
+\section{데이터셋 및 실험 설정}\label{sec:exp_setup}
 
-본 실험에서 후보 답변의 정답 / 환각 라벨은 데이터셋 annotation 을 그대로 사용하며, LLM-as-judge 로 후보의 정오를 새로 판정하지 않는다. 다만 질문 단위 \emph{is\_hard} proxy 라벨은 별도로 산출되며 (자세한 정의는 §평가 지표 참조) 모델의 free-sample N=10 답변과 데이터셋 정답의 token-overlap 매칭 비율로 정의된다.
+본 연구는 Farquhar 등 (2024)\cite{farquhar2024} 과 동일한 5개 질의응답 데이터셋을 사용한다. TriviaQA\cite{triviaqa} 800문항, SQuAD-1.1\cite{squad} 800문항, BioASQ\cite{bioasq} 800문항, NQ-Open\cite{nqopen} 800문항, SVAMP\cite{svamp} 300문항으로 총 3{,}500문항을 선정하였다. 데이터셋마다 무작위 추출 시드를 고정하여 동일한 문항 집합이 재현되도록 하였고, 각 문항에는 데이터셋, split 식별자, 원본 색인 및 본문 해시값을 결합한 고유 식별자를 부여하였다.
 
-\subsection{데이터셋 구성}
+모델은 Qwen2.5-3B (base)\cite{qwen25} 를 사용하며, 별도의 instruction tuning 은 적용하지 않았다. 추론은 NVIDIA RTX 5090 32~GB 환경에서 16-bit 부동소수점 (float16) 으로 수행하였다. 입력 prompt 는 Farquhar (2024) 와 동일한 한 문장 응답 유도 형식을 따른다 — context 없이 ``Answer the following question in a single brief but complete sentence.'' 지시문 뒤에 질문을 제시한다. 각 문항당 10개의 free-sample 답변을 생성하였다. 샘플링 매개변수는 온도 1.0, top-p 0.9, top-k 50, 최대 생성 토큰 수 64이며, 총 35{,}000 generation 이 평가 단위가 된다. 최대 토큰 수를 64로 두었을 때 전체 generation 의 약 12.6\%가 잘린 채 종료되었다. 이러한 truncation 의 영향을 배제하기 위해 잘린 sample 이 발생한 2{,}426개 문항의 모든 sample 을 최대 생성 토큰 수 128로 다시 생성하였다. 재생성 전후 AUROC 변화는 $\pm$0.001 범위에 머물렀다.
 
-TruthfulQA\cite{truthfulqa} 와 HaluEval-QA\cite{halueval2023} 두 데이터셋을 사용한다. TruthfulQA 는 정답 후보 list 와 오답 후보 list 에서 결정론적으로 한 쌍씩 선택하고, HaluEval-QA 는 제공되는 정답 답변과 환각 답변을 그대로 사용한다. 각 질문마다 정확히 두 후보 답 (정답 + 환각) 을 두며, 최종 데이터는 5{,}815 개 질문 + 11{,}630 개 후보 답이다 (TruthfulQA 815 질문 / 1{,}630 후보, HaluEval-QA 5{,}000 질문 / 10{,}000 후보).
+평가 지표로는 AUROC, AURAC (Area Under Rejection-Accuracy Curve, Farquhar 2024 의 main metric), Brier score, ECE 를 사용한다. fusion 실험의 교차검증은 prompt 단위 5-fold GroupKFold 를 사용한다. 같은 문항의 모든 sample 이 같은 fold 에 함께 배치되도록 하여, 학습-평가 사이의 prompt 단위 정보 누출을 방지한다.
 
-\subsection{모델 출력 수집}
+\section{생성 단위 정답 라벨}\label{sec:label}
 
-모델은 Qwen2.5-3B causal LM 을 사용한다. 두 종류의 출력을 함께 수집하여 단일 신호와 Fusion 입력 feature 를 산출한다.
+본 논문의 정답 라벨은 모델이 생성한 free-sample $s_i$ 가 정답 후보 표현과 의미적으로 일치하는지를 NLI (자연어 추론) 양방향 함의 확률로 판정하여 정의한다. 각 문항의 정답 후보 집합 $C$ 는 데이터셋이 제공하는 정답 표현, 동치 표현, 별칭 목록을 모두 모은 뒤 소문자 정규화와 중복 제거를 거친 결과이다. 생성된 sample $s_i$ 와 후보 $c$ 사이의 매칭 점수는 다음과 같이 정의한다:
+\begin{align*}
+m(s_i, c) &= \max\bigl(p_\text{entail}(c \rightarrow s_i),\ p_\text{entail}(s_i \rightarrow c)\bigr), \\
+M(s_i)   &= \max_{c \in C} m(s_i, c).
+\end{align*}
+$M(s_i) \geq 0.5$ 이면 $s_i$ 를 정답 (라벨 1), 그렇지 않으면 환각 (라벨 0) 으로 판정한다. NLI 모델로는 \texttt{microsoft/deberta-large-mnli} 를 사용하며, Farquhar (2024) 의 라벨링 절차와 동일하다. 이 절차로 총 35{,}000개의 이진 라벨이 산출된다. 본 평가 단위는 Farquhar (Nature 2024) Semantic Entropy 와 Ma (2025) Semantic Energy 의 generation-level correctness 평가 단위와 일치하므로, 두 선행 연구와 직접 비교가 가능하다.
 
-\begin{itemize}
-    \item \textbf{Free sampling} (SE / Energy 산출용): 각 질문에 대해 $N=10$ 개의 짧은 답변을 자유 sampling 한다. 답변 길이는 최대 64 token 으로 제한하고 형식이 맞지 않은 표본은 일정 횟수까지 재샘플링한다. 짧은 entity-중심 답변에서 NLI cluster 판단이 안정적이며 후보 답변 단위와 일치한다.
-    \item \textbf{Teacher-forced scoring} (logit-diagnostic 산출용): 정답 / 환각 후보 답을 모델에 입력으로 주입하면서 점수만 측정한다. 후보 답에 해당하는 token 위치 $t$ 마다 선택된 token 의 logit $z_t(x_t)$, $\log p_\theta(x_t \mid \text{prompt}, x_{<t})$, 분배 함수 $\log Z_t$, vocabulary logit 분산, top-1 과 top-2 logit 차 (confidence margin) 을 기록하고 후보 답 길이 $T$ 로 평균한다. 이 token-level 통계로부터 NLL, logit variance, confidence margin 의 질문 단위 집계가 산출되며 Fusion 입력 feature 로 사용된다.
-\end{itemize}
+\section{Semantic Entropy (SE)}\label{sec:se_def}
 
-\subsection{Feature 계산}
+Semantic Entropy 는 Farquhar 등 (2024) 의 정의를 그대로 따른다. 한 문항에 대해 생성한 10개 sample 을 NLI 양방향 함의 관계로 의미 cluster $\mathbb{C}_k$ 로 묶은 뒤, 각 cluster 의 확률 질량을 sample 의 sequence log-likelihood 로부터 계산한다:
+\begin{align*}
+\log \tilde{p}(\mathbb{C}_k) &= \log\!\sum_{x^{(i)} \in \mathbb{C}_k} \exp\!\Bigl(\sum_t \log p_\theta(x_t^{(i)})\Bigr), \\
+p(\mathbb{C}_k) &= \frac{\tilde{p}(\mathbb{C}_k)}{\sum_{k'} \tilde{p}(\mathbb{C}_{k'})}.
+\end{align*}
+SE 는 cluster 분포의 Shannon 엔트로피로 정의된다:
+\[
+\mathrm{SE} = -\sum_{k} p(\mathbb{C}_k)\, \log p(\mathbb{C}_k).
+\]
+SE 는 문항 단위로 산출되며, 같은 문항의 모든 sample 에 동일한 값으로 적용된다.
 
-\paragraph{Semantic Entropy.}
-한 질문에서 얻은 N=10 답변을 \texttt{microsoft/deberta-large-mnli} bidirectional NLI entailment 로 semantic cluster 에 묶고, sequence log-likelihood 를 cluster 단위로 log-sum-exp 집계해 cluster probability $p(\mathbb{C}_k)$ 를 만든 뒤 그 위에서 entropy 를 계산한다 (Farquhar 등 2024). SE 는 한 질문에 하나의 값으로 정의된다.
+\section{Semantic Energy}\label{sec:energy_def}
 
-\paragraph{Semantic Energy.}
-Ma 등 (2025) 식 (11)--(14) 를 그대로 따른다. 동일 N=10 답변과 SE 단계의 NLI cluster 를 \texttt{(prompt\_id, sample\_index)} 로 join 하여 재사용하며,
+Semantic Energy 는 Ma 등 (2025) 의 정의를 그대로 구현한다. SE 와 동일한 의미 cluster 구조 위에서, 확률 대신 모델의 token 로짓을 직접 활용해 모델 자체의 지식 한계에서 비롯되는 불확실성을 추정한다.
 \begin{align}
 \tilde{E}(x_t^{(i)}) &= -z_\theta(x_t^{(i)}) & \text{(token energy)} \\
 E(x^{(i)}) &= \tfrac{1}{T_i}\sum_{t} \tilde{E}(x_t^{(i)}) & \text{(sample energy)} \\
 E_{\text{Bolt}}(\mathbb{C}_k) &= \sum_{x^{(i)} \in \mathbb{C}_k} E(x^{(i)}) & \text{(cluster total)} \\
-U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \text{(최종)}
+U(\mathbf{x}) &= \sum_{k} p(\mathbb{C}_k)\, E_{\text{Bolt}}(\mathbb{C}_k) & \text{(문항 단위 uncertainty)}
 \end{align}
-로 계산한다. 부호 규약은 lower energy = higher reliability. teacher-forced scoring 의 NLL 평균, logit variance, confidence margin 은 logit-diagnostic 단일 신호 (§\ref{ch:experiment} 종합 baseline) 와 Fusion 입력 feature 의 일부로 함께 사용된다 (정의 단위가 다르므로 Energy 와 같은 단일 신호 칸에 합치지 않는다).
+값이 낮을수록 모델 신뢰도가 높음을 의미한다.
 
-\paragraph{Corpus-grounded feature.}
-질문과 두 후보 답변 (정답 후보 + 환각 후보) 에서 추출한 entity 를 합집합으로 모은 뒤 lowercase 정규화로 중복을 제거한 entity 집합 $E$ 를 사용해 질문 단위 corpus support score 를 산출한다. entity-pair 집합 $P$ 는 $E$ 안의 모든 unordered pair 로 정의한다. 즉 한 질문에 대해 정답 후보 entity 와 환각 후보 entity 가 모두 같은 $E$ 와 $P$ 에 포함된다. Entity 추출은 spaCy \texttt{en\_core\_web\_lg} NER 로 수행하며, PERSON / ORG / GPE / LOC / DATE / EVENT / WORK\_OF\_ART / FAC / NORP / PRODUCT / LANGUAGE / LAW 12 개 label 만 corpus 조회 대상으로 유지한다 (CARDINAL / ORDINAL / MONEY / PERCENT / QUANTITY / TIME 은 factoid 답의 의미 단위로 부적합). NER 이 비면 spaCy noun-chunk 를 fallback 으로 사용하고, 그래도 비고 6 단어 이하 짧은 답이면 정규화한 텍스트 자체를 단일 entity 로 추가한다. 모든 entity 는 lowercase 정규화 + 중복 제거를 거치며 후보당 최대 8 개로 잘라낸다.
+\section{Sample 단위 token 로짓 통계}\label{sec:diag_def}
 
-corpus count backend 는 Liu 등 (2024) 의 Infini-gram\cite{infinigram2024} 의 \texttt{v4\_dolmasample\_olmo} 인덱스 (16B token, OLMo-7B-hf tokenizer) 를 사용한다. 한 질문의 entity 집합 $E$ 와 entity-pair 집합 $P$ 에 대해 다음을 산출한다.
+각 generation 단위로 다음 네 가지 token 로짓 통계를 산출한다.
+\begin{itemize}\setlength{\itemsep}{2pt}
+    \item \emph{평균 음의 로그우도} \(\displaystyle -\tfrac{1}{T_i}\sum_t \log p(x_t^{(i)})\) — sample 내 token 단위 평균 음의 로그 확률.
+    \item \emph{시퀀스 로그우도} \(\displaystyle \sum_t \log p(x_t^{(i)})\) — sample 전체의 로그 우도.
+    \item \emph{로짓 분산} \(\displaystyle \mathrm{Var}_t\!\bigl(z_\theta(x_t^{(i)})\bigr)\) — sample 내 token 로짓의 분산.
+    \item \emph{평균 로그 분배함수} \(\displaystyle \tfrac{1}{T_i}\sum_t \log Z_t^{(i)}\) — 분포의 flatness 지표로, 값이 클수록 분포가 평평함.
+\end{itemize}
+이 신호들은 sample 단위 변동 정보를 담아 fusion 모델의 입력으로 사용된다.
+
+\section{Corpus signal 설계}\label{sec:corpus_def}
+
+Corpus signal 은 Infini-gram\cite{infinigram2024} 의 local engine 을 backend 로 사용한다. 사용한 색인은 OLMo Dolma sample (16B token, OLMo-7B-hf 토크나이저) 이다. 본 논문은 다음과 같이 단위가 서로 다른 4가지 corpus signal 을 정의한다.
+
+\paragraph{Entity 단위 신호.}
+spaCy 의 \texttt{en\_core\_web\_lg} 개체명 인식기로 12개 범주 (인물, 조직, 지명, 위치, 날짜, 사건, 작품, 시설, 국적/종교, 제품, 언어, 법) 의 개체를 추출한다. 한 문항에 대해 다음 두 가지 정규화 점수를 계산한다.
 \begin{align*}
-f_{\min} &= \min_{e \in E} \mathrm{freq}(e), \qquad
-f_{\text{axis}} = \frac{\log(1 + f_{\min})}{\log(1 + 10^6)} \\
-p_{\text{mean}} &= \frac{1}{|P|} \sum_{(e_i, e_j) \in P} \mathrm{cooc}(e_i, e_j), \qquad
-p_{\text{axis}} = \frac{\log(1 + p_{\text{mean}})}{\log(1 + 10^5)} \\
-\text{coverage} &= \tfrac{1}{2}\,(f_{\text{axis}} + p_{\text{axis}})
+\mathrm{entity\_frequency\_axis} &= \frac{\log(1 + \min_{e \in E} \mathrm{freq}(e))}{\log(1 + 10^6)}, \\
+\mathrm{entity\_pair\_cooccurrence\_axis} &= \frac{\log\!\bigl(1 + \tfrac{1}{|P|}\sum_{(e_i,e_j) \in P}\mathrm{cooc}(e_i,e_j)\bigr)}{\log(1 + 10^5)}.
 \end{align*}
-여기서 $\mathrm{freq}(\cdot)$ 와 $\mathrm{cooc}(\cdot, \cdot)$ 는 각각 Infini-gram 의 단일 entity count 와 \texttt{count\_cnf} AND query 결과이다. coverage score 위에서 \emph{rank-quantile 균등 분할} 로 corpus support 구간 label (3-bin / 5-bin / 10-bin) 을 산출한다. rank-quantile 분할을 사용한 이유는 spaCy NER 채택 후 entity\_frequency 분포가 좌편향 (약 58\% 가 0) 이라 fixed-cutoff (예: 0.1 절대 임계값) 분할 시 표본 쏠림 문제가 발생하기 때문이다.
+$\mathrm{freq}(e)$ 는 개체 $e$ 의 단일 등장 횟수, $\mathrm{cooc}(e_i,e_j)$ 는 두 개체가 corpus 안에서 함께 등장한 횟수이다. 본 연구의 baseline corpus axis 는 두 점수의 평균이며, 본 논문은 두 단위를 분리해 보고하는 것이 핵심이다.
 
-본 논문에서 corpus support 신호는 \emph{Fusion 입력 feature 로 사용하지 않고} 영역별 평가 단위 (rank-quantile decile 분할) 로만 사용된다. 이는 평가 단위와 입력 feature 가 같은 source 에서 나오면 self-conditioning artifact 가 발생할 수 있기 때문이다 (§\ref{ch:method}).
+\paragraph{Question-answer bridge 신호.}
+질문에서 추출한 개체 집합 $E_q$ 와, 답변에서 추출한 개체 중 질문과 겹치지 않는 개체 집합 $E_a$ 를 구성한다. 질문 개체를 답변 개체에서 제외하는 이유는 paraphrase 로 인한 자기 중복을 줄이기 위함이다. 모든 (질문 개체, 답변 개체) 쌍에 대해 corpus 동시 등장 횟수를 산출하고, 그 정규화 평균을 \emph{question-answer bridge axis} 로 정의한다. 이는 (질문, 답변) 의 사실 관계가 corpus 에 함께 등장한 빈도이며, LLM 이 해당 사실을 학습할 기회의 근사로 해석된다.
 
-\subsection{평가 지표}
+\paragraph{N-gram 등장 빈도 신호.}
+답변 token 시퀀스의 모든 3-gram 과 5-gram 에 대해 corpus 등장 횟수를 산출한다. 평균 등장 횟수를 정규화한 점수와, corpus 에 한 번도 등장하지 않은 n-gram 의 수를 함께 보고한다. 이는 답변 표현이 LLM 의 사전학습 데이터에 등장한 정도를 직접 측정한다.
 
-종합 표는 AUROC / AUPRC / Brier / ECE 를 보고한다. 단일 신호 (SE / Energy / logit-diagnostic) 의 AUROC 는 별도 학습 없이 score-based ranking 으로 산출하고, Fusion (gradient boosting) 의 AUROC 는 5-fold KFold 의 out-of-fold 예측에서 산출한다 (한 질문의 모든 정보가 같은 fold 에 들어가도록 강제). binary 라벨은 각 질문의 free-sample $N=10$ 정답 매칭 비율이 0.5 미만인 경우 \emph{어려운 질문} 으로 정의한다 (SE 원논문 평가 단위와 일치).
+\section{Corpus signal 단위별 분해 분석}\label{sec:axis_framework}
+
+본 논문의 분석 핵심은 §\ref{sec:corpus_def} 에서 정의한 corpus signal 을 환각 탐지의 입력 feature 가 아닌 \emph{평가 축} 으로 사용하는 데 있다. 각 corpus signal 을 문항 단위 순위에 따라 10분위 구간으로 나누어, 한 문항의 corpus 풍부도가 어느 구간에 속하는지를 나타내는 평가 축을 구성한다. 평가 축은 entity 단위 신호 (단일 빈도, 쌍 동시 등장, 두 점수의 평균), question-answer bridge, n-gram 단위 신호 (3-gram 평균 등장, 5-gram 평균 등장, 3-gram 미등장 개수) 의 세 계열에서 모두 일곱 가지로 산출하였다. 같은 문항에 속한 모든 sample 은 동일한 구간 값을 공유한다.
+
+각 축의 10개 구간 안에서 환각 탐지 신호의 AUROC 를 따로 계산한 뒤, 그 최댓값과 최솟값의 차이 $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 를 해당 축의 \emph{분해 진폭} 으로 정의한다. 진폭이 클수록 그 corpus signal 단위가 환각 탐지 신호의 corpus 조건부 변동을 더 큰 폭으로 분리함을 의미한다. 본 논문의 핵심 결과는 이 진폭이 corpus signal 의 단위에 따라 어떻게 달라지는지를 비교한 것이다.
+
+\section{Fusion 모델}\label{sec:fusion_def}
+
+Fusion 모델의 입력은 두 가지 구성으로 실험한다.
+\begin{itemize}\setlength{\itemsep}{4pt}\sloppy
+    \item \textbf{CORE 입력}: 문항 단위 신호 \{Semantic Entropy, Semantic Energy\} 와 sample 단위 token 로짓 통계 4종 \{평균 음의 로그우도, 시퀀스 로그우도, 로짓 분산, 평균 로그 분배함수\}.
+    \item \textbf{CORE + CORPUS 입력}: 위 신호에 entity, question-answer bridge, n-gram 의 모든 corpus signal 을 문항 단위로 함께 추가.
+\end{itemize}
+분류 모델로 logistic regression, random forest, gradient boosting 세 가지를 비교한다. 모든 실험은 prompt 단위 5-fold GroupKFold 로 평가하여 학습-평가 사이의 정보 누출을 방지한다.

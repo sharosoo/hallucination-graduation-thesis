@@ -1,26 +1,38 @@
-% Source: pipeline-20260507T103225Z, run_prompt_level_analysis.py.
-% 5,815 prompts. 라벨 = is_hard (free-sample N=10 정답 매칭 비율 < 0.5).
-% 단일 신호 = score-based AUROC (학습 없음). Fusion = 5-fold CV GBM
-% (input: SE / Energy / NLL / margin / logit_variance aggregates).
+% Source: se-pipeline-20260511T034406Z, run_generation_se_analysis.py.
+% 35,000 generations (3,500 prompts × 10 free-samples).
+% 5 datasets: TriviaQA(800), SQuAD-1.1(800), BioASQ(800), NQ-Open(800), SVAMP(300).
+% 라벨 = is_correct (free-sample s_i 와 정답 후보 사이 NLI 양방향 entailment ≥ 0.5).
+% Fusion = GroupKFold(prompt_id) 5-fold OOF.
 \begin{table}[htbp]
 \centering
 \small
-\caption[종합 baseline]{종합 baseline (n=5{,}815 질문). 라벨은 각 질문의 free-sample N=10 의 정답 매칭 비율이 0.5 미만인 경우 \emph{어려운 질문} (is\_hard=1). 단일 신호는 score-based AUROC (학습 없음). Fusion 은 5-fold CV gradient boosting (input: SE, Energy, NLL, confidence margin, logit variance 의 질문 단위 집계). 굵은 글씨 = 각 metric 별 1위 (AUROC / AUPRC / ECE 는 gradient boosting, Brier 는 random forest 가 근소 우위).}
+\caption[종합 baseline (generation-level, SE 5-dataset)]{종합 baseline. n=35{,}000 generation (Qwen2.5-3B, 5 datasets, N=10 free-sample). 라벨 정의 / 평가 단위 / fusion 입력 / AURAC 정의는 §\ref{sec:label}--§\ref{sec:fusion_def} 참조. \emph{corpus 추가 lift} = 같은 분류기에서 CORE\_INPUTS 만 vs.\ CORE+CORPUS\_INPUTS 의 AUROC 차이. 굵은 글씨 = AUROC 1위.}
 \label{tab:current_thesis_evidence}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-신호 & AUROC & AUPRC & Brier & ECE \\
+신호 & AUROC & AURAC & Brier & corpus 추가 lift \\
 \midrule
-\multicolumn{5}{l}{\emph{단일 신호 (학습 없음)}} \\
-\quad logit-diagnostic-only       & 0.581 & 0.416 & --- & --- \\
-\quad corpus-axis-only            & 0.634 & 0.546 & --- & --- \\
-\quad Semantic Entropy (SE)        & 0.832 & 0.726 & --- & --- \\
-\quad Semantic Energy              & 0.862 & 0.794 & --- & --- \\
+\multicolumn{5}{l}{\emph{단일 신호 (학습 없음, sample-consistency \& token logit)}} \\
+\quad logit-variance               & 0.620 & 0.400 & --- & --- \\
+\quad sequence-log-prob            & 0.656 & 0.466 & --- & --- \\
+\quad sample\_nll (logit-diagnostic) & 0.670 & 0.468 & --- & --- \\
+\quad Semantic Entropy (SE)        & 0.759 & 0.526 & --- & --- \\
+\quad Semantic Energy              & 0.774 & 0.533 & --- & --- \\
 \midrule
-\multicolumn{5}{l}{\emph{Fusion (5-fold CV)}} \\
-\quad logistic regression          & 0.876 & 0.809 & 0.124 & 0.034 \\
-\quad random forest                & 0.888 & 0.836 & \textbf{0.112} & 0.016 \\
-\quad \textbf{gradient boosting}   & \textbf{0.889} & \textbf{0.837} & 0.113 & \textbf{0.014} \\
+\multicolumn{5}{l}{\emph{단일 corpus signal (학습 없음) — Negative result}} \\
+\quad entity\_pair\_cooccurrence\_axis & 0.546 & --- & --- & --- \\
+\quad entity\_frequency\_axis      & 0.565 & --- & --- & --- \\
+\quad ans\_ngram\_3\_axis          & 0.563 & --- & --- & --- \\
+\quad qa\_bridge\_mean             & 0.583 & --- & --- & --- \\
+\quad ans\_ngram\_3\_zero\_count   & 0.583 & --- & --- & --- \\
+\midrule
+\multicolumn{5}{l}{\emph{Fusion (GroupKFold(prompt\_id) 5-fold OOF)}} \\
+\quad logistic regression (no corpus)    & 0.793 & 0.548 & 0.164 & --- \\
+\quad logistic regression (with corpus)  & 0.795 & 0.550 & 0.162 & $+0.002$ \\
+\quad random forest (no corpus)          & 0.790 & 0.546 & 0.166 & --- \\
+\quad random forest (with corpus)        & 0.800 & 0.555 & 0.161 & $+0.010$ \\
+\quad gradient boosting (no corpus)      & 0.800 & 0.553 & 0.161 & --- \\
+\quad \textbf{gradient boosting (with corpus)} & \textbf{0.808} & \textbf{0.559} & \textbf{0.158} & $+0.008$ \\
 \bottomrule
 \end{tabular}
 \end{table}
