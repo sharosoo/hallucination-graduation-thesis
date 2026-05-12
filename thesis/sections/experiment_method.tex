@@ -74,7 +74,7 @@ $\mathrm{freq}(e)$ 는 entity $e$ 의 단일 등장 횟수이고, $\mathrm{cooc}
 
 본 논문 분석의 핵심은 §\ref{sec:corpus_def} 에서 정의한 corpus 신호를 환각 탐지의 입력 변수가 아니라 \emph{sample 을 분할하는 신호} 로 사용하는 데 있다. 각 corpus 신호로 sample 을 순위에 따라 10분위 구간으로 나누어, 한 sample 의 corpus 뒷받침 정도가 어느 구간에 속하는지를 판별한다. sample 분할에 사용한 신호는 entity 수준 신호 세 가지 (entity 빈도, entity co-occurrence, 두 점수의 평균), question-answer bridge 한 가지, n-gram 수준 신호 세 가지 (3-gram 평균 등장, 5-gram 평균 등장, 3-gram 미등장 개수) 로 모두 일곱 가지이다. 같은 sample 에 속한 모든 답변은 동일한 구간 값을 공유한다.
 
-각 신호의 10개 구간 안에서 환각 탐지 신호의 AUROC 를 따로 계산한 뒤, 그 최댓값과 최솟값의 차이 $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 를 해당 신호의 구간별 AUROC 변동 폭으로 정의한다. 변동 폭이 클수록 그 corpus 신호로 sample 을 나누었을 때 환각 탐지 신호의 성능이 corpus 조건에 따라 더 큰 차이를 보인다. 본 논문의 핵심 결과는 이 변동 폭이 corpus 신호의 단위에 따라 어떻게 달라지는지를 비교한 것이다.
+각 신호의 10개 구간 안에서 환각 탐지 신호의 AUROC 를 따로 계산한 뒤, 그 최댓값과 최솟값의 차이 $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 를 해당 신호의 구간별 AUROC range 으로 정의한다. AUROC range 이 클수록 그 corpus 신호로 sample 을 나누었을 때 환각 탐지 신호의 성능이 corpus 조건에 따라 더 큰 차이를 보인다. 본 논문의 핵심 결과는 이 AUROC range 이 corpus 신호의 단위에 따라 어떻게 달라지는지를 비교한 것이다.
 
 \section{Fusion 모델}\label{sec:fusion_def}
 
