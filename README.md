@@ -41,7 +41,7 @@ corpus 신호 (entity 빈도, entity 쌍 동시 등장, question-answer bridge, 
 ## 실험 파이프라인 (요약)
 
 `experiments/PIPELINE.md` 의 트랙 B (SE 5-dataset Single-candidate) 가 메인 평가의
-source 이다. 11 단계 (S1' → S11') 로 구성된다.
+source 이다. 13 단계 (S1' → S13') 로 구성된다.
 
 ```text
 S1' 데이터셋 준비 (5 SE datasets, 3,500 prompt)
@@ -64,7 +64,11 @@ S9' QA Bridge co-occurrence (corpus 다양화 1)
   ↓
 S10' N-gram coverage (corpus 다양화 2)
   ↓
-S11' Generation-level fusion + robustness (메인)
+S11' Generation-level fusion + robustness (fusion summary + per-decile + per-dataset + calibration)
+  ↓
+S12' Review-driven 부트스트랩 + Spearman ρ + SVAMP 민감도
+  ↓
+S13' thesis/results_macros.tex 자동 생성 (30개 macro)
 ```
 
 ## 현재 결과 해석
@@ -131,9 +135,17 @@ uv run python experiments/scripts/compute_corpus_features.py \
 # S11' Generation-level fusion + robustness (메인)
 uv run python experiments/scripts/run_generation_se_analysis.py \
   --run-dir $RUN/qwen --bootstrap-n 1000
+
+# S12' Review-driven 부트스트랩 + Spearman ρ + SVAMP 민감도
+uv run python experiments/scripts/review_ablations.py \
+  --run-dir $RUN/qwen --n-boot 500
+
+# S13' thesis/results_macros.tex 자동 생성 (30개 \providecommand)
+uv run python experiments/scripts/build_results_macros.py \
+  --run-dir $RUN/qwen --out thesis/results_macros.tex
 ```
 
-상세 단계별 명령 및 산출물 schema 는 `experiments/PIPELINE.md` 의 트랙 B 절을 참조.
+상세 단계별 명령 및 산출물 schema 는 `experiments/PIPELINE.md` 의 트랙 B 절 (S1' → S13') 을 참조.
 
 ## 어디부터 읽어야 하나
 

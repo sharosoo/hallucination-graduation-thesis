@@ -102,7 +102,7 @@ Entity extraction is pluggable via `EntityExtractorPort` (see `experiments/ports
 - `regex` (legacy, archived): quote-wrapped phrases, 1–4 word capitalized n-grams, non-stopword tokens of length ≥5. Misses short atomic entities, includes noisy verbs / common-nouns. Kept for reproducing pre-2026-05 artifacts.
 - `quco` (experimental, archived): `ZhishanQ/QuCo-extractor-0.5B` knowledge triplet model. On short factoid answers it returns 100% empty triplets. Adapter retained for reference.
 
-Selection is via the `--entity-extractor {spacy,regex,quco}` flag on `compute_corpus_features.py`. Switching extractor only requires re-running S8' → S11'; S2'/S4'/S5'/S6' artifacts are entity-independent and can be reused.
+Selection is via the `--entity-extractor {spacy,regex,quco}` flag on `compute_corpus_features.py`. Switching extractor only requires re-running S8' → S13'; S2'/S4'/S5'/S6' artifacts are entity-independent and can be reused.
 
 ## 5. Baseline contract
 
@@ -192,7 +192,7 @@ The experiment implementation must use backend-style typed hexagonal architectur
 - Truncated samples (12.6% under max_new_tokens=64) are re-generated at max_new_tokens=128 for the affected sample subset; AUROC change in re-generation lies within ±0.001.
 - Live generation uses `runtime.free_sample_batch_size` and `runtime.candidate_score_batch_size` to batch Qwen forward passes for throughput while preserving checkpoint-backed resume semantics.
 - `run_generation.py --resume` is the default S2' policy, with `consolidate_checkpoints_se.py` re-assembling `free_sample_rows.json` from per-shard checkpoints.
-- Thesis claims require the SE 5-dataset pipeline (트랙 B, S1' → S11') plus all gates in `experiments/PIPELINE.md`.
+- Thesis claims require the SE 5-dataset pipeline (트랙 B, S1' → S13') plus all gates in `experiments/PIPELINE.md`.
 
 ## Legacy / 시행착오
 

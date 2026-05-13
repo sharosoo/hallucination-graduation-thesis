@@ -70,6 +70,10 @@ question-answer bridge"]
 3-gram / 5-gram"]
     S11["S11' run_generation_se_analysis
 fusion + robustness (메인)"]
+    S12["S12' review_ablations
+bootstrap CI + Spearman ρ + SVAMP 민감도"]
+    S13["S13' build_results_macros
+thesis/results_macros.tex 자동 생성"]
 
     S0 --> S1 --> S2 --> S3 --> S4 --> S5
     S3 --> S6
@@ -84,6 +88,7 @@ fusion + robustness (메인)"]
     S8 --> S11
     S9 --> S11
     S10 --> S11
+    S11 --> S12 --> S13
 ```
 
 실행 (각 명령은 `$RUN` 을 산출물 root, `qwen` 을 모델 디렉터리로 가정):
@@ -93,9 +98,11 @@ uv sync --group generation
 uv run python experiments/scripts/prepare_datasets_se.py --config experiments/configs/datasets_se.yaml --out-dir $RUN/results/datasets
 uv run python experiments/scripts/run_generation.py --config experiments/configs/generation_se_qwen.yaml ...
 uv run python experiments/scripts/run_generation_se_analysis.py --run-dir $RUN/qwen --bootstrap-n 1000
+uv run python experiments/scripts/review_ablations.py --run-dir $RUN/qwen --n-boot 500
+uv run python experiments/scripts/build_results_macros.py --run-dir $RUN/qwen --out thesis/results_macros.tex
 ```
 
-상세 명령은 `experiments/PIPELINE.md` 트랙 B (S1' → S11') 참조.
+상세 명령은 `experiments/PIPELINE.md` 트랙 B (S1' → S13') 참조.
 
 ## 5. feature 계산 단위
 
@@ -134,6 +141,8 @@ uv run python experiments/scripts/run_generation_se_analysis.py --run-dir $RUN/q
 | S9' | `compute_qa_bridge_features.py` | `qa_bridge_features.parquet` | (질문 entity, 답변 entity) 쌍 동시 등장 |
 | S10' | `compute_ngram_coverage_features.py` | `ngram_coverage_features.parquet` | 답변 3-gram / 5-gram 의 corpus 등장 평균 |
 | S11' | `run_generation_se_analysis.py`, `application/generation_level_eval.py` | `fusion.generation_level/`, `robustness.generation_level/` | 5-fold GroupKFold(prompt_id), bootstrap CI, per-decile, leave-one-dataset-out, calibration, AURAC |
+| S12' | `review_ablations.py` (옵션 보조: `question_only_axis.py`) | `review_ablations.json` (+ `question_only_axis.json`) | 7 corpus axes × 3 detection signals = 21 Spearman ρ + p (Tab 4.5), B=500 bootstrap CI for entity_pair vs entity_freq Δ, SVAMP-excluded ratio, fusion lift CI |
+| S13' | `build_results_macros.py` | `thesis/results_macros.tex` (30 `\providecommand`) | thesis/main.tex 가 인용하는 모든 headline macro 자동 생성. 누락 macro stderr 경고. |
 
 ## 8. 주의점
 
