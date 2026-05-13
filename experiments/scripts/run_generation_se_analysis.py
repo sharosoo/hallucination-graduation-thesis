@@ -184,9 +184,17 @@ def main() -> None:
         "entity_pair_cooccurrence_axis_bin_10",
         "entity_frequency_axis_bin_10",
     ]
+    # thesis Tab 4.5 의 per-decile range Δ 를 자동 산출하려면 fusion 뿐 아니라
+    # 단일 환각 탐지 신호 (SE-only / Energy-only / logit-diagnostic-only =
+    # sample_nll) 도 corpus_bin_reliability 에 포함해야 한다. 특히
+    # HeadlineQaBridgeNllDelta 는 (qa_bridge_axis_bin_10, sample_nll) 조합.
+    decomp_methods = [m for m in (
+        fusion_methods
+        + ["SE-only", "Energy-only", "logit-diagnostic-only"]
+    ) if m in preds["method"].unique()]
     for bf in bin_fields:
         if bf in df.columns:
-            cb[bf] = corpus_bin_reliability(df, preds, fusion_methods, bin_field=bf)
+            cb[bf] = corpus_bin_reliability(df, preds, decomp_methods, bin_field=bf)
     (rob_dir / "corpus_bin_reliability.json").write_text(json.dumps(cb, indent=2))
 
     lo = per_dataset_breakdown(df, preds, fusion_methods)

@@ -2,7 +2,7 @@
 
 이 문서는 처음 보는 연구자가 같은 산출물을 다시 만들 수 있도록 고정한 실행 계약이다. 본 repo 의 **메인 트랙은 트랙 B — SE 5-dataset Single-candidate** 이다.
 
-- **트랙 B — SE 5-dataset Single-candidate (메인)**: TriviaQA + SQuAD-1.1 + BioASQ + NQ-Open + SVAMP. Farquhar (Nature 2024) Semantic Entropy 와 동일 평가셋. Single ground-truth answer per prompt + generation-level NLI correctness. (`datasets_se.yaml`, S1'-S11', §트랙 B 참조). 본 논문 메인 평가의 source.
+- **트랙 B — SE 5-dataset Single-candidate (메인)**: TriviaQA + SQuAD-1.1 + BioASQ + NQ-Open + SVAMP. Farquhar (Nature 2024) Semantic Entropy 와 동일 평가셋. Single ground-truth answer per prompt + generation-level NLI correctness. (`datasets_se.yaml`, S1'-S13', §트랙 B 참조). 본 논문 메인 평가의 source.
 - **트랙 A — Paired (ARCHIVED)**: TruthfulQA + HaluEval-QA 의 (정답, 환각) 후보 쌍 분석. 본 논문 초기 시도 + prompt-level is\_hard reframe 분석에 사용했으나, generation-level NLI correctness (Phase 3) 로 pivot 한 뒤 모든 stage script 가 삭제되었다. 폐기 narrative 는 `HISTORY.md` 참조.
 
 본 트랙은 **Full logits must be repo-owned**, **Corpus statistics must be repo-owned**, **Infini-gram-compatible count backend** 를 사용한다. 학습기는 **scikit-learn 5-fold GroupKFold(prompt_id)** 다. correctness 는 NLI 양방향 entailment 매칭이다.
@@ -86,7 +86,7 @@ entity / qa_bridge / n-gram"]
 
 ## 2. 전체 실행 명령
 
-본 트랙 (메인, **트랙 B — SE 5-dataset Single-candidate**) 은 stage 별 CLI 호출로 실행한다. 통합 orchestrator 는 의도적으로 두지 않는다 (S2'/S4'/S5'/S7' 가 GPU 점유, S1'/S3'/S8'-S10' 가 CPU/IO 라서 각 stage 가 별도 프로세스로 resumable 하게 도는 편이 안전하다). 각 stage 의 command 는 §3 트랙 B 항목 (S1'-S11') 에 그대로 적혀 있다.
+본 트랙 (메인, **트랙 B — SE 5-dataset Single-candidate**) 은 stage 별 CLI 호출로 실행한다. 통합 orchestrator 는 의도적으로 두지 않는다 (S2'/S4'/S5'/S7' 가 GPU 점유, S1'/S3'/S8'-S10' 가 CPU/IO 라서 각 stage 가 별도 프로세스로 resumable 하게 도는 편이 안전하다). 각 stage 의 command 는 §3 트랙 B 항목 (S1'-S13') 에 그대로 적혀 있다.
 
 dependency 설치:
 
@@ -120,7 +120,7 @@ uv run python experiments/scripts/validate_architecture.py
 > 폐기된 단계의 narrative 는 `HISTORY.md` 참조.
 >
 > 본 논문 메인 평가 (트랙 B — SE 5-dataset, generation-level) 는 아래 §트랙 B 의
-> S1'-S11' 만 실행한다.
+> S1'-S13' 만 실행한다.
 
 <details>
 <summary>이전 트랙 A stage 사양 (참조용 stub)</summary>
@@ -302,6 +302,38 @@ uv run python experiments/scripts/run_generation_se_analysis.py \
 - Split: 5-fold GroupKFold(prompt_id)
 - Metrics: AUROC, AUPRC, Brier, ECE, **AURAC** (Farquhar Nature 2024 main metric)
 - 산출: `fusion.generation_level/{summary.json, predictions.jsonl}` + `robustness.generation_level/{summary, bootstrap_ci, corpus_bin_reliability, leave_one_dataset_out, threshold_calibration}.json`
+
+### S12'. Review-driven 부트스트랩 + Spearman ρ + SVAMP 민감도
+
+```bash
+uv run python experiments/scripts/review_ablations.py \
+  --run-dir $RUN/qwen --n-boot 500
+```
+
+- 입력: `<run-dir>/results/generation_features.parquet` + `fusion.generation_level/predictions.jsonl`
+- 모듈: `experiments/scripts/review_ablations.py`
+- 산출: `<run-dir>/results/review_ablations.json` 단일 JSON.
+  - `decile_spearman` — 7 corpus axes × 3 detection signals (SE / Energy / sample_nll) Spearman ρ + p-value 21 cells (thesis Tab 4.5 ρ 컬럼)
+  - `bootstrap_se`, `bootstrap_energy` — entity_pair vs entity_freq Δ 차이의 sample 단위 prompt-grouped bootstrap 95% CI (B=500)
+  - `svamp_excluded` — SVAMP 제외 sub-sample 의 entity_pair / entity_freq Δ 비율 (thesis §4.5 강건성)
+  - `per_dataset_pair_se` 등 — 데이터셋별 entity_pair / entity_freq Δ
+  - `fusion_lift_gbm` — gradient boosting (with corpus) vs (no corpus) AUROC lift 의 95% CI
+- 보조 robustness 분석 (질문 entity 만 사용):
+  ```bash
+  uv run python experiments/scripts/question_only_axis.py --run-dir $RUN --model qwen
+  ```
+  → `<run-dir>/qwen/results/question_only_axis.json` (n=2,095 질문에 한정한 entity_pair / entity_freq Δ 비율)
+
+### S13'. thesis/results_macros.tex 자동 생성
+
+```bash
+uv run python experiments/scripts/build_results_macros.py \
+  --run-dir $RUN/qwen --out thesis/results_macros.tex
+```
+
+- 입력: S11' 산출 (`fusion.generation_level/summary.json`, `robustness.generation_level/corpus_bin_reliability.json`) + S12' 산출 (`results/review_ablations.json`)
+- 모듈: `experiments/scripts/build_results_macros.py`
+- 산출: `thesis/results_macros.tex` — 30개 `\providecommand` (thesis/main.tex 가 인용하는 모든 headline macro). 누락된 macro 가 있으면 stderr 에 경고.
 
 ### 트랙 B 산출물 체크리스트
 

@@ -1,20 +1,36 @@
 """Review-driven ablations (efficient): bootstrap CI for Δ + Fusion lift CI
-+ SVAMP sensitivity + per-dataset Δ.
++ SVAMP sensitivity + per-dataset Δ + Spearman ρ per (axis, signal).
 
 Vectorized prompt-grouped bootstrap using numpy index arrays (no pd.concat per iter).
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 from sklearn.metrics import roc_auc_score
 
 
-RUN = Path("/mnt/data/hallucination-graduation-thesis-runs/se-pipeline-20260511T034406Z/qwen/results")
+# 7 corpus axes × 3 detection signals = 21 Spearman ρ cells (Tab 4.5).
+CORPUS_AXES = [
+    "entity_frequency_axis_bin_10",
+    "corpus_axis_bin_10",  # baseline = (entity_freq + entity_pair) / 2
+    "qa_bridge_axis_bin_10",
+    "ans_ngram_3_axis_bin_10",
+    "ans_ngram_5_axis_bin_10",
+    "ans_ngram_3_zero_count_bin_10",
+    "entity_pair_cooccurrence_axis_bin_10",
+]
+DETECTION_SIGNALS = [
+    ("semantic_entropy", True),
+    ("semantic_energy_cluster_uncertainty", True),
+    ("sample_nll", True),
+]
 
 
 def per_decile_auroc(y: np.ndarray, score: np.ndarray, bins: np.ndarray) -> dict:
@@ -37,6 +53,47 @@ def delta(d: dict) -> float:
         return float("nan")
     vs = list(d.values())
     return max(vs) - min(vs)
+
+
+def spearman_per_axis(df: pd.DataFrame, axis_col: str, signal_col: str, flip: bool) -> dict:
+    """Spearman ρ between bin rank (0..9) and per-bin AUROC.
+
+    Returns {"rho": float, "p": float, "n_bins": int, "per_bin_auroc": {bin: auroc}}.
+    None if fewer than 3 valid bins.
+    """
+    sub = df.dropna(subset=[axis_col, signal_col, "is_correct"])
+    if len(sub) == 0:
+        return {"rho": None, "p": None, "n_bins": 0, "per_bin_auroc": {}}
+    score = -sub[signal_col].values if flip else sub[signal_col].values
+    bins = sub[axis_col].astype(int).values  # decile id 0..9
+    per_bin = per_decile_auroc(sub["is_correct"].values, score, bins)
+    if len(per_bin) < 3:
+        return {"rho": None, "p": None, "n_bins": len(per_bin), "per_bin_auroc": per_bin}
+    bin_ids = sorted(per_bin.keys())
+    aurocs = [per_bin[b] for b in bin_ids]
+    res = spearmanr(bin_ids, aurocs)
+    rho = float(res[0])  # type: ignore[index]
+    p = float(res[1])  # type: ignore[index]
+    return {
+        "rho": rho if rho == rho else None,  # NaN check
+        "p": p if p == p else None,
+        "n_bins": len(per_bin),
+        "per_bin_auroc": {int(k): float(v) for k, v in per_bin.items()},
+    }
+
+
+def compute_decile_spearman_grid(df: pd.DataFrame) -> dict:
+    """7 axes × 3 detection signals = 21 ρ cells for Tab 4.5."""
+    grid = {}
+    for axis in CORPUS_AXES:
+        if axis not in df.columns:
+            continue
+        grid[axis] = {}
+        for sig, flip in DETECTION_SIGNALS:
+            if sig not in df.columns:
+                continue
+            grid[axis][sig] = spearman_per_axis(df, axis, sig, flip)
+    return grid
 
 
 def bootstrap_delta_diff_fast(df: pd.DataFrame, axis_a: str, axis_b: str,
@@ -130,9 +187,39 @@ def per_dataset_delta(df: pd.DataFrame, axis_col: str, signal_col: str, flip: bo
     return out
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--run-dir",
+        type=Path,
+        required=True,
+        help="Per-model run dir containing results/generation_features.parquet "
+             "and results/fusion.generation_level/predictions.jsonl",
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Output JSON path. Default: <run-dir>/results/review_ablations.json",
+    )
+    parser.add_argument("--n-boot", type=int, default=500)
+    return parser.parse_args()
+
+
 def main():
-    print("[1/5] loading generation_features ...", file=sys.stderr)
-    df = pd.read_parquet(RUN / "generation_features.parquet")
+    args = parse_args()
+    run = args.run_dir
+    if (run / "results/generation_features.parquet").exists():
+        results_dir = run / "results"
+    elif (run / "generation_features.parquet").exists():
+        results_dir = run
+    else:
+        sys.exit(f"generation_features.parquet not found under {run} (or {run}/results)")
+    out_path = args.out or (results_dir / "review_ablations.json")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    print("[1/6] loading generation_features ...", file=sys.stderr)
+    df = pd.read_parquet(results_dir / "generation_features.parquet")
     df = df.dropna(subset=["entity_pair_cooccurrence_axis_bin_10",
                            "entity_frequency_axis_bin_10",
                            "is_correct"]).reset_index(drop=True)
@@ -140,20 +227,24 @@ def main():
 
     out = {}
 
-    print("[2/5] bootstrap Δ (SE) entity_pair vs entity_freq, B=500 ...", file=sys.stderr)
+    print("[2/6] decile Spearman ρ grid (7 axes × 3 signals) ...", file=sys.stderr)
+    out["decile_spearman"] = compute_decile_spearman_grid(df)
+
+    print(f"[3/6] bootstrap Δ (SE) entity_pair vs entity_freq, B={args.n_boot} ...",
+          file=sys.stderr)
     out["bootstrap_se"] = bootstrap_delta_diff_fast(
         df, "entity_pair_cooccurrence_axis_bin_10",
         "entity_frequency_axis_bin_10",
-        "semantic_entropy", flip=True, n_boot=500,
+        "semantic_entropy", flip=True, n_boot=args.n_boot,
     )
-    print("[3/5] bootstrap Δ (Energy), B=500 ...", file=sys.stderr)
+    print(f"[4/6] bootstrap Δ (Energy), B={args.n_boot} ...", file=sys.stderr)
     out["bootstrap_energy"] = bootstrap_delta_diff_fast(
         df, "entity_pair_cooccurrence_axis_bin_10",
         "entity_frequency_axis_bin_10",
-        "semantic_energy_cluster_uncertainty", flip=True, n_boot=500,
+        "semantic_energy_cluster_uncertainty", flip=True, n_boot=args.n_boot,
     )
 
-    print("[4/5] SVAMP-excluded sensitivity ...", file=sys.stderr)
+    print("[5/6] SVAMP-excluded sensitivity ...", file=sys.stderr)
     df_ns = df[df["dataset"] != "SVAMP"]
     se_pair = delta(per_decile_auroc(
         df_ns["is_correct"].values, -df_ns["semantic_entropy"].values,
@@ -175,7 +266,7 @@ def main():
         "energy_ratio": en_pair / en_freq if en_freq > 0 else None,
     }
 
-    print("[5/5] per-dataset Δ ...", file=sys.stderr)
+    print("[6/6] per-dataset Δ ...", file=sys.stderr)
     out["per_dataset_pair_se"] = per_dataset_delta(
         df, "entity_pair_cooccurrence_axis_bin_10", "semantic_entropy", flip=True)
     out["per_dataset_freq_se"] = per_dataset_delta(
@@ -185,25 +276,30 @@ def main():
         "semantic_energy_cluster_uncertainty", flip=True)
 
     # Persist partial result before fusion lift in case of crash
-    Path("/tmp/review_ablation/bootstrap_partial.json").write_text(
-        json.dumps(out, indent=2, default=str))
+    out_path.write_text(json.dumps(out, indent=2, default=str))
+    print(f"  partial result → {out_path}", file=sys.stderr)
 
     # Fusion lift CI from predictions.jsonl + features.is_correct
-    print("[+] fusion lift CI ...", file=sys.stderr)
-    preds = pd.read_json(RUN / "fusion.generation_level/predictions.jsonl",
-                         lines=True)
-    print(f"  preds methods: {preds['method'].unique().tolist()}", file=sys.stderr)
-    labels = df[["prompt_id", "sample_index", "is_correct"]].drop_duplicates(
-        ["prompt_id", "sample_index"])
-    nc = preds[preds["method"] == "gradient boosting (no corpus)"][
-        ["prompt_id", "sample_index", "score"]].rename(columns={"score": "pred"})
-    wc = preds[preds["method"] == "gradient boosting (with corpus)"][
-        ["prompt_id", "sample_index", "score"]].rename(columns={"score": "pred"})
-    nc = nc.merge(labels, on=["prompt_id", "sample_index"])
-    wc = wc.merge(labels, on=["prompt_id", "sample_index"])
-    out["fusion_lift_gbm"] = bootstrap_fusion_lift_fast(nc, wc, n_boot=500)
+    preds_path = results_dir / "fusion.generation_level/predictions.jsonl"
+    if preds_path.exists():
+        print("[+] fusion lift CI ...", file=sys.stderr)
+        preds = pd.read_json(preds_path, lines=True)
+        print(f"  preds methods: {preds['method'].unique().tolist()}", file=sys.stderr)
+        labels = df[["prompt_id", "sample_index", "is_correct"]].drop_duplicates(
+            ["prompt_id", "sample_index"])
+        nc = preds[preds["method"] == "gradient boosting (no corpus)"][
+            ["prompt_id", "sample_index", "score"]].rename(columns={"score": "pred"})
+        wc = preds[preds["method"] == "gradient boosting (with corpus)"][
+            ["prompt_id", "sample_index", "score"]].rename(columns={"score": "pred"})
+        nc = nc.merge(labels, on=["prompt_id", "sample_index"])
+        wc = wc.merge(labels, on=["prompt_id", "sample_index"])
+        out["fusion_lift_gbm"] = bootstrap_fusion_lift_fast(nc, wc, n_boot=args.n_boot)
+    else:
+        print(f"  fusion predictions not found at {preds_path}; skipping fusion lift",
+              file=sys.stderr)
 
-    print(json.dumps(out, indent=2, default=str))
+    out_path.write_text(json.dumps(out, indent=2, default=str))
+    print(f"final result → {out_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

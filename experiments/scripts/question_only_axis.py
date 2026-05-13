@@ -14,10 +14,10 @@ Output: JSON to stdout
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -26,7 +26,6 @@ import spacy
 from sklearn.metrics import roc_auc_score
 
 
-RUN = Path("/mnt/data/hallucination-graduation-thesis-runs/se-pipeline-20260511T034406Z")
 KEEP_LABELS = {"PERSON", "ORG", "GPE", "LOC", "DATE", "EVENT",
                "WORK_OF_ART", "FAC", "NORP", "PRODUCT", "LANGUAGE", "LAW"}
 
@@ -62,12 +61,40 @@ def extract_entities_spacy(nlp, text: str, max_entities: int = 8) -> list[str]:
     return ents
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--run-dir",
+        type=Path,
+        required=True,
+        help="Run dir containing both results/datasets/candidate_rows.jsonl AND "
+             "<model>/results/generation_features.parquet (defaults to qwen).",
+    )
+    parser.add_argument(
+        "--model",
+        default="qwen",
+        help="Per-model subdir under run-dir (default: qwen).",
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Output JSON. Default: <run-dir>/<model>/results/question_only_axis.json",
+    )
+    return parser.parse_args()
+
+
 def main():
-    sys.path.insert(0, "/home/global/workspaces/sharosoo/hallucination-graduation-thesis")
+    args = parse_args()
+    run = args.run_dir
+    model_results = run / args.model / "results"
+    out_path = args.out or (model_results / "question_only_axis.json")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
     from experiments.adapters.corpus_counts import build_corpus_count_backend
 
     print("[1/6] loading candidate_rows.jsonl ...", file=sys.stderr)
-    cand_path = RUN / "results/datasets/candidate_rows.jsonl"
+    cand_path = run / "results/datasets/candidate_rows.jsonl"
     rows = []
     with open(cand_path) as f:
         for line in f:
@@ -154,7 +181,7 @@ def main():
           file=sys.stderr)
 
     print("[6/6] joining with generation features and computing Δ ...", file=sys.stderr)
-    gf = pd.read_parquet(RUN / "qwen/results/generation_features.parquet")
+    gf = pd.read_parquet(model_results / "generation_features.parquet")
     needed = ["prompt_id", "is_correct", "semantic_entropy",
               "semantic_energy_cluster_uncertainty", "sample_nll"]
     gf2 = gf[needed].merge(df_q[["prompt_id", "q_entity_freq_axis_bin_10",
@@ -197,12 +224,15 @@ def main():
                 "n_deciles": len(d),
             }
 
-    print(json.dumps({
+    payload = {
         "n_prompts_total": int(len(df_q)),
         "n_q_freq_valid": int(df_q["q_entity_freq_axis_bin_10"].notna().sum()),
         "n_q_pair_valid": int(df_q["q_entity_pair_axis_bin_10"].notna().sum()),
         "results": results,
-    }, indent=2))
+    }
+    out_path.write_text(json.dumps(payload, indent=2))
+    print(f"→ {out_path}", file=sys.stderr)
+    print(json.dumps(payload, indent=2))
 
 
 if __name__ == "__main__":

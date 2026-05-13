@@ -222,13 +222,24 @@ def run_generation_fusion(df: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     pred_rows: list[dict] = []
 
     # --- single signal baselines (no learning, score-based AUROC) ---
+    # thesis Tab 4.1 / Tab 4.3 의 단일 신호 행들과 1:1 대응. 환각 탐지
+    # 신호 (SE / Energy / logit 통계) + 7 corpus signals 모두 포함.
     single_signal_cols = [
+        # detection signals
         ("SE-only", "semantic_entropy"),
         ("Energy-only", "semantic_energy_cluster_uncertainty"),
         ("logit-diagnostic-only", "sample_nll"),
         ("logit-variance-only", "sample_logit_variance"),
         ("sequence-log-prob-only", "sample_sequence_log_prob"),
+        # corpus signals (Tab 4.3)
         ("corpus-axis-only", "corpus_axis_bin_10_ord"),
+        ("entity-freq-only", "entity_frequency_axis"),
+        ("entity-pair-cooc-only", "entity_pair_cooccurrence_axis"),
+        ("qa-bridge-mean-only", "qa_bridge_axis"),
+        ("qa-bridge-zero-only", "qa_bridge_zero_flag"),
+        ("ngram3-mean-only", "ans_ngram_3_axis"),
+        ("ngram3-zero-only", "ans_ngram_3_zero_count"),
+        ("ngram5-mean-only", "ans_ngram_5_axis"),
     ]
     for name, col in single_signal_cols:
         if col not in df.columns:
