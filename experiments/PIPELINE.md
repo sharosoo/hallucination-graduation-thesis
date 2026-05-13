@@ -13,75 +13,54 @@
 
 ## 1. 전체 방법론 다이어그램
 
+본 트랙 (트랙 B — SE 5-dataset Single-candidate, Phase 3 generation-level NLI correctness) 의
+S0 ~ S13' 흐름이다. 폐기된 트랙 A (paired discriminative, Phase 1 / 2) 의
+원래 다이어그램은 commit 히스토리 (HISTORY.md 참조) 에서 확인할 수 있다.
+
 ```mermaid
 flowchart TD
-    A[1. HF paired dataset 저장
-TruthfulQA + HaluEval-QA]
-    B[2. prompt group 고정
-prompt_groups.jsonl
-dataset_manifest.json]
-    C[3. candidate row 확장
-candidate_rows.jsonl
-right + hallucinated]
-    D[4. model scoring
-teacher-forced candidate logits
-answer-only free samples N=10]
-    E[5. generation/logits 검증
-full-vocab logits + logsumexp + sample count]
-    F[6. annotation label artifact
-annotation_labels.jsonl]
-    G[7. NLI likelihood Semantic Entropy
-prompt-level clusters]
-    H[8. QuCo-style corpus axis
-entity frequency + pair co-occurrence]
-    I[9. paper-faithful Semantic Energy
-semantic clusters + selected-token energy]
-    J[10. candidate diagnostics
-NLL + margin + variance]
-    K[11. feature table
-features + corpus bins + labels]
-    L[12. global and condition-aware fusion]
-    M[13. corpus-bin reliability robustness]
-    N["14. [보조] prompt-level NLI is_hard 라벨링
-+ prompt-unit reframe"]
-    O[15. free-sample token diagnostics
-sample 단위 logit 통계]
-    P[16. generation-level NLI correctness 라벨
-sample 단위 is_correct]
-    Q["17. [메인 트랙 A] generation-level fusion
-+ robustness (HaluEval/TQA)"]
-    R["18. SE 5-dataset Single-candidate
-TriviaQA / SQuAD / BioASQ / NQ-Open / SVAMP"]
-    S["19. Generation (Qwen + Gemma)
+    S0[S0 구조 검증]
+    S1["S1' prepare_datasets_se
+5 datasets, 3,500 prompts"]
+    S2["S2' run_generation
+Qwen2.5-3B / Gemma 4 E4B
 free-sample N=10, sentence-length"]
-    T["20. SE / Energy / sample diagnostics
-+ NLI is_correct"]
-    U["21. Corpus features 다양화
-entity / qa_bridge / n-gram"]
-    V["22. [메인 트랙 B] generation-level fusion
-+ robustness (Farquhar 와 직접 비교)"]
+    S3["S3' consolidate_checkpoints_se
+free_sample_rows.json 재조립"]
+    S4["S4' compute_semantic_entropy
+NLI cluster + likelihood (Farquhar Eq. 8)"]
+    S5["S5' compute_energy_se_minimal
+paper-faithful Semantic Energy (Ma Eq. 11–14)"]
+    S6["S6' free_sample_diagnostics
+NLL / logit variance / logsumexp / margin"]
+    S7["S7' generation correctness
+NLI 양방향 entailment is_correct"]
+    S8["S8' compute_corpus_features
+entity 빈도 + entity-pair cooc"]
+    S9["S9' qa_bridge_features
+question entity ↔ answer entity cooc"]
+    S10["S10' ngram_coverage_features
+3-gram / 5-gram corpus 등장"]
+    S11["S11' run_generation_se_analysis
+fusion (LR/RF/GBM × no/with corpus)
++ per-decile + bootstrap CI + AURAC"]
+    S12["S12' review_ablations
+Spearman ρ 21 cells + B=500 CI + SVAMP 민감도"]
+    S13["S13' build_results_macros
+thesis/results_macros.tex (30 macro) 자동 생성"]
 
-    A --> B --> C --> D --> E
-    C --> F
-    D --> G
-    C --> H
-    D --> I
-    D --> J
-    F --> K
-    G --> K
-    H --> K
-    I --> K
-    J --> K
-    K --> L --> M
-    D --> N
-    K --> N
-    D --> O
-    D --> P
-    O --> Q
-    P --> Q
-    K --> Q
-    R --> S --> T --> V
-    R --> U --> V
+    S0 --> S1 --> S2 --> S3
+    S3 --> S4 --> S5
+    S3 --> S6
+    S3 --> S7
+    S1 --> S8 --> S11
+    S1 --> S9 --> S11
+    S1 --> S10 --> S11
+    S4 --> S11
+    S5 --> S11
+    S6 --> S11
+    S7 --> S11
+    S11 --> S12 --> S13
 ```
 
 ## 2. 전체 실행 명령
