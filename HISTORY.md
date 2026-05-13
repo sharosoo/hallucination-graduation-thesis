@@ -54,8 +54,10 @@ candidate-level token logit diagnostics (NLL, logit variance) 만이 두 candida
 - `experiments/PIPELINE.md` 의 \"트랙 A — Paired Candidate-Level (legacy)\" 섹션.
 - `experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md` 등
   paired 시기 evidence note (2026-05-08 retracted 표시 포함).
-- 아카이브 산출물 — `experiments/results/_phase1_archive/` (별도 정리 단계에서
-  archive 디렉터리로 이동 예정).
+- 산출물 (`experiments/results/{fusion,robustness,type_analysis,correctness,
+  datasets,paired-datasets-qwen}/...`) 모두 삭제. SE-only AUROC ≈ 0.5 같은
+  Phase 1 broadcasting 한계가 결과처럼 보고되어 fresh reader 의 혼동을
+  방지하기 위함.
 
 ---
 
@@ -155,28 +157,3 @@ Phase 2 의 두 결합 문제를 동시에 해결한다.
 - Phase 2 와 동일한 \"라벨 / 신호 부분 결합\" — 라벨과 신호 모두 동일 free-sample
   에서 산출됨 (단 Phase 2 처럼 동일 `match-rate` 는 아니므로 결합 약함).
 
----
-
-## 폴더 정리 매핑
-
-이 narrative 와 일치하도록 정리된 / 정리될 자산:
-
-| 자산 | 상태 |
-|---|---|
-| `experiments/adapters/hf_datasets.py` (Phase 1) | 삭제됨 |
-| `experiments/adapters/correctness_dataset.py` (Phase 1) | 삭제됨 |
-| `experiments/scripts/prepare_datasets.py` (Phase 1) | 삭제됨 |
-| `experiments/scripts/build_correctness_dataset.py` (Phase 1) | 삭제됨 |
-| `experiments/scripts/run_pipeline.py` (Phase 1) | 삭제됨 |
-| `experiments/configs/datasets.yaml` (Phase 1) | 삭제됨 |
-| `experiments/scripts/run_prompt_level_analysis.py` (Phase 2) | 삭제됨 |
-| `experiments/scripts/relabel_is_hard_nli.py` (Phase 2) | 삭제됨 |
-| `experiments/application/prompt_accuracy.py` (Phase 2 함수) | Phase 3 함수만 남기고 `generation_correctness.py` 로 rename |
-| `experiments/PIPELINE.md` 의 S10 (Phase 2) | DELETED 마커로 축소 |
-| 트랙 A — Paired Candidate-Level | `PIPELINE.md` 에 legacy 참조로 보존 |
-| 트랙 B — SE 5-dataset Single-candidate | 메인 트랙. PIPELINE.md S1' \\sim S11' |
-| `experiments/adapters/hf_datasets_single_candidate.py` (Phase 3) | 메인. helper 6종 inline |
-| `experiments/application/generation_correctness.py` (Phase 3) | 메인. NLI is_correct 라벨링 |
-| `experiments/application/generation_level_eval.py` (Phase 3) | 메인. fusion + decile decomposition |
-| `experiments/scripts/run_generation_se_analysis.py` (Phase 3) | 메인 entry script |
-| `experiments/results/_phase1_archive/` | Phase 1 산출물 archive (별도 정리) |
