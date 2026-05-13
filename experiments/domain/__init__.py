@@ -2,7 +2,7 @@
 
 from .features import AnalysisBin, FeatureProvenance, FeatureVector
 from .labels import EnergyComputationKind, FeatureRole
-from .manifests import ExperimentManifest
+from .manifests import ExperimentManifest, StageProgress
 from .metrics import MetricResult
 from .records import (
     CandidateLabelRow,
@@ -36,6 +36,7 @@ __all__ = [
     "PromptGroup",
     "PromptRow",
     "QuestionExample",
+    "StageProgress",
     "SemanticEntropyResult",
     "TeacherForcedCandidateScore",
     "TeacherForcedTokenScore",

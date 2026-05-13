@@ -20,3 +20,16 @@ class ExperimentManifest:
     corpus_snapshot_ref: str | None = None
     created_by: str | None = None
     note: str | None = None
+
+
+@dataclass(frozen=True)
+class StageProgress:
+    """Resumable / progress snapshot for one stage of the pipeline."""
+
+    phase: str
+    completed: int
+    total: int
+    percent: float
+    message: str
+    updated_at: str
+    output_path: str

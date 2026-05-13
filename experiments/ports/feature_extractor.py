@@ -30,7 +30,7 @@ class FeatureExtractorPort(ABC):
         semantic_entropy: SemanticEntropyResult,
         energy: EnergyResult,
         corpus_stats: CorpusStats,
-        is_hallucination: bool,
+        label: bool,
         analysis_bin: AnalysisBin | None = None,
     ) -> FeatureVector:
         """Build a typed feature vector for one sample."""

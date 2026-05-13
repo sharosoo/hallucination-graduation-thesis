@@ -40,7 +40,7 @@ class FeatureVector:
     dataset: str
     split_id: str
     sample_id: str
-    is_hallucination: bool
+    label: bool  # operational label. Phase 3: is_correct (True=correct, False=hallucinated). Phase 1 (paired): is_hallucination — kept the column name interpretation in adapters for backwards-compat.
     semantic_entropy: float
     cluster_count: int
     semantic_energy: float | None = None

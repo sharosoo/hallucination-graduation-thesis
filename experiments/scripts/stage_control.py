@@ -1,13 +1,19 @@
-"""Shared resumable/progress helpers for experiment stage CLIs."""
+"""Shared resumable/progress helpers for experiment stage CLIs.
+
+Pure utility module — dataclass definitions live in ``experiments.domain``
+(see ``StageProgress``) per hexagonal architecture rules.
+"""
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 from uuid import uuid4
+
+from experiments.domain import StageProgress
 
 
 SEMANTIC_ENTROPY_SCHEMA_VERSION = "semantic_entropy_nli_likelihood_v1"
@@ -16,18 +22,8 @@ CORPUS_AXIS_SCHEMA_VERSION = "corpus_axis_counts_v1"
 FEATURE_TABLE_SCHEMA_VERSION = "corpus_axis_feature_table_v1"
 GENERATION_FREE_SAMPLE_SCHEMA_VERSION = "generation_free_sample_rows_v1"
 GENERATION_CANDIDATE_SCORE_SCHEMA_VERSION = "generation_teacher_forced_candidate_scores_v1"
-DATASET_PREPARATION_SCHEMA_VERSION = "paired_dataset_materialization_v1"
-
-
-@dataclass(frozen=True)
-class StageProgress:
-    phase: str
-    completed: int
-    total: int
-    percent: float
-    message: str
-    updated_at: str
-    output_path: str
+GENERATION_CORRECTNESS_SCHEMA_VERSION = "generation_correctness_v1"
+DATASET_PREPARATION_SCHEMA_VERSION = "se_single_candidate_dataset_materialization_v1"
 
 
 def progress_snapshot(*, phase: str, completed: int, total: int, message: str, output_path: Path) -> StageProgress:
