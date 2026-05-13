@@ -26,7 +26,7 @@ from experiments.scripts.stage_control import progress_snapshot, write_progress
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", required=True, help="Path to experiments/configs/generation.yaml")
+    parser.add_argument("--config", required=True, help="Path to experiments/configs/generation_se_*.yaml")
     parser.add_argument(
         "--prompt-groups",
         default=None,

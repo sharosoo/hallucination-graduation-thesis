@@ -175,6 +175,7 @@ uv run python experiments/scripts/run_generation.py \
 - max_new_tokens=64 (sentence-length 답변 충분)
 - `answer_only.enabled=false` — sentence-level free-form generation
 - 산출물: `$RUN/{qwen,gemma}/results/generation/free_sample_rows.json` + full vocab logits parquet sidecar
+- **Truncated re-gen (옵션)**: `max_new_tokens=64` 로 생성한 답변 중 약 12.6% (2,426 prompts) 가 중간에 절단됨. 절단된 prompt 만 `--config experiments/configs/generation_se_qwen_long.yaml` (`max_new_tokens=128`) 로 재생성하여 sentence 완결성 확보. thesis §3.1 에 보고된 절차 (재생성 전후 AUROC 변화 ±0.001 범위).
 
 ### S3'. Checkpoint consolidate (free_sample_rows.json 재조립)
 
@@ -351,11 +352,11 @@ uv run python experiments/scripts/build_results_macros.py \
 
 ## 5b. Backend, model, and protocol pins (2026-05-07)
 
-이 섹션은 thesis-valid run에 실제로 사용된 외부 자원과 protocol 캡을 명시한다. 변경 시 본 문서와 `experiments/configs/generation.yaml`을 함께 갱신한다.
+이 섹션은 thesis-valid run에 실제로 사용된 외부 자원과 protocol 캡을 명시한다. 변경 시 본 문서와 `experiments/configs/generation_se_qwen.yaml`을 함께 갱신한다.
 
 | Resource | Pinned value | Notes |
 | --- | --- | --- |
-| Causal LM | `Qwen/Qwen2.5-3B` (configured in `experiments/configs/generation.yaml::model`) | full-vocabulary logits sidecar dtype `float16`, vocab=151936 |
+| Causal LM | `Qwen/Qwen2.5-3B` (configured in `experiments/configs/generation_se_qwen.yaml::model`) | full-vocabulary logits sidecar dtype `float16`, vocab=151936 |
 | NLI model | `microsoft/deberta-large-mnli` (default in `experiments/adapters/semantic_entropy_features.py`) | bidirectional entailment, label resolved via `config.id2label`. `--nli-model` may override per run; provenance recorded in `nli_model_ref` |
 | Corpus index | Local Infini-gram `v4_dolmasample_olmo` (16B tokens) under `/mnt/data/hallucination-graduation-thesis-runs/infini-gram-indexes/v4_dolmasample_olmo/` | Free public download from `s3://infini-gram-lite/index/v4_dolmasample_olmo/` (no AWS egress). Tokenizer: `allenai/OLMo-7B-hf` (vocab=50280, eos=50279). Pair counts use `count_cnf` AND queries; the engine `approx` flag is captured in `metadata.infinigram_approx` while `provenance.approximate` is False so the upper-bound count drives the binning axis |
 | Corpus backend selection | sidecar `<candidates>.corpus_backend.json` written by `experiments/scripts/setup_local_corpus_backend.py`; env var fallbacks `THESIS_CORPUS_BACKEND`, `INFINIGRAM_LOCAL_INDEX_DIR`, `INFINIGRAM_LOCAL_TOKENIZER`, `INFINIGRAM_INDEX`, `INFINIGRAM_ENDPOINT` | Live REST API (`https://api.infini-gram.io/`) is kept as fallback in `InfinigramApiBackend` but is rate-bound at ~2.85 q/s; not used as primary for full-dataset runs |
