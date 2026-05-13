@@ -1,126 +1,157 @@
 # 실험 전체 개관
 
-이 문서는 처음 저장소를 보는 사람이 실험 목표, 데이터셋, 단계별 산출물, 검증 모듈을 한 번에 이해하도록 만든 안내서이다. 실행 계약의 source of truth는 `experiments/PIPELINE.md`이다. 이 repo에는 논문용 실험 데이터셋이 하나만 있다.
+이 문서는 처음 저장소를 보는 사람이 실험 목표, 데이터셋, 단계별 산출물, 검증 모듈을 한 번에 이해하도록 만든 안내서이다. 실행 계약의 source of truth 는 `experiments/PIPELINE.md` 의 트랙 B (SE 5-dataset Single-candidate) 절이다. 본 논문 메인 평가는 답변 단위 NLI 정답성 위에서 수행한다.
 
 ## 1. 문제와 논지
 
-이 논문은 RAG 시스템 논문이 아니라 **환각 탐지 metric의 조건부 신뢰성**을 분석하는 논문이다. 질문은 다음과 같다.
+이 논문은 RAG 시스템 논문이 아니라 **환각 탐지 신호의 단위별 분리력 분해 분석** 을 다루는 논문이다. 질문은 다음과 같다.
 
-> corpus에서 entity가 얼마나 자주 등장하는지, 그리고 entity pair가 함께 등장하는지에 따라 Semantic Entropy, Semantic Energy, likelihood/logit diagnostics 같은 hallucination metric의 신뢰도가 달라지는가?
+> 답변에 등장하는 entity 가 corpus 안에서 얼마나 등장하는지 (entity 빈도 / entity 쌍 동시 등장 / question-answer bridge / n-gram 등장 빈도) 에 따라 Semantic Entropy 와 Semantic Energy 의 분리력이 어느 폭으로 달라지는가? corpus 신호의 단위에 따라 그 변동 폭이 달라지는가?
 
-따라서 corpus feature는 정답성의 직접 증거가 아니다. QuCo-RAG에서 entity frequency와 co-occurrence가 high-uncertainty retrieval 상황을 찾는 데 쓰였다는 직관을 가져오되, 여기서는 retrieval 정책이 아니라 **metric reliability를 나누는 continuous corpus-support axis**로 사용한다.
+따라서 corpus 신호는 정답성의 직접 증거가 아니다. QuCo-RAG 에서 entity frequency 와 co-occurrence 가 high-uncertainty retrieval 상황을 찾는 데 쓰였다는 직관을 가져오되, 여기서는 retrieval 정책이 아니라 **신호의 분리력을 단위별로 분해하는 conditioning axis** 로 사용한다.
 
 핵심 논지는 세 가지다.
 
-1. Corpus entity frequency와 entity-pair co-occurrence는 hallucination metric의 reliability를 조건화할 수 있는 연속 축이다.
-2. Semantic Entropy와 Semantic Energy는 원 논문 방식에 맞춰 구현한 뒤, corpus-axis bin마다 성능과 안정성을 따져야 한다.
-3. Global fusion 하나만 보는 대신 corpus-bin-aware fusion 또는 axis interaction fusion이 더 해석 가능하거나 안정적인지 검증한다.
+1. 답변 단위 NLI 정답성은 Farquhar 등 (2024) Semantic Entropy 와 Ma 등 (2025) Semantic Energy 와 동일한 평가 단위이며, 두 선행 연구와 직접 비교 가능하다.
+2. Semantic Entropy 와 Semantic Energy 는 원 논문 방식에 맞춰 구현한 뒤, sample 을 corpus 신호별 10분위로 나눠 구간별 AUROC 를 측정해야 그 분리력의 조건부 변동을 드러낼 수 있다.
+3. 단위가 다른 corpus 신호 (entity 빈도, entity 쌍 동시 등장, question-answer bridge, n-gram) 의 AUROC range Δ 를 비교하면, 어떤 단위의 corpus 신호가 환각 탐지 신호의 분리력을 가장 크게 분해하는지 확인할 수 있다.
 
-## 2. 평가 프로토콜: discriminative pair-based
+## 2. 평가 프로토콜: 답변 단위 NLI 정답성
 
-휴리스틱 매칭과 LLM-as-judge를 모두 배제하기 위해 **discriminative 프로토콜**을 사용한다. 모델이 자유 생성한 답을 사후 판정하지 않고, **데이터셋이 미리 제공한 (정답, 환각) 후보 답 자체를 평가 대상**으로 삼는다.
+휴리스틱 매칭과 LLM-as-judge 를 모두 배제하기 위해 **NLI 양방향 함의 매칭** 을 사용한다. 모델이 자유 생성한 답변을 데이터셋 정답 후보 (정답 표현, 동의 표현, 별칭 목록) 와 양방향 함의 확률 ≥ 0.5 로 매칭한 결과를 `is_correct` 로 정의한다.
 
-- 한 prompt당 두 개의 평가 row가 생성된다.
-  - `(question, right_answer)` → `is_correct=true`
-  - `(question, hallucinated_answer)` → `is_correct=false`
-- 라벨은 dataset annotation에서 직접 온다. 매칭도 judge도 없다.
-- 모델은 후보 답을 새로 생성하지 않는다. teacher-forced로 후보 답에 대한 full-vocab logits를 계산해서 candidate-level diagnostics를 만든다.
-- Semantic Entropy와 paper-faithful Semantic Energy를 위해서는 prompt에 대해 별도로 **N=10 answer-only free sampling**을 수행한다.
+- 한 sample 당 자유 생성 답변 10개를 산출한다.
+- 각 답변마다 NLI 모델 (`microsoft/deberta-large-mnli`) 로 정답 후보와의 양방향 함의 확률을 측정한다.
+- $M(s_i) = \max_{c \in C} \max(p(c \to s_i), p(s_i \to c)) \geq 0.5$ 이면 `is_correct = 1`, 그렇지 않으면 0.
+- 모델이 답변을 생성하므로 candidate-level paired 라벨 (`is_hallucination`) 은 산출하지 않는다 (paired hallucinated candidate 가 데이터셋에 존재하지 않음).
+- 본 평가 단위는 Farquhar 등 (2024) Semantic Entropy 와 Ma 등 (2025) Semantic Energy 의 generation-level correctness 와 동일하다.
 
 ## 3. 실험 데이터셋
 
-| Dataset | HF id | Prompts | Eval rows | (정답, 환각) 쌍 출처 |
-| --- | --- | ---: | ---: | --- |
-| TruthfulQA | `truthfulqa/truthful_qa` | 815 | 1,630 | dataset의 `correct_answers[]`와 `incorrect_answers[]`를 직접 짝지음. 정제 후 중복/overlap 2개 prompt는 제외 |
-| HaluEval-QA | `pminervini/HaluEval` | 5,000 | 10,000 | dataset annotation의 `right_answer` / `hallucinated_answer` |
+| Dataset | HF id | Split | Sample count | 정답 후보 출처 |
+| --- | --- | --- | ---: | --- |
+| TriviaQA | `trivia_qa` (`rc.nocontext`) | validation | 800 | `answer.value` + `answer.aliases` |
+| SQuAD-1.1 | `rajpurkar/squad` | validation | 800 | `answers.text` |
+| BioASQ | `kroshan/BioASQ` | train | 800 | `<answer>...<context>` 파서 |
+| NQ-Open | `nq_open` | validation | 800 | `answer` (alias 목록) |
+| SVAMP | `ChilleD/SVAMP` | test | 300 | `Answer` (수치) |
 
-총 prompt 5,815 / 평가 row 11,630.
+총 sample 3,500. 자유 생성 답변 10개 × 3,500 = **35,000 generation**. 각 sample 마다 데이터셋이 제공한 정답 표현 (단일 ground-truth 또는 alias 목록) 을 정답 후보로 사용한다.
 
-TriviaQA, Natural Questions, HotpotQA, FEVER, BioASQ는 사용하지 않는다. 이 데이터셋들은 (정답, 환각) 쌍을 dataset 차원에서 제공하지 않아 hallucinated 후보를 깨끗하게 만들 방법이 없다.
+본 데이터셋은 Farquhar (Nature 2024) Semantic Entropy 와 Ma (2025) Semantic Energy 의 평가셋과 동일하다. Context passage 는 모든 데이터셋에서 의도적으로 제외한다 (Farquhar §Methods — confabulation 유도). prompt template 은 ``Answer the following question in a single brief but complete sentence.'' 의 sentence-length 시나리오를 따른다.
 
 ## 4. 한눈에 보는 파이프라인
 
-```text
-S0 계약 검증
-  ↓
-S1 HF dataset → prompt_groups.jsonl + candidate_rows.jsonl
-  ↓
-S2 model scoring
-   ├─ teacher-forced candidate logits        (candidate-level diagnostics)
-   └─ answer-only free samples N=10          (SE / Semantic Energy용)
-  ↓
-S2b full logits + sample-count 검증
-  ↓
-S3 annotation-driven correctness dataset
-  ↓
-S4 NLI likelihood Semantic Entropy           (prompt-level)
-  ↓
-S5 QuCo-style corpus axis                    (candidate/pair-level continuous bins)
-  ↓
-S6 paper-faithful Semantic Energy + diagnostics
-  ↓
-S7 feature table + axis/bin metadata
-  ↓
-S8 global fusion vs condition-aware fusion
-  ↓
-S9 corpus-bin reliability + robustness
+`experiments/PIPELINE.md` 의 트랙 B 와 일치한다.
+
+```mermaid
+flowchart TD
+    S0[S0 구조 검증]
+    S1["S1' prepare_datasets_se
+3,500 prompt"]
+    S2["S2' run_generation
+Qwen2.5-3B, N=10 free samples
+sentence-length"]
+    S3["S3' consolidate_checkpoints_se
+free_sample_rows.json 재조립"]
+    S4["S4' compute_semantic_entropy
+NLI cluster + likelihood"]
+    S5["S5' compute_energy_se_minimal
+paper-faithful Semantic Energy"]
+    S6["S6' free_sample_diagnostics
+답변 단위 token 통계"]
+    S7["S7' generation correctness
+NLI 양방향 entailment is_correct"]
+    S8["S8' compute_corpus_features
+entity 수준 신호"]
+    S9["S9' qa_bridge_features
+question-answer bridge"]
+    S10["S10' ngram_coverage_features
+3-gram / 5-gram"]
+    S11["S11' run_generation_se_analysis
+fusion + robustness (메인)"]
+
+    S0 --> S1 --> S2 --> S3 --> S4 --> S5
+    S3 --> S6
+    S3 --> S7
+    S1 --> S8
+    S1 --> S9
+    S1 --> S10
+    S4 --> S11
+    S5 --> S11
+    S6 --> S11
+    S7 --> S11
+    S8 --> S11
+    S9 --> S11
+    S10 --> S11
 ```
 
-실행:
+실행 (각 명령은 `$RUN` 을 산출물 root, `qwen` 을 모델 디렉터리로 가정):
 
 ```bash
 uv sync --group generation
-uv run python experiments/scripts/run_pipeline.py --execute --out experiments/results/runs
+uv run python experiments/scripts/prepare_datasets_se.py --config experiments/configs/datasets_se.yaml --out-dir $RUN/results/datasets
+uv run python experiments/scripts/run_generation.py --config experiments/configs/generation_se_qwen.yaml ...
+uv run python experiments/scripts/run_generation_se_analysis.py --run-dir $RUN/qwen --bootstrap-n 1000
 ```
+
+상세 명령은 `experiments/PIPELINE.md` 트랙 B (S1' → S11') 참조.
 
 ## 5. feature 계산 단위
 
-| Feature | level | 두 candidate row 간 | 계산 방식 |
-| --- | --- | --- | --- |
-| `semantic_entropy_nli_likelihood` | prompt | 공유(broadcast) | prompt에서 N=10 answer-only sample → DeBERTa-family NLI clustering → likelihood-based cluster entropy |
-| `semantic_entropy_discrete_cluster_entropy`, `semantic_entropy_cluster_count` | prompt | 공유 | 같은 NLI cluster에서 count-based 보조 통계 |
-| `semantic_energy_cluster_uncertainty` | prompt/cluster | 공유 또는 cluster-linked | Ma 2025 Eq. (11)–(14) paper-faithful: token_energy = `-selected_token_logit`, sample_energy = `mean(-selected_token_logits)`, cluster_energy = **`sum`**(member sample_energies) per Eq. (12), `cluster_uncertainty = sum_k p(C_k) * cluster_energy(C_k)` with Eq. (8) likelihood-based `p(C_k)` from S4 |
-| `mean_negative_log_probability` | candidate | 다름 | 후보 토큰의 −log p 평균 |
-| `logit_variance`, `confidence_margin` | candidate | 다름 | 후보 토큰 위치 logits에서 계산하는 diagnostic |
-| `semantic_energy_boltzmann_diagnostic` | candidate | 다름 | 기존 candidate-level `-logsumexp` 평균. paper-faithful Semantic Energy가 아니라 energy-inspired diagnostic으로 표기 |
-| `entity_frequency_axis`, `entity_pair_cooccurrence_axis`, `corpus_axis_bin` | candidate/pair | 다름 | candidate 답 텍스트에서 entity를 추출하고 Infini-gram-compatible count backend로 raw count, log score, bin을 계산. Entity 추출은 두 backend 중 선택: `regex` (legacy, 따옴표/Capitalized n-gram/5+자 token), `quco` (권장, `ZhishanQ/QuCo-extractor-0.5B` knowledge triplet). |
+| Feature | level | 설명 |
+| --- | --- | --- |
+| `semantic_entropy_nli_likelihood`, `semantic_entropy_cluster_count`, `semantic_entropy_discrete_cluster_entropy` | sample (broadcast) | 한 sample 의 자유 생성 답변 10개를 NLI 양방향 함의로 cluster 한 뒤, cluster probability 의 Shannon entropy. Farquhar 등 (2024) Eq. (8) 정의. |
+| `semantic_energy_cluster_uncertainty`, `semantic_energy_sample_energy` | sample (broadcast) | Ma 등 (2025) Eq. (11)–(14) paper-faithful: token_energy = `-selected_token_logit`, sample_energy = `mean(-selected_token_logits)`, cluster_energy = **`sum`**(member sample_energies) per Eq. (12), `cluster_uncertainty = sum_k p(C_k) * cluster_energy(C_k)` with Eq. (8) likelihood-based `p(C_k)`. |
+| `sample_nll`, `sample_sequence_log_prob`, `sample_logit_variance`, `sample_logsumexp_mean` | 답변 (단위) | 답변마다 token logit 통계를 산출. paper-faithful Semantic Energy 와 같은 column 으로 합치지 않는다. |
+| `sample_confidence_margin_mean`, `sample_confidence_margin_min`, `sample_top1_logit_mean` | 답변 (단위) | full vocab parquet streaming 으로 추출한 top1-top2 logit margin. selective option. |
+| `entity_frequency_axis`, `entity_pair_cooccurrence_axis`, `corpus_axis_bin_10` | sample (broadcast) | 답변에서 추출한 entity 의 단일 등장 빈도와 entity 쌍 동시 등장. spaCy `en_core_web_lg` NER + Infini-gram local backend 로 산출. |
+| `qa_bridge_axis`, `qa_bridge_min`, `qa_bridge_zero_flag` | sample (broadcast) | 질문 entity 와 답변 entity (질문과 겹치지 않는 부분) 의 동시 등장. fact-level corpus support. |
+| `ans_ngram_3_axis`, `ans_ngram_5_axis`, `ans_ngram_3_zero_count`, `ans_ngram_5_zero_count` | sample (broadcast) | 답변 토큰의 3-gram / 5-gram 의 corpus 등장 빈도와 미등장 개수. Infini-gram 본래 use case. |
 
-## 6. corpus-axis 분석 원칙
+## 6. corpus 신호 분해 분석 원칙
 
-- Low entity frequency는 오답 라벨이 아니라 long-tail corpus support 부족 조건이다.
-- Zero entity-pair co-occurrence는 관계적 support 부족을 나타내는 위험 조건이지만, non-zero co-occurrence가 정답을 보장하지 않는다.
-- Corpus axis는 continuous score로 보존하고, train split quantile 또는 사전 고정 threshold로 binning한다.
-- 각 bin에서 AUROC, AUPRC, paired win-rate, hallucinated-minus-normal delta, prompt-grouped bootstrap CI를 보고한다.
-- SE는 보조 축으로 쓸 수 있지만, redesigned thesis의 기본 축은 corpus support이다.
+- Low entity frequency 는 오답 라벨이 아니라 long-tail corpus support 부족 조건이다.
+- Zero entity-pair co-occurrence 는 관계적 support 부족을 나타내는 위험 조건이지만, non-zero co-occurrence 가 정답을 보장하지 않는다.
+- Corpus 신호는 sample 단위 연속 점수로 보존하고, 각 신호로 sample 을 10분위로 나눠 구간별 AUROC 를 산출한다.
+- 신호별 AUROC range $\Delta = \mathrm{AUROC}_{\max} - \mathrm{AUROC}_{\min}$ 가 클수록 그 corpus 신호가 환각 탐지 신호의 분리력을 더 큰 폭으로 분해한다는 의미이다.
+- 비교의 정확도를 확보하기 위해 prompt 단위 bootstrap (B = 500–1,000) 으로 Δ 차이의 95% 신뢰구간을 함께 보고한다.
+- SE 자체를 단위로 한 bin 도 보조 축으로 쓸 수 있지만, redesigned thesis 의 main 축은 corpus 신호 단위 (entity / entity 쌍 / qa-bridge / n-gram) 이다.
 
 ## 7. 단계별 모듈과 검증
 
 | Stage | Module | Output | Validation |
 | --- | --- | --- | --- |
-| S0 | `validate_architecture.py` | pass/fail | hexagonal 패키지 구조와 핵심 dataclass·port 강제 |
-| S1 | `prepare_datasets.py`, `adapters/hf_datasets.py` | `prompt_groups.jsonl`, `candidate_rows.jsonl`, `dataset_manifest.json` | pair_id 짝의 (right, hallucinated) 1:1 검증 |
-| S2 | `run_generation.py`, `adapters/model_generation.py` | `free_sample_rows.json`, `candidate_scores.json` | N=10 free samples와 candidate logits schema 검사 |
-| S3 | `build_correctness_dataset.py`, `adapters/correctness_dataset.py` | `correctness_judgments.jsonl` | annotation source presence, `heuristic_matching_used=false`, `llm_as_judge_used=false` |
-| S4 | `compute_semantic_entropy.py`, NLI clustering adapter | `semantic_entropy_features.parquet` | cluster prob 합 1, NLI model provenance, likelihood-based fields |
-| S5 | `compute_corpus_features.py`, corpus count adapter | `corpus_features.parquet` | raw count provenance, axis score, bin assignment |
-| S6 | `compute_energy_features.py`, Semantic Energy adapter | `energy_features.parquet` | selected-token logit energy, cluster-level aggregation, diagnostic separation |
-| S7 | `build_feature_table.py`, `application/labeling.py` | `features.parquet` | prompt-level broadcast와 corpus-bin join 무결성 |
-| S8 | `run_fusion.py`, `application/fusion.py` | `fusion/summary.json`, `predictions.jsonl` | global vs condition-aware comparison |
-| S9 | `run_robustness.py`, `application/robustness.py` | `robustness/summary.json` | prompt-grouped bootstrap, corpus-bin CI, binning sensitivity |
+| S0 | `validate_architecture.py` | pass / fail | hexagonal 패키지 구조와 핵심 dataclass·port 강제 |
+| S1' | `prepare_datasets_se.py`, `adapters/hf_datasets_single_candidate.py` | `prompt_groups.jsonl`, `candidate_rows.jsonl`, `dataset_manifest.json` | 5 datasets × 정해진 sample count 확인, prompt template 확인 |
+| S2' | `run_generation.py`, `adapters/model_generation.py` | `free_sample_rows.json` (+ checkpoint shard `full_logits.parquet`) | sample 당 free sample 10개 + full vocab logits sidecar 검증 |
+| S3' | `consolidate_checkpoints_se.py` | `free_sample_rows.json` (consolidated) | 35,000 sample 무결성 |
+| S4' | `compute_semantic_entropy.py`, NLI clustering adapter | `semantic_entropy_features.parquet` | cluster prob 합 1, NLI model provenance, likelihood-based fields |
+| S5' | `compute_energy_se_minimal.py`, Semantic Energy adapter | `energy_features.parquet` | selected-token logit energy, cluster-level SUM 집계 |
+| S6' | `adapters/free_sample_diagnostics.py` | `free_sample_diagnostics.parquet` | sample 단위 NLL / variance / logsumexp / margin |
+| S7' | `application/prompt_accuracy.py` (`build_generation_correctness_frame`) | `generation_correctness.parquet` + `.audit.json` | NLI 양방향 entailment is_correct, audit (per-dataset rate) |
+| S8' | `compute_corpus_features.py`, corpus count adapter | `corpus_features.parquet` | raw count provenance, axis score, decile bin |
+| S9' | `compute_qa_bridge_features.py` | `qa_bridge_features.parquet` | (질문 entity, 답변 entity) 쌍 동시 등장 |
+| S10' | `compute_ngram_coverage_features.py` | `ngram_coverage_features.parquet` | 답변 3-gram / 5-gram 의 corpus 등장 평균 |
+| S11' | `run_generation_se_analysis.py`, `application/generation_level_eval.py` | `fusion.generation_level/`, `robustness.generation_level/` | 5-fold GroupKFold(prompt_id), bootstrap CI, per-decile, leave-one-dataset-out, calibration, AURAC |
 
 ## 8. 주의점
 
-- 휴리스틱 매칭, LLM-as-judge fallback은 모두 금지. 정답성은 dataset annotation에서만 온다.
-- 현재 N=5 exact-string SE artifact는 preliminary diagnostic이다. 최종 논문용 SE는 N=10, NLI clustering, likelihood-based cluster probability가 필요하다.
-- 현재 candidate-level `semantic_energy_boltzmann`은 useful diagnostic일 수 있지만, multi-generation semantic clustering과 cluster-level energy aggregation이 없으면 paper-faithful Semantic Energy라고 쓰지 않는다.
-- Corpus feature는 direct count semantics에서 와야 한다. Elasticsearch/BM25는 retrieval evidence 용도이며 entity frequency/co-occurrence count 대체물이 아니다.
-- Robustness evaluation은 prompt 단위로 묶는다. 같은 prompt에서 나온 두 candidate row가 train/test로 갈라지면 누수다.
+- 휴리스틱 매칭, LLM-as-judge fallback 은 본 트랙에서도 라벨 source 가 아니다. token overlap 매칭은 NLI 의존성이 누락되었을 때만 fallback 으로 작동한다.
+- corpus 신호는 direct count semantics 에서 와야 한다. Elasticsearch / BM25 는 retrieval evidence 용도이며 entity frequency / co-occurrence count 대체물이 아니다.
+- Robustness evaluation 은 prompt 단위로 묶는다. 같은 sample 의 자유 생성 답변 10개가 train / test fold 에 갈라져 들어가면 누수다.
+- spaCy NER 채택 후 `entity_frequency_axis` 분포가 좌편향 (≥ 58% 가 0) 이라 fixed-cutoff binning 으로는 80% 이상 표본이 단일 lowest bin 에 몰린다. 따라서 binning strategy 의 default 는 `rank_quantile` (sample 균등 분할) 이다.
+- candidate-level Semantic Energy diagnostic (`semantic_energy_boltzmann_diagnostic`) 은 트랙 B 에서는 paired candidate score 가 없으므로 산출하지 않는다 (트랙 A 전용).
 
 ## 9. 관련 연구와의 positioning
 
-- **Farquhar 2024 (Nature) Semantic Entropy**: S4 SE 구현 토대. Eq.(8) likelihood cluster probability를 paper-faithful Semantic Energy에서도 그대로 상속.
-- **Ma 2025 Semantic Energy** (preprint): S6 식 (Eq.11–14) 그대로 구현. cluster total energy = SUM, U = Σ p(C_k)·E_Bolt(C_k).
-- **QuCo-RAG 2025**: entity frequency / pair co-occurrence를 *retrieval trigger* 가 아닌 **신뢰도 conditioning 축**으로 재해석. 같은 통계, 다른 용도.
-- **Phillips 2026 PC Probe**: hidden-state probe는 채택하지 않음 (black-box compatibility 유지). framing reference만.
-- **Valentin et al. 2024 (Cost-Effective Detection)**: conditional calibration framework. 본 연구와 직교 — 그쪽은 *내부* score attribute 조건화, 본 연구는 *외부* corpus statistics 조건화. black-box compatibility 비교 시 인용.
-- **Simhi et al. 2025 (CHOKE)**: 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE의 low-diversity wrong answer 한계의 외부 evidence → 외부 corpus axis conditioning 동기 강화. **본 실험 데이터에서 직접 재현됨**: candidate-level NLL/margin 역방향 (환각이 더 자신있게 생성됨) + corpus-level pair_cooccurrence 정방향 (환각이 더 흔한 entity pair 사용) — 두 evidence가 같은 그림 ("익숙한 entity의 잘못된 조합으로 환각이 만들어짐"). 자세한 분석은 `experiments/literature/evidence_notes/pair_cooccurrence_choke_evidence.md` 참조.
+- **Farquhar 2024 (Nature) Semantic Entropy**: S4' SE 구현 토대. Eq. (8) likelihood cluster probability 를 paper-faithful Semantic Energy 에서도 그대로 상속. 본 논문 평가 단위 (답변 단위 NLI 정답성) 와 동일.
+- **Ma 2025 Semantic Energy** (preprint): S5' 식 (Eq. 11–14) 그대로 구현. cluster total energy = SUM, U = Σ p(C_k)·E_Bolt(C_k).
+- **QuCo-RAG 2025**: entity frequency / pair co-occurrence 를 *retrieval trigger* 가 아닌 **신뢰도 conditioning 축** 으로 재해석. 같은 통계, 다른 용도.
+- **Phillips 2026 PC Probe**: hidden-state probe 는 채택하지 않음 (black-box compatibility 유지). framing reference 만.
+- **Valentin et al. 2024 (Cost-Effective Detection)**: conditional calibration framework. 본 연구와 직교 — 그쪽은 *내부* score attribute 조건화, 본 연구는 *외부* corpus statistics 단위 분해. black-box compatibility 비교 시 인용.
+- **Simhi et al. 2025 (CHOKE)**: 모델이 정답 지식을 가지고도 high-certainty hallucination 생성. SE 의 low-diversity wrong answer 한계의 외부 evidence → corpus 단위 분해 분석의 동기 강화.
+
+## 10. Legacy / 시행착오
+
+본 논문은 candidate-level paired (Phase 1) → is_hard proxy (Phase 2) → generation-level NLI (Phase 3) 의 평가 단위 pivot 을 거쳤다. Phase 1 / 2 는 폐기되었으며 자세한 사유와 폐기 근거는 `HISTORY.md` 참조.
