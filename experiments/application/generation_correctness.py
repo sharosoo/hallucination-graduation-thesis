@@ -1,20 +1,21 @@
-"""Prompt-level accuracy proxy for the is_hard label.
+"""Generation-level correctness labeling (Phase 3, SE 5-dataset).
 
-각 질문의 free-sample N=10 답변과 dataset 정답 후보(best_answer / right_answer /
-correct_answers / correct_candidate_pool)를 매칭하여 accuracy 와 is_hard 를 산출.
+각 free-sample 답변과 dataset 정답 후보(best_answer / right_answer /
+correct_answers / correct_candidate_pool) 사이의 NLI 양방향 entailment 매칭
+으로 per-sample is_correct 라벨을 생성한다 (Farquhar/Ma 호환 단위).
 
 매칭 모드:
   - "nli_bidirectional_max_entail" (default): deberta-large-mnli 의 양방향 entailment
     확률 max > threshold (default 0.5) 면 매칭. paraphrase 정답을 token-overlap 보다
     잘 잡는다.
-  - "token_overlap": 단순 토큰 자카드 + 부분 문자열 fallback. 빠른 sanity check 용.
-
-is_hard = (accuracy < 0.5).
+  - "token_overlap": 단순 토큰 자카드 + 부분 문자열 fallback. 빠른 sanity check 용
+    (NLI 디펜던시가 없을 때 fallback).
 
 산출물:
-  - prompt_accuracy.parquet  : prompt_id, dataset, accuracy, accuracy_token, is_hard,
-                               match_method, n_samples, n_matches, n_candidates
-  - prompt_accuracy.audit.json: model, threshold, per-dataset is_hard rate, label change
+  - generation_correctness.parquet: prompt_id, dataset, sample_index, response_text,
+                                    n_candidates, nli_max_prob, is_correct,
+                                    match_method, token_overlap_match
+  - generation_correctness.audit.json: model, threshold, per-dataset is_correct rate
 """
 
 from __future__ import annotations
@@ -30,7 +31,6 @@ import pandas as pd
 
 DEFAULT_NLI_MODEL_NAME = "microsoft/deberta-large-mnli"
 DEFAULT_NLI_THRESHOLD = 0.5
-DEFAULT_HARD_ACCURACY_CUTOFF = 0.5
 
 MATCH_METHOD_NLI = "nli_bidirectional_max_entail"
 MATCH_METHOD_TOKEN = "token_overlap"
@@ -121,16 +121,6 @@ def group_free_samples(rows: Iterable[dict]) -> list[PromptSampleGroup]:
     ]
 
 
-# ---------- token-overlap accuracy ----------
-
-def compute_token_overlap_accuracy(group: PromptSampleGroup) -> tuple[float, int]:
-    """returns (accuracy, n_matches). N == len(samples)."""
-    if not group.candidates or not group.samples:
-        return 0.0, 0
-    matches = sum(1 for s in group.samples if overlap_match(s, list(group.candidates)))
-    return matches / len(group.samples), matches
-
-
 # ---------- NLI accuracy ----------
 
 def _import_nli_deps():
@@ -218,101 +208,6 @@ def compute_nli_accuracies(
     if return_sample_max:
         return out, dict(sample_max)
     return out
-
-
-# ---------- end-to-end builder ----------
-
-def build_prompt_accuracy_frame(
-    free_sample_rows: list[dict],
-    *,
-    use_nli: bool = True,
-    nli_model_name: str = DEFAULT_NLI_MODEL_NAME,
-    threshold: float = DEFAULT_NLI_THRESHOLD,
-    hard_cutoff: float = DEFAULT_HARD_ACCURACY_CUTOFF,
-    batch_size: int = 64,
-) -> pd.DataFrame:
-    """Build per-prompt accuracy / is_hard table.
-
-    Always computes token-overlap accuracy as a sanity column.
-    When ``use_nli`` is True, also runs the NLI matcher and uses NLI accuracy
-    as the canonical accuracy column.
-    """
-    groups = group_free_samples(free_sample_rows)
-
-    rows = []
-    token_acc_map: dict[str, tuple[float, int]] = {}
-    for g in groups:
-        if not g.candidates:
-            continue
-        token_acc_map[g.prompt_id] = compute_token_overlap_accuracy(g)
-
-    nli_acc_map: dict[str, tuple[float, int]] = {}
-    if use_nli:
-        nli_groups = [g for g in groups if g.candidates]
-        nli_acc_map = compute_nli_accuracies(  # type: ignore[assignment]
-            nli_groups,
-            model_name=nli_model_name,
-            threshold=threshold,
-            batch_size=batch_size,
-        )
-
-    for g in groups:
-        if not g.candidates:
-            continue
-        token_acc, token_matches = token_acc_map.get(g.prompt_id, (0.0, 0))
-        if g.prompt_id in nli_acc_map:
-            acc, matches = nli_acc_map[g.prompt_id]
-            method = MATCH_METHOD_NLI
-        else:
-            acc, matches = token_acc, token_matches
-            method = MATCH_METHOD_TOKEN
-        rows.append({
-            "prompt_id": g.prompt_id,
-            "dataset": g.dataset,
-            "accuracy": acc,
-            "accuracy_token": token_acc,
-            "n_samples": len(g.samples),
-            "n_matches": matches,
-            "n_candidates": len(g.candidates),
-            "is_hard": int(acc < hard_cutoff),
-            "match_method": method,
-        })
-    return pd.DataFrame(rows)
-
-
-def write_prompt_accuracy_artifacts(
-    df: pd.DataFrame,
-    out_dir: Path,
-    *,
-    nli_model_name: str,
-    threshold: float,
-    hard_cutoff: float,
-    use_nli: bool,
-) -> tuple[Path, Path]:
-    """Persist prompt accuracy table + audit json. Returns (table_path, audit_path)."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    table_path = out_dir / "prompt_accuracy.parquet"
-    audit_path = out_dir / "prompt_accuracy.audit.json"
-    df.to_parquet(table_path, index=False)
-
-    by_ds = df.groupby("dataset")["is_hard"].agg(["count", "mean"]).to_dict()
-    audit = {
-        "match_method": MATCH_METHOD_NLI if use_nli else MATCH_METHOD_TOKEN,
-        "nli_model": nli_model_name if use_nli else None,
-        "nli_threshold": threshold if use_nli else None,
-        "hard_accuracy_cutoff": hard_cutoff,
-        "per_dataset_is_hard": {
-            ds: {"n": int(by_ds["count"][ds]), "is_hard_rate": float(by_ds["mean"][ds])}
-            for ds in by_ds["count"]
-        },
-        "overall_is_hard_rate": float(df["is_hard"].mean()),
-        "n_prompts": int(len(df)),
-        "label_change_vs_token": int(
-            ((df["accuracy"] >= hard_cutoff) != (df["accuracy_token"] >= hard_cutoff)).sum()
-        ),
-    }
-    audit_path.write_text(json.dumps(audit, indent=2, ensure_ascii=False))
-    return table_path, audit_path
 
 
 # ============================================================
@@ -409,4 +304,3 @@ def write_generation_correctness_artifacts(
     }
     audit_path.write_text(json.dumps(audit, indent=2, ensure_ascii=False))
     return table_path, audit_path
-

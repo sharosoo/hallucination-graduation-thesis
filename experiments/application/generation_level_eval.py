@@ -87,7 +87,7 @@ def build_generation_features(
     from experiments.adapters.free_sample_diagnostics import (
         build_diagnostics_frame,
     )
-    from experiments.application.prompt_accuracy import (
+    from experiments.application.generation_correctness import (
         build_generation_correctness_frame,
         write_generation_correctness_artifacts,
     )

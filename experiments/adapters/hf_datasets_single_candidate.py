@@ -20,19 +20,49 @@ Context (passage) 는 의도적으로 누락 (Farquhar paper §Methods).
 
 from __future__ import annotations
 
+import hashlib
 import random
 import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
-from experiments.adapters.hf_datasets import (
-    _clean_text,
-    _prompt_hash,
-    _require_text,
-    _stable_id,
-    _stable_slug,
-    stable_sample_id,
-)
+
+class DatasetMaterializationError(RuntimeError):
+    """Raised when a dataset row cannot be materialized into the SE schema."""
+
+
+def _stable_slug(value: str) -> str:
+    safe = "-".join(value.strip().lower().split())
+    return "".join(character for character in safe if character.isalnum() or character == "-")
+
+
+def _stable_id(*parts: str) -> str:
+    joined = "::".join(parts)
+    digest = hashlib.sha1(joined.encode("utf-8")).hexdigest()[:12]
+    slug = "-".join(_stable_slug(part) for part in parts if part)
+    return f"{slug}-{digest}" if slug else digest
+
+
+def _prompt_hash(prompt: str) -> str:
+    return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+def stable_sample_id(dataset_id: str, split_id: str, source_id: str | int) -> str:
+    raw = f"{dataset_id}:{split_id}:{source_id}"
+    digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+    safe_source = "".join(ch.lower() if ch.isalnum() else "_" for ch in str(source_id))[:40].strip("_")
+    return f"{dataset_id}-{safe_source or 'row'}-{digest}"
+
+
+def _clean_text(value: object) -> str:
+    return str(value).strip() if value is not None else ""
+
+
+def _require_text(value: object, *, field_name: str) -> str:
+    text = _clean_text(value)
+    if not text:
+        raise DatasetMaterializationError(f"{field_name} must be a non-empty string")
+    return text
 
 
 SE_SENTENCE_LENGTH_PROMPT_TEMPLATE = (

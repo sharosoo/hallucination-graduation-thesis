@@ -31,7 +31,7 @@ from experiments.scripts.stage_control import (
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_FORMULA_MANIFEST_REF = "experiments/literature/formula_notes.md"
-DEFAULT_DATASET_MANIFEST_REF = "experiments/configs/datasets.yaml"
+DEFAULT_DATASET_MANIFEST_REF = "experiments/configs/datasets_se.yaml"
 DEFAULT_LOGITS_SCHEMA_VERSION = "generation_logits_v1"
 FREE_SAMPLE_COUNT = 10
 FULL_LOGITS_DTYPE_BYTES = {

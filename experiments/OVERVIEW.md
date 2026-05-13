@@ -129,7 +129,7 @@ uv run python experiments/scripts/run_generation_se_analysis.py --run-dir $RUN/q
 | S4' | `compute_semantic_entropy.py`, NLI clustering adapter | `semantic_entropy_features.parquet` | cluster prob 합 1, NLI model provenance, likelihood-based fields |
 | S5' | `compute_energy_se_minimal.py`, Semantic Energy adapter | `energy_features.parquet` | selected-token logit energy, cluster-level SUM 집계 |
 | S6' | `adapters/free_sample_diagnostics.py` | `free_sample_diagnostics.parquet` | sample 단위 NLL / variance / logsumexp / margin |
-| S7' | `application/prompt_accuracy.py` (`build_generation_correctness_frame`) | `generation_correctness.parquet` + `.audit.json` | NLI 양방향 entailment is_correct, audit (per-dataset rate) |
+| S7' | `application/generation_correctness.py` (`build_generation_correctness_frame`) | `generation_correctness.parquet` + `.audit.json` | NLI 양방향 entailment is_correct, audit (per-dataset rate) |
 | S8' | `compute_corpus_features.py`, corpus count adapter | `corpus_features.parquet` | raw count provenance, axis score, decile bin |
 | S9' | `compute_qa_bridge_features.py` | `qa_bridge_features.parquet` | (질문 entity, 답변 entity) 쌍 동시 등장 |
 | S10' | `compute_ngram_coverage_features.py` | `ngram_coverage_features.parquet` | 답변 3-gram / 5-gram 의 corpus 등장 평균 |

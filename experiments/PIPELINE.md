@@ -279,32 +279,12 @@ uv run python experiments/scripts/run_robustness.py --features experiments/resul
 
 각 corpus-axis bin에서 AUROC, AUPRC, paired win rate, hallucinated-minus-normal delta, confidence interval을 보고한다. confidence interval이 0을 가로지르면 안정적 개선이라고 쓰지 않는다. robustness split은 prompt 단위로 묶는다. 같은 prompt에서 나온 두 candidate row가 train/test로 갈라지면 누수다.
 
-### S10. [보조] prompt-level reframe (NLI is_hard proxy)
+### S10. [DELETED] prompt-level reframe (Phase 2 is_hard proxy)
 
-> 본 단계는 **보조 분석** 이다. 메인 평가는 S11–S13 (generation-level) 이다.
-> S10 산출물은 보존되며 (재현성 / 비교 목적), thesis 본문에는 등장하지 않는다.
-
-```bash
-# 1) prompt-level NLI accuracy → is_hard 라벨링 (한 번만, 캐시됨)
-uv run python experiments/scripts/relabel_is_hard_nli.py --run-dir experiments/results
-
-# 2) prompt-level fusion + robustness (NLI 캐시 자동 재사용)
-uv run python experiments/scripts/run_prompt_level_analysis.py --run-dir experiments/results
-```
-
-- 입력: `results/generation/free_sample_rows.json`, `results/features.parquet`
-- 모듈: `experiments/application/prompt_accuracy.py`, `experiments/scripts/run_prompt_level_analysis.py`
-- 출력:
-  - `results/prompt_accuracy.parquet` — prompt 단위 `(prompt_id, dataset, accuracy, accuracy_token, is_hard, match_method, n_samples, n_matches, n_candidates)` 테이블 (canonical).
-  - `results/prompt_accuracy.audit.json` — 매칭 모드 (`nli_bidirectional_max_entail` / `token_overlap`), NLI model / threshold, per-dataset is_hard rate, label change vs token-overlap.
-  - `results/prompt_features.parquet` — 위 라벨에 prompt-level SE/Energy/logit-diagnostic 집계 + corpus axis bin id 를 join 한 표.
-  - `results/fusion.prompt_level/`, `results/robustness.prompt_level/` — prompt-unit fusion + robustness artifact (S8 / S9 와 동일한 구조).
-- 라벨 정의:
-  - 각 질문의 free-sample $N=10$ 답변과 dataset 정답 후보 (best_answer / right_answer / correct_answers / correct_candidate_pool) 사이를 매칭한다.
-  - **default (NLI):** `microsoft/deberta-large-mnli` 의 양방향 entailment 확률 $\max(p(c \to s), p(s \to c)) \geq 0.5$ 이면 (sample, candidate) pair 가 매칭. paraphrase 정답을 token-overlap 보다 잘 잡는다.
-  - **fallback (token):** `--no-nli-accuracy` 옵션 또는 NLI 의존성 (transformers / torch) 미설치 시 자카드 ≥ 0.5 또는 substring 매칭으로 fallback.
-  - prompt accuracy = `matches / N`. **is_hard = (accuracy < 0.5)**. token-overlap accuracy 도 항상 sanity column 으로 함께 저장한다.
-- 본 단계는 candidate-level pipeline (S0–S9) 산출물을 그대로 재사용한다. NLI 매칭은 한 번만 GPU 추론하고, 이후 `run_prompt_level_analysis.py` 는 `prompt_accuracy.parquet` 캐시만 읽어 분석을 반복한다 (NLI 재실행 비용 0). 라벨이 candidate-level `is_hallucination` 과 다르므로 (질문 단위 어려움 vs 답변 단위 정오), 두 분석은 보완적이다.
+> Phase 2 의 prompt-level `is_hard` proxy 분석은 thesis 가 generation-level NLI correctness
+> (Phase 3, S12) 로 pivot 한 뒤 폐기되었다. 관련 스크립트
+> (`run_prompt_level_analysis.py`, `relabel_is_hard_nli.py`) 는 삭제됨. pivot 사유는
+> `HISTORY.md` 참조.
 
 ### S11. free-sample token diagnostics (sample-level)
 
@@ -329,11 +309,11 @@ uv run python -m experiments.adapters.free_sample_diagnostics --run-dir experime
 
 ```bash
 # 자동 호출됨 (run_generation_level_analysis.py 가 캐시 없으면 실행)
-uv run python -c "from pathlib import Path; from experiments.application.prompt_accuracy import build_generation_correctness_frame, write_generation_correctness_artifacts; import json; RUN=Path('experiments/results'); fs=json.loads((RUN/'results/generation/free_sample_rows.json').read_text())['samples']; df=build_generation_correctness_frame(fs); write_generation_correctness_artifacts(df, RUN/'results', nli_model_name='microsoft/deberta-large-mnli', threshold=0.5, use_nli=True)"
+uv run python -c "from pathlib import Path; from experiments.application.generation_correctness import build_generation_correctness_frame, write_generation_correctness_artifacts; import json; RUN=Path('experiments/results'); fs=json.loads((RUN/'results/generation/free_sample_rows.json').read_text())['samples']; df=build_generation_correctness_frame(fs); write_generation_correctness_artifacts(df, RUN/'results', nli_model_name='microsoft/deberta-large-mnli', threshold=0.5, use_nli=True)"
 ```
 
 - 입력: `results/generation/free_sample_rows.json`
-- 모듈: `experiments/application/prompt_accuracy.py` 의 `build_generation_correctness_frame`
+- 모듈: `experiments/application/generation_correctness.py` 의 `build_generation_correctness_frame`
 - 출력:
   - `results/generation_correctness.parquet` — row=(prompt_id, dataset, sample_index, is_correct, nli_max_prob, match_method, token_overlap_match)
   - `results/generation_correctness.audit.json` — per-dataset is_correct rate, label change vs token-overlap
@@ -459,7 +439,7 @@ uv run python -m experiments.adapters.free_sample_diagnostics --run-dir $RUN/{qw
 ### S7'. Generation-level NLI correctness
 
 ```bash
-uv run python -c "from experiments.application.prompt_accuracy import build_generation_correctness_frame, write_generation_correctness_artifacts; ..."
+uv run python -c "from experiments.application.generation_correctness import build_generation_correctness_frame, write_generation_correctness_artifacts; ..."
 ```
 
 - free-sample $s_i$ 와 정답 후보 (alias_list) 사이의 \texttt{microsoft/deberta-large-mnli} 양방향 entailment 매칭 확률 ≥ 0.5 → `is_correct=1`.
