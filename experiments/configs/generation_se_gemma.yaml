@@ -21,7 +21,7 @@
   },
   "generation": {
     "seed": 13,
-    "max_new_tokens": 32,
+    "max_new_tokens": 64,
     "do_sample": true,
     "temperature": 1.0,
     "top_p": 0.9,

@@ -14,9 +14,7 @@ Metrics: AUROC, AUPRC, Brier, ECE, AURAC (Farquhar Nature 2024 main metric).
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -73,86 +71,11 @@ CORPUS_INPUTS = [
 CORPUS_INPUT = "corpus_axis_bin_10_ord"
 
 
-# ---------------- features ----------------
-
-def build_generation_features(
-    run_dir: Path,
-    *,
-    use_nli: bool = True,
-    nli_model_name: str = "microsoft/deberta-large-mnli",
-    nli_threshold: float = 0.5,
-) -> pd.DataFrame:
-    """row=(prompt_id, sample_index), label=is_correct, with all signals joined."""
-    # local imports to keep module load cheap when only utilities are needed
-    from experiments.adapters.free_sample_diagnostics import (
-        build_diagnostics_frame,
-    )
-    from experiments.application.generation_correctness import (
-        build_generation_correctness_frame,
-        write_generation_correctness_artifacts,
-    )
-
-    fs_path = run_dir / "results/generation/free_sample_rows.json"
-    gc_path = run_dir / "results/generation_correctness.parquet"
-    diag_path = run_dir / "results/free_sample_diagnostics.parquet"
-
-    # 1) generation correctness
-    if gc_path.exists():
-        gc = pd.read_parquet(gc_path)
-        print(f"  reusing {gc_path.name} ({len(gc)} samples)", flush=True)
-    else:
-        print(f"  building {gc_path.name} via NLI matching ...", flush=True)
-        fs_rows = json.loads(fs_path.read_text())["samples"]
-        gc = build_generation_correctness_frame(
-            fs_rows,
-            use_nli=use_nli,
-            nli_model_name=nli_model_name,
-            threshold=nli_threshold,
-        )
-        write_generation_correctness_artifacts(
-            gc, run_dir / "results",
-            nli_model_name=nli_model_name,
-            threshold=nli_threshold,
-            use_nli=use_nli,
-        )
-
-    # 2) free-sample diagnostics
-    if diag_path.exists():
-        diag = pd.read_parquet(diag_path)
-        print(f"  reusing {diag_path.name} ({len(diag)} samples)", flush=True)
-    else:
-        print(f"  building {diag_path.name} ...", flush=True)
-        fs_rows = json.loads(fs_path.read_text())["samples"]
-        diag = build_diagnostics_frame(fs_rows)
-        diag.to_parquet(diag_path, index=False)
-
-    # 3) prompt-level broadcast features
-    feat = pd.read_parquet(run_dir / "results/features.parquet")
-    inner = pd.json_normalize(feat["features"])
-    big = pd.concat([feat[["prompt_id", "dataset", "candidate_role"]], inner], axis=1)
-    keep_cols = ["prompt_id", *(c for c in PROMPT_BROADCAST if c in big.columns),
-                 *(c for c in CORPUS_BROADCAST if c in big.columns)]
-    prompt_view = big.drop_duplicates(subset=["prompt_id"])[keep_cols]
-
-    # 4) join
-    df = gc[["prompt_id", "dataset", "sample_index", "is_correct"]].copy()
-    df = df.merge(
-        diag[["prompt_id", "sample_index", *SAMPLE_LEVEL]],
-        on=["prompt_id", "sample_index"], how="left",
-    )
-    df = df.merge(prompt_view, on="prompt_id", how="left")
-
-    # corpus_axis_bin_* string labels (e.g. "decile_60_70") → ordinal int
-    # for downstream fusion / single-signal scoring.
-    for col in CORPUS_BROADCAST:
-        if col in df.columns and df[col].dtype == object:
-            ordered = sorted(df[col].dropna().unique().tolist())
-            mapping = {v: i for i, v in enumerate(ordered)}
-            df[f"{col}_ord"] = df[col].map(mapping).astype("Int64")
-    return df
-
-
 # ---------------- metrics ----------------
+# Note: 트랙 B 의 features 는 run_generation_se_analysis.py::build_se_features
+# 가 직접 join (compute_*_features.py 산출 parquet 들을 prompt_id / sample_index
+# 단위로 merge). 이 모듈은 GBM/RF/LR fusion + decile decomposition + bootstrap
+# CI 등 평가 로직만 제공한다.
 
 def _aurocs(y, score) -> dict:
     s_clip = np.clip(score, 1e-6, 1 - 1e-6) if score.min() >= 0 and score.max() <= 1 else score

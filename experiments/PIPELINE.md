@@ -223,14 +223,33 @@ uv run python -m experiments.adapters.free_sample_diagnostics --run-dir $RUN/{qw
 ### S7'. Generation-level NLI correctness
 
 ```bash
-uv run python -c "from experiments.application.generation_correctness import build_generation_correctness_frame, write_generation_correctness_artifacts; ..."
+uv run python experiments/scripts/build_generation_correctness.py \
+  --free-samples $RUN/{qwen,gemma}/results/generation/free_sample_rows.json \
+  --out-dir $RUN/{qwen,gemma}/results
 ```
 
-- free-sample $s_i$ 와 정답 후보 (alias_list) 사이의 \texttt{microsoft/deberta-large-mnli} 양방향 entailment 매칭 확률 ≥ 0.5 → `is_correct=1`.
+- 모듈: `experiments/scripts/build_generation_correctness.py` (thin CLI) →
+  `experiments/application/generation_correctness.py::build_generation_correctness_frame`.
+- free-sample $s_i$ 와 정답 후보 (alias_list) 사이의 `microsoft/deberta-large-mnli` 양방향 entailment 매칭 확률 ≥ 0.5 → `is_correct=1`.
 - 산출: `generation_correctness.parquet` + `generation_correctness.audit.json`. row=(prompt_id, sample_index).
-- GPU 메모리 충돌 시 `batch_size=16` 권장 (Gemma generation 과 병렬 실행 가능).
+- GPU 메모리 충돌 시 `--batch-size 16` 권장 (Gemma generation 과 병렬 실행 가능).
+- NLI 의존성 (transformers + torch) 미설치 시 `--no-nli` 로 token-overlap fallback (sanity 용도, thesis 라벨이 아님).
 
 ### S8'. Corpus features (entity-level)
+
+> **선행 작업 (한 번만)** — Infini-gram local index 다운로드 + sidecar 작성:
+> ```bash
+> # 1) 16B Dolma sample index 다운로드 (~16GB, AWS egress 0)
+> aws s3 cp --no-sign-request --recursive \
+>   s3://infini-gram-lite/index/v4_dolmasample_olmo/ \
+>   /mnt/data/infini-gram-indexes/v4_dolmasample_olmo/
+> # 2) candidate_rows.jsonl 옆에 corpus_backend.json sidecar 작성
+> uv run python experiments/scripts/setup_local_corpus_backend.py \
+>   --candidates $RUN/results/datasets/candidate_rows.jsonl \
+>   --index-dir /mnt/data/infini-gram-indexes/v4_dolmasample_olmo \
+>   --tokenizer allenai/OLMo-7B-hf
+> ```
+> 또는 환경 변수 fallback 사용 (§5b 참조). spaCy 모델은 `python -m spacy download en_core_web_lg` 로 한 번 받아둔다.
 
 ```bash
 uv run python experiments/scripts/compute_corpus_features.py \
@@ -239,10 +258,9 @@ uv run python experiments/scripts/compute_corpus_features.py \
   --entity-extractor spacy
 ```
 
-- 입력: SE track candidate_rows (single right candidate per prompt)
+- 입력: SE track candidate_rows (single right candidate per prompt) + sidecar `corpus_backend.json`
 - 어댑터: `experiments/adapters/corpus_features.py` (그대로)
-- backend: `candidate_rows.jsonl.corpus_backend.json` sidecar 가 같은 디렉터리에 있어야 함 (paired track 의 backend config 복사 또는 재작성)
-- 산출: entity_frequency, entity_pair_cooccurrence, axis bin 등 (트랙 A 와 동일)
+- 산출: entity_frequency, entity_pair_cooccurrence, axis bin 등
 
 ### S9'. QA Bridge co-occurrence (corpus 다양화 1)
 

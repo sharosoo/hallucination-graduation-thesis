@@ -37,7 +37,7 @@
     "Sentence-length generation (Farquhar 2024 default scenario): 'Answer the following question in a single brief but complete sentence.'",
     "answer_only.enabled=false — full sentence-level free-form generation.",
     "Sampling: temperature=1.0, top_p=0.9, top_k=50 (Farquhar 2024 §Methods).",
-    "max_new_tokens=128 (sentence-length, longer than the 64-token answer-only mode in the paired track).",
+    "max_new_tokens=64 by default; ~12.6% of samples hit the cap and are re-generated with generation_se_qwen_long.yaml (max_new_tokens=128) per thesis §3.1.",
     "Prompt template baked into prompt_groups.jsonl by hf_datasets_single_candidate.build_se_prompt — model code uses prompt as-is."
   ]
 }
