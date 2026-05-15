@@ -552,12 +552,14 @@ Semantic Energy AUROC 를 측정하였다. 결과는
 표 [\[tab:single_signal_aurac\]](#tab:single_signal_aurac){reference-type="ref"
 reference="tab:single_signal_aurac"} 에 정리되어 있다.
 
-Qwen2.5-3B 는 Llama-2 7B 보다 작은 모델임에도 두 신호의 AUROC 가 선행
-연구 보고 범위 (0.75--0.85) 안에 들어간다. 이는 본 표본이 Semantic
-Entropy 와 Semantic Energy 의 일반적인 작동 범위에 속한다는 점을
-보여준다. 다만 이는 직접 재현이 아닌 참고용 비교이며, 답변 평균 NLL
-(0.670) 은 단독 신호로도 일정한 분리력을 보이지만 의미 cluster 정보를
-추가했을 때 부가 효과가 크다.
+Qwen2.5-3B 는 Llama-2 7B 보다 작은 모델임에도 두 신호의 AUROC 가
+Farquhar (2024) 의 보고 범위 (TriviaQA 0.79 / SQuAD 0.83 등 0.75--0.85
+대) 안에 들어간다. 이는 본 표본이 Semantic Entropy 의 일반적인 작동
+범위에 속한다는 점을 보여준다. Semantic Energy 의 경우 Ma (2025) 가
+Semantic Entropy 대비 평균 AUROC 13% 이상 개선을 보고하였으나,
+모델·데이터셋 구성이 본 실험과 동일하지 않아 직접 비교는 한정적이다.
+답변 평균 NLL (0.670) 은 단독 신호로도 일정한 분리력을 보이지만 의미
+cluster 정보를 추가했을 때 부가 효과가 크다.
 
 ## 단일 corpus 신호의 환각 탐지 성능 {#sec:negative}
 
@@ -1267,9 +1269,8 @@ K. Ciosek et al., "Hallucination Detection on a Budget: Efficient
 Bayesian Estimation of Semantic Entropy," *arXiv preprint
 arXiv:2504.03579*, 2025.
 
-Z. Ma et al., "Semantic Energy: A novel approach for detecting
-confabulation in language models," *arXiv preprint arXiv:2412.07965*,
-2025.
+H. Ma et al., "Semantic Energy: Detecting LLM Hallucination Beyond
+Entropy," *arXiv preprint arXiv:2508.14496*, 2025.
 
 A. Ravichander et al., "HALoGEN: Fantastic LLM Hallucinations and Where
 to Find Them," *arXiv preprint arXiv:2501.08292*, 2025.
