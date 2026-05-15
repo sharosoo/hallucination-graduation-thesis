@@ -302,7 +302,7 @@ Semantic Energy 단독 (0.774) 대비 gradient boosting (corpus 미포함, 0.800
 \S{}\ref{sec:fusion_results} 의 fusion lift (+0.008) 와 \S{}\ref{sec:axis} 의 구간별 AUROC range ($\Delta 0.150$) 사이의 큰 비대칭은 corpus 신호가 환각 탐지 신호의 \emph{선형 예측 변수} 로서가 아니라 \emph{영역별 신뢰도를 조절하는 요인} (effect modifier) 으로 작동할 가능성을 시사한다. 본 절은 세 가지 보조 분석으로 이 가설을 부분 검증한다.
 
 \paragraph{1) Semantic Entropy 와 corpus 신호 사이의 직접 상관.}
-표~\ref{tab:se_corpus_corr} 는 Semantic Entropy 와 6개 corpus 신호 사이의 Spearman $\rho$ 를 보고한다. 모든 절대값이 0.02--0.16 범위에 머물러 두 신호군이 거의 직교하는 것에 가깝다. ``corpus 신호의 fusion lift 가 작은 이유는 SE 와 이미 상관이 높아 한계 정보가 작기 때문'' 이라는 가설은 이 데이터에서 강하게 지지되지 않는다. corpus 신호가 SE 와 무관함에도 불구하고 fusion 입력으로 +0.008 만 기여한다는 사실은, corpus 신호가 \emph{어떤 sample 의 정답 확률을 직접 예측하는 신호} 로는 약하다는 점을 의미한다.
+표~\ref{tab:se_corpus_corr} 는 Semantic Entropy 와 6개 corpus 신호 사이의 Spearman $\rho$ 를 보고한다. 모든 절대값이 0.02--0.16 범위에 머물러 두 신호군이 거의 직교하는 것에 가깝다. ``corpus 신호의 fusion lift 가 작은 이유는 SE 와 이미 상관이 높아 한계 정보가 작기 때문'' 이라는 가설은 이 데이터에서 강하게 지지되지 않는다. corpus 신호가 SE 와 무관함에도 불구하고 fusion 입력으로 +0.008 만 기여한다는 사실은, corpus 신호가 \emph{개별 sample 의 정답 확률을 직접 예측하는 신호} 로는 약하다는 점을 의미한다.
 
 \begin{table}[htbp]
 \centering
@@ -327,7 +327,7 @@ question-answer bridge (qa\_bridge\_axis)            & $-0.142$ & $-0.151$ \\
 표준화된 입력 ($-$Semantic Entropy, entity\_pair\_cooccurrence\_axis, 그리고 두 변수의 곱) 위에서 logistic regression 을 prompt 단위 5-fold GroupKFold OOF 로 학습한다. 두 모델을 비교한다. 첫째는 main effect 만 (SE + corpus), 둘째는 interaction term 까지 포함 (SE + corpus + SE$\times$corpus). 표준화 계수는 SE $+1.13$, corpus $-0.35$, interaction $-0.37$ 로, interaction 의 절대 크기가 corpus main effect 와 같은 수준이다. 그러나 OOF AUROC 는 0.7585 (no interaction) $\to$ 0.7590 (with interaction) 로 +0.0005 만 변동한다. interaction 자체는 통계적으로 0 이 아니지만, 예측 분리력을 끌어올리는 데는 기여하지 않는다. corpus 신호가 SE 의 \emph{개별 답변 단위 확률} 을 조절한다기보다는 SE 가 신뢰할 수 있는 \emph{영역의 경계} 를 정한다는 해석에 부합한다.
 
 \paragraph{3) Corpus 영역별 calibration.}
-표~\ref{tab:per_bin_calibration} 는 entity co-occurrence 10분위 구간 안에서 Semantic Entropy 의 sample 단위 정답률, AUROC, Brier, ECE 를 함께 보고한다. corpus 가 가장 부족한 구간 (00--10) 의 정답률은 0.27 인데 가장 풍부한 구간 (70--80) 은 0.38 로, 정답률이 약 1.4배 높다. AUROC 는 0.643 에서 0.793 로 $\Delta 0.150$ 변동하며, ECE (calibration 오차) 도 구간 사이에서 0.07--0.28 의 큰 변동을 보인다. 즉 SE 의 \emph{ranking 분리력} (AUROC) 과 \emph{확률 calibration} (ECE) 모두 corpus 영역에 따라 달라진다. 이는 SE 의 신뢰도가 corpus 영역에 의해 조절되는 (effect modification) 패턴이 단일 측정 인공물이 아니라 다중 평가 지표에서 일관되게 관찰되는 본질적 특성임을 시사한다.
+표~\ref{tab:per_bin_calibration} 는 entity co-occurrence 10분위 구간 안에서 Semantic Entropy 의 sample 단위 정답률, AUROC, Brier, ECE 를 함께 보고한다. corpus 가 가장 부족한 구간 (00--10) 의 정답률은 0.27 인데 가장 풍부한 구간 (70--80) 은 0.38 로, 정답률이 약 1.4배 높다. AUROC 는 0.643 에서 0.793 으로 $\Delta 0.150$ 변동하며, ECE (calibration 오차) 도 구간 사이에서 0.07--0.28 의 큰 변동을 보인다. 즉 SE 의 \emph{ranking 분리력} (AUROC) 과 \emph{확률 calibration} (ECE) 모두 corpus 영역에 따라 달라진다. 이는 SE 의 성능 자체가 corpus 영역에 의해 조절되는 effect modification 패턴이며, 특정 평가 지표에서만 나타나는 분석 절차의 부산물이 아니라 다중 평가 지표에서 일관되게 관찰되는 본질적 특성임을 보여준다.
 
 \begin{table}[htbp]
 \centering
@@ -356,7 +356,9 @@ Bin (entity co-occurrence 10분위) & n & 정답률 & AUROC & Brier & ECE \\
 \end{table}
 
 \paragraph{종합 해석.}
-세 보조 분석을 종합하면 비대칭의 부분적 메커니즘은 다음과 같다. (i) corpus 신호와 SE 는 거의 직교한다 ($|\rho| \leq 0.16$). (ii) corpus 신호는 SE 의 sample 단위 확률 예측 자체를 보강하지는 않는다 (interaction term 이 OOF AUROC 에 +0.0005 만 기여). (iii) 그럼에도 corpus 영역별로 SE 의 AUROC 와 ECE 가 큰 폭으로 변동하며 ($\Delta 0.150$ / ECE 0.07--0.28), 이는 SE 의 \emph{성능 자체} 가 corpus 영역에 의해 조절되는 effect modification 패턴이다. 즉 corpus 신호는 ``어느 영역에서 SE 를 신뢰해야 하는가'' 라는 \emph{메타 정보} 로 작용하며, ``개별 답변이 환각인가'' 를 직접 예측하는 정보로는 약하다. 본 비대칭은 이 두 역할의 차이를 정량화한 결과이며, 단순한 측정 인공물 (예: ranking metric 의 분포 의존성) 이 아니라 corpus 환경에 따른 모델 행동 변화를 반영한다고 해석된다. 다만 본 절은 부분 분석이며, 가능한 다른 메커니즘 (예: fusion 모델의 비선형성 한계, 10분위 이산화 효과) 의 완전한 배제는 향후 과제로 남긴다.
+세 보조 분석을 종합하면 비대칭의 부분적 메커니즘은 다음과 같다. (i) corpus 신호와 SE 는 거의 직교한다 ($|\rho| \leq 0.16$). (ii) corpus 신호는 SE 의 sample 단위 확률 예측 자체를 보강하지는 않는다 (interaction term 이 OOF AUROC 에 +0.0005 만 기여). (iii) 그럼에도 corpus 영역별로 SE 의 AUROC 와 ECE 가 큰 폭으로 변동하며 ($\Delta 0.150$ / ECE 0.07--0.28), 이는 SE 의 \emph{성능 자체} 가 corpus 영역에 의해 조절되는 effect modification 패턴이다.
+
+즉 corpus 신호는 ``어느 영역에서 SE 를 신뢰해야 하는가'' 라는 \emph{메타 정보} 로 작용하며, ``개별 답변이 환각인가'' 를 직접 예측하는 정보로는 약하다. 본 비대칭은 이 두 역할의 차이를 정량화한 결과이며, 특정 분석 방식에서만 우연히 나타난 결과 (예: ranking metric 의 분포 의존성) 가 아니라 corpus 환경에 따른 모델 행동 변화를 반영한다고 해석된다. 다만 본 절은 부분 분석이며, 가능한 다른 메커니즘 (예: fusion 모델의 비선형성 한계, 10분위 이산화 효과) 의 완전한 배제는 향후 과제로 남긴다.
 
 
 \section{Corpus 신호 단위별 분해 결과}\label{sec:axis}
@@ -534,7 +536,11 @@ baseline corpus 신호 (entity 빈도와 entity co-occurrence 의 평균) 로 sa
 \paragraph{Proxy corpus index 의 사용.}
 본 논문은 corpus 신호 산출에 Infini-gram 색인 \texttt{v4\_dolmasample\_olmo} (OLMo 의 16B Dolma sample) 을 사용하였다. 이는 Qwen2.5-3B 의 실제 사전학습 corpus 가 아니며, Qwen 의 사전학습 데이터는 공개되지 않았다. 따라서 본 논문이 측정한 ``corpus 뒷받침'' 은 모델이 실제로 학습한 데이터의 양이 아니라 투명하고 포괄적인 web-scale 색인 위에서 측정한 사실 등장 빈도이다.
 
-이러한 proxy 사용에는 정당화 근거가 있다. Web-scale 사전학습 corpus (Dolma, RedPajama, C4 등) 는 Common Crawl 기반의 공통 source 를 상당 부분 공유하므로, 한 transparent corpus 에서 산출한 통계가 다른 LLM 의 학습 노출에 대한 합리적 proxy 역할을 할 수 있다는 가정은 선행 연구에서도 채택되어 왔다 (예: Min 등 2025\cite{qucorag} 의 QuCo-RAG). 그러나 이 proxy 대체는 형식적으로 보장되지 않으며, 본 논문 결과의 해석에 두 가지 제약을 가한다. 첫째, corpus 뒷받침이 큰 sample 에서 Semantic Entropy AUROC 가 높게 관찰되는 결과는 ``모델이 학습해서 잘 안다'' 라는 인과 진술이 아니라, ``Dolma 와 같은 web 분포에서 자주 등장하는 사실은 Qwen 학습에서도 자주 등장했을 가능성이 높다'' 라는 간접 추론을 통해서만 해석된다. 둘째, entity co-occurrence 가 entity 빈도보다 약 \HeadlineEntityPairOverEntityFreqRatio{}배 큰 분해를 보인다는 비율 또한 Dolma 색인에 한정된 관찰이며, Qwen 의 실제 corpus 나 다른 모델의 corpus 에서는 두 단위의 비율이 달라질 수 있다. 따라서 본 결과는 corpus 빈도와 환각 사이의 상관 관찰에 한정되며, 모델 학습 가능성에 대한 인과 진술로 해석해서는 안 된다. 이 한계는 모델 제공자가 사전학습 corpus 를 공개하기 전까지 본 연구 설계에 내재하며, 후속 연구가 corpus 색인을 모델별 실제 학습 데이터로 교체하기 전에는 수치 자체의 외부 타당성에 분명한 제약이 있다.
+이러한 proxy 사용은 다음과 같은 근거로 정당화된다. Web-scale 사전학습 corpus (Dolma, RedPajama, C4 등) 는 Common Crawl 기반의 공통 source 를 상당 부분 공유하므로, 하나의 transparent corpus 에서 산출한 통계가 다른 LLM 의 학습 노출에 대한 합리적 proxy 역할을 할 수 있다는 가정은 선행 연구에서도 널리 채택되어 왔다 (예: Min 등 2025\cite{qucorag} 의 QuCo-RAG). 그러나 이 proxy 대체는 형식적으로 보장되지 않으며, 본 논문 결과의 해석에 두 가지 제약을 가한다.
+
+첫째, corpus 뒷받침이 큰 sample 에서 Semantic Entropy AUROC 가 높게 관찰되는 결과는 ``모델이 학습해서 잘 안다'' 라는 인과 진술이 아니라, ``Dolma 와 같은 web 분포에서 자주 등장하는 사실은 Qwen 학습에서도 자주 등장했을 가능성이 높다'' 라는 간접 추론을 통해서만 해석될 수 있다. 둘째, entity co-occurrence 가 entity 빈도보다 약 \HeadlineEntityPairOverEntityFreqRatio{}배 큰 분해를 보인다는 비율 또한 Dolma 색인에 한정된 관찰이며, Qwen 의 실제 corpus 나 다른 모델의 corpus 에서는 두 단위의 비율이 달라질 수 있다.
+
+따라서 본 결과는 corpus 빈도와 환각 사이의 상관 관찰에 한정되며, 모델 학습 가능성에 대한 인과 진술로 해석해서는 안 된다. 이 한계는 모델 제공자가 사전학습 corpus 를 공개하기 전까지 본 연구 설계에 내재하며, 후속 연구가 corpus 색인을 모델별 실제 학습 데이터로 교체하기 전에는 수치 자체의 외부 타당성에 분명한 제약이 있다.
 
 이외에도 다음과 같은 한계가 있다.
 
