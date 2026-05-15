@@ -62,3 +62,4 @@ thesis/*.fdb_latexmk
 .DS_Store
 .vscode/
 thesis_backup_candidate_row/
+texput.log
