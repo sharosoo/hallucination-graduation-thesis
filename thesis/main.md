@@ -156,11 +156,6 @@ Semantic Entropy 와 동일한 의미 cluster 구조 위에서 cluster 에너지
 과정에서 강도 정보를 잃는다는 점은 LLM 의 불확실성 표현 능력을 제한하는
 주요 요인으로 지적된다.
 
-토큰 단위 불확실성에 대한 또 다른 접근으로, Raghuvanshi 등
-(2025)[@raghuvanshi2025] 은 토큰 단위 log-likelihood, 양방향 NLI
-contradiction 신호, Semantic Entropy 를 결합한 하이브리드 탐지
-파이프라인을 제안하여 SQuAD2.0 에서 AUC 0.818 을 달성했다.
-
 ## Corpus 통계를 이용한 환각 탐지
 
 LLM 의 환각은 사전학습 corpus 에서 드물게 등장하는 사실과 강하게
@@ -189,15 +184,14 @@ Infini-gram[@infinigram2024] 은 n-gram 카운팅을 통해 corpus 통계 질의
 ## 다중 신호 결합 (Multi-Signal Fusion)
 
 단일 신호의 한계를 극복하기 위해 여러 신호를 결합하는 fusion 접근이
-활발히 연구되고 있다. Raghuvanshi 등 (2025)[@raghuvanshi2025] 은 토큰
-단위 불확실성, NLI 신호, Semantic Entropy 를 동적 가중 결합하여
-calibration 한계를 완화했다. ECLIPSE (Singha, 2025)[@singha2025eclipse]
-는 semantic entropy 와 새로운 perplexity 분해를 결합해 증거 활용 신호를
-추가하여 금융 QA 에서 AUC 0.89 를 달성했다. SEReDeEP (Wang,
-2025)[@wang2025seredeep] 는 RAG 환경에서 semantic entropy 와 attention
-메커니즘 신호를 결합하여 컨텍스트 의존성이 큰 환각 탐지를 강화했다.
-Valentin 등 (2024)[@valentin2024] 은 환각 탐지 점수를 모델 내부 score
-attribute 에 조건부로 calibrate 하는 다중 점수 프레임워크를 제안했다.
+활발히 연구되고 있다. ECLIPSE (Singha, 2025)[@singha2025eclipse] 는
+perplexity 분해로 증거 활용 신호 ($\Delta L$) 를 추출하여 금융 QA 에서
+AUC 0.89 (entropy-only baseline 0.50 대비 큰 폭 개선) 를 달성했다.
+SEReDeEP (Wang, 2025)[@wang2025seredeep] 는 RAG 환경에서 semantic
+entropy 와 context-parameter knowledge 균형 신호를 결합하여, ReDeEP 대비
+3% 이상 / SEP 대비 10% 이상의 환각 예측 정확도 향상을 보고했다. Valentin
+등 (2024)[@valentin2024] 은 환각 탐지 점수를 모델 내부 score attribute
+에 조건부로 calibrate 하는 다중 점수 프레임워크를 제안했다.
 
 이들 연구는 여러 신호의 결합이 단일 신호 대비 성능 향상으로 이어질 수
 있음을 보여준다. 그러나 선행 연구들은 공통적으로 corpus 통계를 탐지 신호
@@ -1052,27 +1046,24 @@ A. Nikitin, J. Kossen, Y. Gal, and P. Marttinen, "Kernel Language
 Entropy: Fine-grained Uncertainty Quantification for LLMs," *arXiv
 preprint arXiv:2405.20003*, 2024.
 
-K. Ciosek et al., "Bayesian Estimation of Semantic Entropy for
-Sample-Efficient Hallucination Detection," *arXiv preprint
-arXiv:2503.xxxxx*, 2025.
+K. Ciosek et al., "Hallucination Detection on a Budget: Efficient
+Bayesian Estimation of Semantic Entropy," *arXiv preprint
+arXiv:2504.03579*, 2025.
 
 Z. Ma et al., "Semantic Energy: A novel approach for detecting
 confabulation in language models," *arXiv preprint arXiv:2412.07965*,
 2025.
 
-A. Raghuvanshi et al., "Hybrid Token-Level Uncertainty and Semantic
-Entailment for Hallucination Detection," *arXiv preprint
-arXiv:2502.xxxxx*, 2025.
-
 A. Ravichander et al., "HALoGEN: Fantastic LLM Hallucinations and Where
 to Find Them," *arXiv preprint arXiv:2501.08292*, 2025.
 
-S. Singha, "ECLIPSE: Evidence-Conditioned Hallucination Detection via
-Perplexity Decomposition for Financial QA," *arXiv preprint
-arXiv:2510.xxxxx*, 2025.
+S. Singha, "Detecting AI Hallucinations in Finance: An
+Information-Theoretic Method Cuts Hallucination Rate by 92%," *arXiv
+preprint arXiv:2512.03107*, 2025.
 
-H. Wang, "SEReDeEP: Semantic Entropy + Retrieval-Aware Detection for
-Enhanced Evaluation Pipelines," *arXiv preprint arXiv:2509.xxxxx*, 2025.
+L. Wang, "SEReDeEP: Hallucination Detection in Retrieval-Augmented
+Models via Semantic Entropy and Context-Parameter Fusion," *arXiv
+preprint arXiv:2505.07528*, 2025.
 
 S. Valentin et al., "Cost-Effective Hallucination Detection for LLMs,"
 *arXiv preprint arXiv:2407.21424*, 2024.
