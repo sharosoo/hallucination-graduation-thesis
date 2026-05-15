@@ -916,10 +916,12 @@ SE 패턴의 유사성을 보고한 점은 일반화 가능성을 시사하나, 
     Zhang 2025[@zhang2025corpus], Min 2025[@qucorag] 등) 는 제출 시점
     (2026년 2월) 기준 peer review 를 거치지 않았으며, 보고된 수치의
     재현성은 독립 검증이 필요하다. 본 논문 §2 의 해당 인용은 갈래 정리
-    목적에 한정하며, 메인 결과의 비교 기준 (Farquhar 2024
-    Nature[@farquhar2024], Ma 2025[@ma2025], Kandpal 2023
-    ICML[@kandpal2023longtail], Mallen 2023 ACL[@mallen2023whennot]) 은
-    모두 peer-reviewed venue 출판물이다.
+    목적에 한정한다. 메인 결과의 비교 기준 가운데 Kandpal 2023
+    ICML[@kandpal2023longtail], Mallen 2023 ACL[@mallen2023whennot],
+    Farquhar 2024 Nature[@farquhar2024] 는 peer-reviewed venue
+    출판물이다. 한편 Ma 2025[@ma2025] Semantic Energy 는 OpenReview 기준
+    ICLR 2026 제출본 (preprint) 으로 peer review 절차가 진행 중이며, 본
+    논문은 이를 "최신 비교 기준" 으로만 사용한다.
 
 ## 향후 연구
 
@@ -1004,18 +1006,20 @@ Hallucination Detection in LLMs," *arXiv preprint arXiv:2406.15927*,
 2024.
 
 A. Nikitin, J. Kossen, Y. Gal, and P. Marttinen, "Kernel Language
-Entropy: Fine-grained Uncertainty Quantification for LLMs," *arXiv
-preprint arXiv:2405.20003*, 2024.
+Entropy: Fine-grained Uncertainty Quantification for LLMs," *Advances in
+Neural Information Processing Systems (NeurIPS)*, 2024.
+arXiv:2405.20003.
 
 K. Ciosek et al., "Hallucination Detection on a Budget: Efficient
-Bayesian Estimation of Semantic Entropy," *arXiv preprint
-arXiv:2504.03579*, 2025.
+Bayesian Estimation of Semantic Entropy," *Transactions on Machine
+Learning Research (TMLR)*, 2025. arXiv:2504.03579.
 
 H. Ma et al., "Semantic Energy: Detecting LLM Hallucination Beyond
 Entropy," *arXiv preprint arXiv:2508.14496*, 2025.
 
 A. Ravichander et al., "HALoGEN: Fantastic LLM Hallucinations and Where
-to Find Them," *arXiv preprint arXiv:2501.08292*, 2025.
+to Find Them," *Proceedings of ACL (Long Papers)*, 2025.
+arXiv:2501.08292.
 
 S. Singha, "Detecting AI Hallucinations in Finance: An
 Information-Theoretic Method Cuts Hallucination Rate by 92%," *arXiv
@@ -1026,7 +1030,7 @@ Models via Semantic Entropy and Context-Parameter Fusion," *arXiv
 preprint arXiv:2505.07528*, 2025.
 
 S. Valentin et al., "Cost-Effective Hallucination Detection for LLMs,"
-*arXiv preprint arXiv:2407.21424*, 2024.
+*KDD 2024 GenAI Evaluation Workshop*, 2024. arXiv:2407.21424.
 
 W. Zhao et al., "WildHallucinations: Evaluating Long-form Factuality in
 LLMs with Real-World Entity Queries," *arXiv preprint arXiv:2407.17468*,
@@ -1037,11 +1041,12 @@ on Hallucination Detection in Large Language Models," *arXiv preprint
 arXiv:2511.17946*, 2025.
 
 D. Min et al., "QuCo-RAG: Quantifying Uncertainty from the Pre-training
-Corpus for Dynamic Retrieval-Augmented Generation," *arXiv preprint
-arXiv:2512.19134*, 2025.
+Corpus for Dynamic Retrieval-Augmented Generation," *Findings of ACL (to
+appear)*, 2026. arXiv:2512.19134.
 
 J. Liu et al., "Infini-gram: Scaling Unbounded n-gram Language Models to
-a Trillion Tokens," *arXiv preprint arXiv:2401.17377*, 2024.
+a Trillion Tokens," *Conference on Language Modeling (COLM)*, 2024.
+arXiv:2401.17377.
 
 A. Yang et al., "Qwen2.5 Technical Report," *arXiv preprint
 arXiv:2412.15115*, 2024.

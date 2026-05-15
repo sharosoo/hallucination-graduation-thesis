@@ -527,7 +527,7 @@ baseline corpus 신호 (entity 빈도와 entity co-occurrence 의 평균) 로 sa
     \item \textbf{데이터셋 이질성.} 표~\ref{tab:per_dataset_delta} 에서 NQ-Open 은 부호가 역전되며 (entity 빈도 0.372 > entity co-occurrence 0.250), 비율은 BioASQ 2.92배에서 NQ-Open 0.67배까지 변동한다. NQ-Open 두 번째 구간 (20--30) 의 AUROC 0.266 outlier 는 정답률 0.058 (120개 중 7개) 의 클래스 불균형에서 일부 비롯되나 분포 skew 의 근본 원인 (질문 유형, entity 분포) 은 미규명이다. 따라서 표본 종합 비율은 데이터셋 종합 통계이며, 도메인별 최적 단위가 달라질 가능성은 본 연구 범위 밖이다.
     \item \textbf{통계 정밀도.} (i) 두 AUROC range 차이의 95\% 신뢰구간은 SE [+\HeadlinePairMinusFreqSECIlow{}, +\HeadlinePairMinusFreqSECIhigh{}], Energy [+\HeadlinePairMinusFreqEnergyCIlow{}, +\HeadlinePairMinusFreqEnergyCIhigh{}] 로 0 을 포함하지 않으나 단일 모델·단일 corpus 색인 위의 표본 변동성만 통제한다. max$-$min 순서통계량 특성상 구간 수에 따라 비율 절대 크기가 달라진다. (ii) Fusion lift 95\% 신뢰구간 [+\HeadlineFusionLiftCIlow{}, +\HeadlineFusionLiftCIhigh{}] 도 0 을 포함하지 않으나 절대 크기 (+0.008) 는 답변·sample 단위 신호 결합 효과 (+0.026) 의 약 3분의 1 수준이다. (iii) 표~\ref{tab:axis_decomp} 의 21개 동시 검정에 다중비교 보정 (Bonferroni $\alpha$=0.05/21$\approx$0.0024) 을 적용하면 모든 $\rho$ 가 유의 기준을 충족하지 않으므로 $\rho$ 결과는 예비 분석으로 한정한다. n=10 검정력 부족으로 $|\rho|$=0.65 부근의 결과는 구간 폭과 동순위 처리에 민감하다. (iv) AUROC range 와 단조성 ($\rho$) 은 분리 진단을 위해 함께 보고되었으나, 보다 강건한 검정 (Mann-Kendall, partial $\rho$) 은 후속 과제이다.
     \item \textbf{분석 미수행.} (i) Fusion 모델 +0.026 향상이 SE / Energy / 답변 단위 logit 통계 중 어느 신호 결합에서 비롯되었는지에 대한 입력 변수별 기여도 분해 (permutation importance, SHAP) 는 수행하지 않았다. (ii) 본 연구는 추가 context 없는 단순 prompt 위에서 수행되었으며, RAG 또는 multi-turn agentic 환경에서의 일반화는 미검증이다.
-    \item \textbf{선행 연구 인용 검증 한계.} 본 논문이 인용한 2025년 arXiv preprint 일부 (Singha 2025\cite{singha2025eclipse}, Wang 2025\cite{wang2025seredeep}, Zhang 2025\cite{zhang2025corpus}, Min 2025\cite{qucorag} 등) 는 제출 시점 (2026년 2월) 기준 peer review 를 거치지 않았으며, 보고된 수치의 재현성은 독립 검증이 필요하다. 본 논문 §2 의 해당 인용은 갈래 정리 목적에 한정하며, 메인 결과의 비교 기준 (Farquhar 2024 Nature\cite{farquhar2024}, Ma 2025\cite{ma2025}, Kandpal 2023 ICML\cite{kandpal2023longtail}, Mallen 2023 ACL\cite{mallen2023whennot}) 은 모두 peer-reviewed venue 출판물이다.
+    \item \textbf{선행 연구 인용 검증 한계.} 본 논문이 인용한 2025년 arXiv preprint 일부 (Singha 2025\cite{singha2025eclipse}, Wang 2025\cite{wang2025seredeep}, Zhang 2025\cite{zhang2025corpus}, Min 2025\cite{qucorag} 등) 는 제출 시점 (2026년 2월) 기준 peer review 를 거치지 않았으며, 보고된 수치의 재현성은 독립 검증이 필요하다. 본 논문 §2 의 해당 인용은 갈래 정리 목적에 한정한다. 메인 결과의 비교 기준 가운데 Kandpal 2023 ICML\cite{kandpal2023longtail}, Mallen 2023 ACL\cite{mallen2023whennot}, Farquhar 2024 Nature\cite{farquhar2024} 는 peer-reviewed venue 출판물이다. 한편 Ma 2025\cite{ma2025} Semantic Energy 는 OpenReview 기준 ICLR 2026 제출본 (preprint) 으로 peer review 절차가 진행 중이며, 본 논문은 이를 ``최신 비교 기준'' 으로만 사용한다.
 \end{enumerate}
 
 \section{향후 연구}
@@ -599,12 +599,12 @@ J. Kossen et al.,
 \bibitem{nikitin2024kle}
 A. Nikitin, J. Kossen, Y. Gal, and P. Marttinen,
 ``Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs,''
-\textit{arXiv preprint arXiv:2405.20003}, 2024.
+\textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2024. arXiv:2405.20003.
 
 \bibitem{ciosek2025bayes}
 K. Ciosek et al.,
 ``Hallucination Detection on a Budget: Efficient Bayesian Estimation of Semantic Entropy,''
-\textit{arXiv preprint arXiv:2504.03579}, 2025.
+\textit{Transactions on Machine Learning Research (TMLR)}, 2025. arXiv:2504.03579.
 
 \bibitem{ma2025}
 H. Ma et al.,
@@ -614,7 +614,7 @@ H. Ma et al.,
 \bibitem{ravichander2025halogen}
 A. Ravichander et al.,
 ``HALoGEN: Fantastic LLM Hallucinations and Where to Find Them,''
-\textit{arXiv preprint arXiv:2501.08292}, 2025.
+\textit{Proceedings of ACL (Long Papers)}, 2025. arXiv:2501.08292.
 
 \bibitem{singha2025eclipse}
 S. Singha,
@@ -629,7 +629,7 @@ L. Wang,
 \bibitem{valentin2024}
 S. Valentin et al.,
 ``Cost-Effective Hallucination Detection for LLMs,''
-\textit{arXiv preprint arXiv:2407.21424}, 2024.
+\textit{KDD 2024 GenAI Evaluation Workshop}, 2024. arXiv:2407.21424.
 
 \bibitem{wildhallucinations2024}
 W. Zhao et al.,
@@ -644,12 +644,12 @@ Y. Zhang et al.,
 \bibitem{qucorag}
 D. Min et al.,
 ``QuCo-RAG: Quantifying Uncertainty from the Pre-training Corpus for Dynamic Retrieval-Augmented Generation,''
-\textit{arXiv preprint arXiv:2512.19134}, 2025.
+\textit{Findings of ACL (to appear)}, 2026. arXiv:2512.19134.
 
 \bibitem{infinigram2024}
 J. Liu et al.,
 ``Infini-gram: Scaling Unbounded n-gram Language Models to a Trillion Tokens,''
-\textit{arXiv preprint arXiv:2401.17377}, 2024.
+\textit{Conference on Language Modeling (COLM)}, 2024. arXiv:2401.17377.
 
 \bibitem{qwen25}
 A. Yang et al.,
